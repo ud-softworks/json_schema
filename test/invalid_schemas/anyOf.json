@@ -1,0 +1,32 @@
+[
+    {
+        "description" : "anyOf: must be an array - not string",
+        "schema" : { "anyOf" : "foo" }
+    },
+    {
+        "description" : "anyOf: must be an array - not int",
+        "schema" : { "anyOf" : 42 }
+    },
+    {
+        "description" : "anyOf: must be an array - not num",
+        "schema" : { "anyOf" : 3.14 }
+    },
+    {
+        "description" : "anyOf: must be an array - not object",
+        "schema" : { "anyOf" : {} }
+    },
+    {
+        "description" : "anyOf: must be a non-empty array",
+        "schema" : { "anyOf" : [] }
+    },
+    {
+        "description" : "anyOf: elements must be valid schemas",
+        "schema" : { 
+            "anyOf" : [
+                {
+                    "minimum" : "foo"
+                }
+            ] 
+        }
+    }
+]

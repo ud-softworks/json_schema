@@ -1,0 +1,18 @@
+[
+    {
+        "description" : "description: must be a string - not object",
+        "schema" : { "description" : {} }
+    },
+    {
+        "description" : "description: must be a string - not array",
+        "schema" : { "description" : [] }
+    },
+    {
+        "description" : "description: must be a string - not int",
+        "schema" : { "description" : 3 }
+    },
+    {
+        "description" : "description: must be a string - not number",
+        "schema" : { "description" : 3.14 }
+    }
+]

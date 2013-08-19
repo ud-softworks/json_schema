@@ -1,0 +1,24 @@
+[
+    {
+        "description" : "additionalProperties: must be a boolean or object - not string",
+        "schema" : { "additionalProperties" : "foo" }
+    },
+    {
+        "description" : "additionalProperties: must be a boolean or object - not int",
+        "schema" : { "additionalProperties" : 3 }
+    },
+    {
+        "description" : "additionalProperties: must be a boolean or object - not number",
+        "schema" : { "additionalProperties" : 3.14 }
+    },
+    {
+        "description" : "additionalProperties: must be a boolean or object - not array",
+        "schema" : { "additionalProperties" : [] }
+    },
+    {
+        "description" : "additionalProperties: if object must be valid json schema",
+        "schema" : { 
+            "additionalProperties" : []
+        }
+    }
+]

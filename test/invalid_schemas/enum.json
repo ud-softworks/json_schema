@@ -1,0 +1,34 @@
+[
+    {
+        "description" : "enum: must be an array - not string",
+        "schema" : { "enum" : "foo" }
+    },
+    {
+        "description" : "enum: must be an array - not int",
+        "schema" : { "enum" : 42 }
+    },
+    {
+        "description" : "enum: must be an array - not num",
+        "schema" : { "enum" : 3.14 }
+    },
+    {
+        "description" : "enum: must be an array - not object",
+        "schema" : { "enum" : {} }
+    },
+    {
+        "description" : "enum: must be a non-empty array",
+        "schema" : { "enum" : [] }
+    },
+    {
+        "description" : "enum: elements must be unique",
+        "schema" : { "enum" : [3,4,3] }
+    },
+    {
+        "description" : "enum: elements must be deeply unique",
+        "schema" : { "enum" : [ 
+            {"c":"d", "a":"b"}, 
+            4, 
+            {"a":"b", "c":"d"} 
+        ] }
+    }
+]

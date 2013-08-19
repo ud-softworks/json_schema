@@ -1,0 +1,22 @@
+[
+    {
+        "description" : "patternProperties: must be an object - not array",
+        "schema" : { "patternProperties" : [] }
+    },
+    {
+        "description" : "patternProperties: must be an object - not int",
+        "schema" : { "patternProperties" : 3 }
+    },
+    {
+        "description" : "patternProperties: must be an object - not number",
+        "schema" : { "patternProperties" : 3.14 }
+    },
+    {
+        "description" : "patternProperties: must be an object and each value must be valid schema",
+        "schema" : { 
+            "patternProperties" : {
+                "foo" : []
+            }
+        }
+    }
+]

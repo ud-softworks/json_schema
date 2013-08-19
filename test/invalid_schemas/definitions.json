@@ -1,0 +1,28 @@
+[
+    {
+        "description" : "definitions: must be an object - not string",
+        "schema" : { "definitions" : "foo" }
+    },
+    {
+        "description" : "definitions: must be an object - not int",
+        "schema" : { "definitions" : 3 }
+    },
+    {
+        "description" : "definitions: must be an object - not num",
+        "schema" : { "definitions" : 3.14 }
+    },
+    {
+        "description" : "definitions: must be an object - not array",
+        "schema" : { "definitions" : [] }
+    },
+    {
+        "description" : "definitions: must be an object and each value must be valid schema",
+        "schema" : { 
+            "definitions" : {
+                "definition_1" : {
+                    "minimum" : "goo"
+                }
+            }
+        }
+    }
+]

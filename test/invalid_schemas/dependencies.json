@@ -1,0 +1,50 @@
+[
+    {
+        "description" : "dependencies: must be an object - not string",
+        "schema" : { "dependencies" : "foo" }
+    },
+    {
+        "description" : "dependencies: must be an object - not int",
+        "schema" : { "dependencies" : 3 }
+    },
+    {
+        "description" : "dependencies: must be an object - not num",
+        "schema" : { "dependencies" : 3.14 }
+    },
+    {
+        "description" : "dependencies: must be an object - not array",
+        "schema" : { "dependencies" : [] }
+    },
+    {
+        "description" : "dependencies: property dependencies non-empty array",
+        "schema" : { 
+            "dependencies" : {
+                "p1" : []
+            }
+        }
+    },
+    {
+        "description" : "dependencies: property dependencies must be strings",
+        "schema" : { 
+            "dependencies" : {
+                "p1" : [ 1 ]
+            }
+        }
+    },
+    {
+        "description" : "dependencies: property dependencies must be strings with no dupes",
+        "schema" : { 
+            "dependencies" : {
+                "p1" : [ "a", "b", "a" ]
+            }
+        }
+    },
+    {
+        "description" : "dependencies: schema dependencies must be valid schema",
+        "schema" : { 
+            "dependencies" : {
+                "p1" : { "minimum" : "oops" }
+            }
+        }
+    }
+]

@@ -1,0 +1,26 @@
+[
+    {
+        "description" : "not: must be an object - not string",
+        "schema" : { "not" : "foo" }
+    },
+    {
+        "description" : "not: must be an object - not int",
+        "schema" : { "not" : 42 }
+    },
+    {
+        "description" : "not: must be an object - not num",
+        "schema" : { "not" : 3.14 }
+    },
+    {
+        "description" : "not: must be an object - not num",
+        "schema" : { "not" : [] }
+    },
+    {
+        "description" : "not: object must valid schema",
+        "schema" : { 
+            "not" : {
+                "minimum" : "foo"
+            }
+        }
+    }
+]

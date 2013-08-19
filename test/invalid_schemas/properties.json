@@ -1,0 +1,26 @@
+[
+    {
+        "description" : "properties: must be an object",
+        "schema" : { "properties" : "foo" }
+    },
+    {
+        "description" : "properties: must be an object",
+        "schema" : { "properties" : 3 }
+    },
+    {
+        "description" : "properties: must be an object",
+        "schema" : { "properties" : 3.14 }
+    },
+    {
+        "description" : "properties: must be an object",
+        "schema" : { "properties" : [] }
+    },
+    {
+        "description" : "properties: must be an object where values are schemas",
+        "schema" : { 
+            "properties" : {
+                "foo" : []
+            }
+        }
+    }
+]

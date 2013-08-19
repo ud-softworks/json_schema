@@ -14,6 +14,7 @@ void main() {
     ..libraries = [
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'
+      ..includeLogger = true
       ..enums = [
         enum_('schema_type')
         ..isSnakeString = true
@@ -39,7 +40,7 @@ void main() {
           ..doc = 'Text defining the schema for validation'
           ..ctors = [ 'fromString' ],
           member('schema_map')
-          ..type = 'Map'
+          ..type = 'dynamic'
           ..classInit = '{}'
           ..ctors = [ 'fromMap' ],
           member('path')
@@ -63,21 +64,32 @@ void main() {
           member('pattern')
           ..type = 'RegExp',
           
-          member('id'),
-          member('description'),
+          // Validation keywords for any instance
+          member('enum_values')
+          ..type = 'List',
           member('schema_type')
           ..type = 'SchemaType',
-          member('schema_type_list')
-          ..type = 'List<SchemaType>',
-          member('property_schemas')
-          ..type = 'Map<String,Schema>'
-          ..classInit = '{}',
           member('all_of')
           ..type = 'List<Schema>',
           member('any_of')
           ..type = 'List<Schema>',
           member('one_of')
           ..type = 'List<Schema>',
+          member('not_schema')
+          ..type = 'Schema',
+          member('definitions')
+          ..type = 'Map<String,Schema>',
+
+          // Meta-data
+          member('id'),
+          member('description'),
+          member('title'),
+
+          member('schema_type_list')
+          ..type = 'List<SchemaType>',
+          member('properties')
+          ..type = 'Map<String,Schema>'
+          ..classInit = '{}',
           member('items')
           ..type = 'Schema',
           member('items_list')
@@ -98,6 +110,17 @@ void main() {
           ..type = 'int',
           member('min_properties')
           ..type = 'int',
+          member('additional_properties')
+          ..type = 'bool',
+          member('additional_properties_schema')
+          ..type = 'Schema',
+          member('pattern_properties')
+          ..type = 'Map',
+
+          member('schema_dependencies')
+          ..type = 'Map<String,Schema>',
+          member('property_dependencies')
+          ..type = 'List<String>',
 
           member('default_value')
           ..type = 'dynamic',

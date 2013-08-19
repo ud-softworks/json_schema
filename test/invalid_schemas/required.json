@@ -1,0 +1,18 @@
+[
+    {
+        "description" : "required: must be non-empty array, not a string ",
+        "schema" : { "required" : "foo" }
+    },
+    {
+        "description" : "required: must be non-empty array, not an object",
+        "schema" : { "required" : {} }
+    },
+    {
+        "description" : "required: must be non-empty array, not an int",
+        "schema" : { "required" : 3 }
+    },
+    {
+        "description" : "required: must be non-empty array",
+        "schema" : { "required" : [] }
+    }
+]

@@ -7,7 +7,7 @@ main() {
   //var schema  = new Schema.fromString(gradesSchema);
   var validator = new Validator(schema);
   print(validator.validateJsonString(gradesSchema));
-  print(schema);
+  print(pp(schema));
 
 }
 

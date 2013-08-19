@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "minLength: must be an integer - not string",
+        "schema" : { "minLength" : "foo" }
+    },
+    {
+        "description" : "minLength: must be an integer - not num",
+        "schema" : { "minLength" : 1.5 }
+    },
+    {
+        "description" : "minLength: must be >= 0",
+        "schema" : { "minLength" : -1 }
+    }
+]

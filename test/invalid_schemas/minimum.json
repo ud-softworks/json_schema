@@ -1,0 +1,10 @@
+[
+    {
+        "description" : "minimum: must be a JSON number, not a string",
+        "schema" : { "minimum" : "foo" }
+    },
+    {
+        "description" : "minimum: must be a JSON number, not an array",
+        "schema" : { "minimum" : [] }
+    }
+]

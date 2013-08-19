@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "maxLength: must be an integer - not string",
+        "schema" : { "maxLength" : "foo" }
+    },
+    {
+        "description" : "maxLength: must be an integer - not num",
+        "schema" : { "maxLength" : 1.5 }
+    },
+    {
+        "description" : "maxLength: must be >= 0",
+        "schema" : { "maxLength" : -1 }
+    }
+]

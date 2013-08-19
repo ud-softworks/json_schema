@@ -1,0 +1,10 @@
+[
+    {
+        "description" : "type: must be 'string' or 'array', not integer",
+        "schema" : { "type" : 3 }
+    },
+    {
+        "description" : "type: must be 'string' or 'array', not object",
+        "schema" : { "type" : {} }
+    }
+]

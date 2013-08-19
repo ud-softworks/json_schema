@@ -1,0 +1,18 @@
+[
+    {
+        "description" : "minProperties: must be a non-negative int - not string",
+        "schema" : { "minProperties" : "foo" }
+    },
+    {
+        "description" : "minProperties: must be a non-negative int - not object",
+        "schema" : { "minProperties" : {} }
+    },
+    {
+        "description" : "minProperties: must be a non-negative int - not array",
+        "schema" : { "minProperties" : [] }
+    },
+    {
+        "description" : "minProperties: must be a non-negative int - not num",
+        "schema" : { "minProperties" : 3.14 }
+    }
+]

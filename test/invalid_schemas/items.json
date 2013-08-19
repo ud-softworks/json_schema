@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "items: must be an array or object, not a string",
+        "schema" : { "items" : "foo" }
+    },
+    {
+        "description" : "items: must be an array or object, not a int",
+        "schema" : { "items" : 42 }
+    },
+    {
+        "description" : "items: must be an array or object, not a num",
+        "schema" : { "items" : 3.14 }
+    }
+]

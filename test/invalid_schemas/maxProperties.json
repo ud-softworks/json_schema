@@ -1,0 +1,18 @@
+[
+    {
+        "description" : "maxProperties: must be a non-negative int - not string",
+        "schema" : { "maxProperties" : "foo" }
+    },
+    {
+        "description" : "maxProperties: must be a non-negative int - not object",
+        "schema" : { "maxProperties" : {} }
+    },
+    {
+        "description" : "maxProperties: must be a non-negative int - not array",
+        "schema" : { "maxProperties" : [] }
+    },
+    {
+        "description" : "maxProperties: must be a non-negative int - not num",
+        "schema" : { "maxProperties" : 3.14 }
+    }
+]

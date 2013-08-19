@@ -1,0 +1,10 @@
+[
+    {
+        "description" : "maximum: must be a JSON number, not a string",
+        "schema" : { "maximum" : "foo" }
+    },
+    {
+        "description" : "maximum: must be a JSON number, not an array",
+        "schema" : { "maximum" : [] }
+    }
+]

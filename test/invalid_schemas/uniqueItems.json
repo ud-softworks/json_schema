@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "uniqueItems: must be a boolean - not a string",
+        "schema" : { "uniqueItems" : "foo" }
+    },
+    {
+        "description" : "uniqueItems: must be a boolean - not an array ",
+        "schema" : { "maximum" : [] }
+    },
+    {
+        "description" : "uniqueItems: must be a boolean - not an object ",
+        "schema" : { "maximum" : {} }
+    }
+]

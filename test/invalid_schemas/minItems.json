@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "minItems: must be an integer - not string",
+        "schema" : { "minItems" : "foo" }
+    },
+    {
+        "description" : "minItems: must be an integer - not num",
+        "schema" : { "minItems" : 1.5 }
+    },
+    {
+        "description" : "minItems: must be >= 0",
+        "schema" : { "minItems" : -1 }
+    }
+]

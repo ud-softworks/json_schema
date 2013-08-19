@@ -30,26 +30,8 @@ void main() {
         'package:plus/pprint.dart',
       ]
       ..classes = [
-        class_('invalid_schema')
-        ..doc = 'Exception indicating the schema is not conformant'
-        ..implement = ['Exception'],
-        class_('i_schema')
-        ..isAbstract = true,
-        class_('numeric_schema')
-        ..defaultMemberAccess = IA
-        ..implement = [ 'ISchema' ],
-        class_('string_schema')
-        ..defaultMemberAccess = IA
-        ..implement = [ 'ISchema' ],
-        class_('array_schema')
-        ..defaultMemberAccess = IA
-        ..implement = [ 'ISchema' ],
-        class_('object_schema')
-        ..defaultMemberAccess = IA
-        ..implement = [ 'ISchema' ],
         class_('schema')
         ..defaultMemberAccess = IA
-        ..implement = [ 'ISchema' ]
         ..ctorCustoms = [ 'fromString', 'fromMap' ]
         ..doc = 'Constructed with a json schema, either as string or Map'
         ..members = [
@@ -63,25 +45,6 @@ void main() {
           member('path')
           ..ctorInit = "'#'"
           ..ctorsOpt = [ 'fromMap', 'fromString' ],
-          member('id'),
-          member('description'),
-          member('schema_type')
-          ..type = 'SchemaType',
-          member('property_schemas')
-          ..type = 'Map<String,Schema>'
-          ..classInit = '{}',
-          member('all_of')
-          ..type = 'List<Schema>',
-          member('any_of')
-          ..type = 'List<Schema>',
-          member('one_of')
-          ..type = 'List<Schema>',
-          member('item_schema')
-          ..type = 'Schema',
-          member('required_properties')
-          ..type = 'List<String>',
-          member('default_value')
-          ..type = 'dynamic',
 
           member('multiple_of')
           ..type = 'num',
@@ -93,8 +56,65 @@ void main() {
           ..type = 'num',
           member('exclusive_minimum')
           ..type = 'bool',
+          member('max_length')
+          ..type = 'int',
+          member('min_length')
+          ..type = 'int',
+          member('pattern')
+          ..type = 'RegExp',
+          
+          member('id'),
+          member('description'),
+          member('schema_type')
+          ..type = 'SchemaType',
+          member('schema_type_list')
+          ..type = 'List<SchemaType>',
+          member('property_schemas')
+          ..type = 'Map<String,Schema>'
+          ..classInit = '{}',
+          member('all_of')
+          ..type = 'List<Schema>',
+          member('any_of')
+          ..type = 'List<Schema>',
+          member('one_of')
+          ..type = 'List<Schema>',
+          member('items')
+          ..type = 'Schema',
+          member('items_list')
+          ..type = 'List<Schema>',
+          member('additional_items')
+          ..type = 'dynamic',
+          member('max_items')
+          ..type = 'int',
+          member('min_items')
+          ..type = 'int',
+          member('unique_items')
+          ..type = 'bool'
+          ..classInit = 'false',
+
+          member('required_properties')
+          ..type = 'List<String>',
+          member('max_properties')
+          ..type = 'int',
+          member('min_properties')
+          ..type = 'int',
+
+          member('default_value')
+          ..type = 'dynamic',
 
         ],
+        class_('numeric_schema')
+        ..defaultMemberAccess = IA
+        ..extend = 'Schema',
+        class_('string_schema')
+        ..defaultMemberAccess = IA
+        ..extend = 'Schema',
+        class_('array_schema')
+        ..defaultMemberAccess = IA
+        ..extend = 'Schema',
+        class_('object_schema')
+        ..defaultMemberAccess = IA
+        ..extend = 'Schema',
         class_('validator')
         ..defaultMemberAccess = IA
         ..doc = 'Initialized with schema and will validate json instances against it'

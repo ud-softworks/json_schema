@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "pattern: must be a string - not object",
+        "schema" : { "pattern" : {} }
+    },
+    {
+        "description" : "pattern: must be a string - not array",
+        "schema" : { "pattern" : [] }
+    },
+    {
+        "description" : "pattern: must be a string - not number",
+        "schema" : { "pattern" : 3.14 }
+    }
+]

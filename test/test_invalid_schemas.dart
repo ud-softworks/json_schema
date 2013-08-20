@@ -12,7 +12,7 @@ main() {
 
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
-  logFormatExceptions = true;
+  // logFormatExceptions = true;
 
   Options options = new Options();
   String here = path.dirname(path.absolute(options.script));

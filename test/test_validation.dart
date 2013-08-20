@@ -3,8 +3,18 @@ import "dart:json" as JSON;
 import 'package:unittest/unittest.dart';
 import "package:json_schema/json_schema.dart";
 import "package:pathos/path.dart" as path;
+import "package:logging/logging.dart";
+import "package:logging_handlers/logging_handlers_shared.dart";
 
 main() {
+
+  Logger.root.onRecord.listen(new PrintHandler());
+  Logger.root.level = Level.FINE;
+
+  ////////////////////////////////////////////////////////////////////////
+  // Uncomment to see logging of excpetions
+  logFormatExceptions = true;
+
   Options options = new Options();
   String here = path.dirname(path.absolute(options.script));
   Directory testSuiteFolder = 
@@ -31,7 +41,9 @@ validationDescription: $validationDescription
 instance: $instance
 expectedResult: $expectedResult
 ''');
-          Schema schema = new Schema.fromMap(schemaData);
+          var schema = new Schema.fromMap(schemaData);
+          var validator = new Validator(schema);
+          print("Valid => ${validator.validate(schemaData)}");
         });
       });
     }

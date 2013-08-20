@@ -100,7 +100,6 @@ class Schema {
   int _minLength;
   RegExp _pattern;
   List _enumValues;
-  SchemaType _schemaType;
   List<Schema> _allOf;
   List<Schema> _anyOf;
   List<Schema> _oneOf;
@@ -375,7 +374,7 @@ class Schema {
   }
   _getType(dynamic value) {
     if(value is String) {
-      _schemaType = SchemaType.fromString(value);
+      _schemaTypeList = [ SchemaType.fromString(value) ];
     } else if(value is List) {
       _schemaTypeList = value.map((v) =>
           SchemaType.fromString(v)).toList();
@@ -535,30 +534,6 @@ ${i}}
   }
 
   // end <class Schema>
-}
-
-class NumericSchema extends Schema {
-
-  // custom <class NumericSchema>
-  // end <class NumericSchema>
-}
-
-class StringSchema extends Schema {
-
-  // custom <class StringSchema>
-  // end <class StringSchema>
-}
-
-class ArraySchema extends Schema {
-
-  // custom <class ArraySchema>
-  // end <class ArraySchema>
-}
-
-class ObjectSchema extends Schema {
-
-  // custom <class ObjectSchema>
-  // end <class ObjectSchema>
 }
 
 /// Initialized with schema and will validate json instances against it

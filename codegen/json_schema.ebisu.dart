@@ -67,8 +67,6 @@ void main() {
           // Validation keywords for any instance
           member('enum_values')
           ..type = 'List',
-          member('schema_type')
-          ..type = 'SchemaType',
           member('all_of')
           ..type = 'List<Schema>',
           member('any_of')
@@ -126,18 +124,6 @@ void main() {
           ..type = 'dynamic',
 
         ],
-        class_('numeric_schema')
-        ..defaultMemberAccess = IA
-        ..extend = 'Schema',
-        class_('string_schema')
-        ..defaultMemberAccess = IA
-        ..extend = 'Schema',
-        class_('array_schema')
-        ..defaultMemberAccess = IA
-        ..extend = 'Schema',
-        class_('object_schema')
-        ..defaultMemberAccess = IA
-        ..extend = 'Schema',
         class_('validator')
         ..defaultMemberAccess = IA
         ..doc = 'Initialized with schema and will validate json instances against it'

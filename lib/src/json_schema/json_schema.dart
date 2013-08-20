@@ -48,7 +48,9 @@ class Schema {
   String _title;
   List<SchemaType> _schemaTypeList;
   Map<String,Schema> _properties = {};
+  /// To match all items to a schema
   Schema _items;
+  /// To match each item in array to a schema
   List<Schema> _itemsList;
   dynamic _additionalItems;
   int _maxItems;
@@ -295,8 +297,8 @@ class Schema {
           if(_jsonEqual(value[i], value[j]))
               _formatException(
                 "$_path: enum values must be unique: $value [$i]==[$j]");
-          i++;
         }
+        i++;
         _enumValues.add(v);
       });
     } else {

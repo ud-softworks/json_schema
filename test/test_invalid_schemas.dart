@@ -2,7 +2,7 @@ import "dart:io";
 import "dart:json" as JSON;
 import 'package:unittest/unittest.dart';
 import "package:json_schema/json_schema.dart";
-import "package:pathos/path.dart" as path;
+import "package:path/path.dart" as path;
 import "package:logging/logging.dart";
 import "package:logging_handlers/logging_handlers_shared.dart";
 
@@ -20,7 +20,7 @@ main() {
     new Directory("${here}/invalid_schemas");
 
   testSuiteFolder.listSync().forEach((testEntry) {
-    group("Invalid schema: ${testEntry}", () {
+    group("Invalid schema: ${path.basename(testEntry.path)}", () {
       if(testEntry is File) {
         List tests = JSON.parse((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {

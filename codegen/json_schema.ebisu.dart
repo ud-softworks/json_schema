@@ -1,5 +1,5 @@
 import "dart:io";
-import "package:pathos/path.dart" as path;
+import "package:path/path.dart" as path;
 import "package:ebisu/ebisu_dart_meta.dart";
 
 String _topDir;
@@ -26,9 +26,9 @@ void main() {
         ]
       ]
       ..imports = [
-        'io', 
-        '"dart:json" as JSON', 
-        'package:plus/pprint.dart',
+        'io',
+        'math',
+        '"dart:json" as JSON',
       ]
       ..parts = [
         part('json_schema')
@@ -91,8 +91,10 @@ void main() {
             ..type = 'Map<String,Schema>'
             ..classInit = '{}',
             member('items')
+            ..doc = 'To match all items to a schema'
             ..type = 'Schema',
             member('items_list')
+            ..doc = 'To match each item in array to a schema'
             ..type = 'List<Schema>',
             member('additional_items')
             ..type = 'dynamic',
@@ -131,17 +133,28 @@ void main() {
         ..classes = [
           class_('validator')
           ..defaultMemberAccess = IA
-          ..doc = 'Initialized with schema and will validate json instances against it'
+          ..doc = 'Initialized with schema, validates instances against it'
           ..members = [
             member('schema')
             ..type = 'Schema'
             ..ctors = [''],
+          ],
+          class_('validation')
+          ..ctorCustoms = [ '' ]
+          ..isPublic = false
+          ..members = [
+            member('schema')
+            ..type = 'Schema'
+            ..ctors = [''],
+            member('instance')
+            ..type = 'dynamic'
+            ..ctors = [''],
             member('errors')
-            ..type = 'List<String>',
+            ..type = 'List<String>'
+            ..classInit = '[]',
           ]
         ]
       ]
-    
     ];
   ebisu.generate();
 }

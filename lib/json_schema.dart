@@ -2,8 +2,8 @@
 library json_schema;
 
 import "dart:io";
+import "dart:math";
 import "dart:json" as JSON;
-import "package:plus/pprint.dart";
 import "package:logging/logging.dart";
 import "package:logging_handlers/logging_handlers_shared.dart";
 part "src/json_schema/json_schema.dart";
@@ -79,7 +79,7 @@ bool _jsonEqual(a, b) {
   if(a is Map && b is Map) {
     if(a.length != b.length) return false;
     a.keys.forEach((k) {
-      if(!jsonEqual(a[k], b[k])) {
+      if(!_jsonEqual(a[k], b[k])) {
         result = false;
         return;
       }
@@ -87,7 +87,7 @@ bool _jsonEqual(a, b) {
   } else if(a is List && b is List) {
     if(a.length != b.length) return false;
     for(int i=0; i<a.length; i++) {
-      if(!jsonEqual(a[i], b[i])) {
+      if(!_jsonEqual(a[i], b[i])) {
         result = false;
         return;
       }

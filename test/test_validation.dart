@@ -25,25 +25,40 @@ main() {
 
   testSuiteFolder.listSync().forEach((testEntry) {
     if(testEntry is File) {
-      List tests = JSON.parse((testEntry as File).readAsStringSync());
-      tests.forEach((test) {
-        var schemaData = test["schema"];
-        var description = test["description"];
-        List validationTests = test["tests"];
-        validationTests.forEach((validationTest) {
-          String validationDescription = validationTest["description"];
-          var instance = validationTest["data"];
-          bool expectedResult = validationTest["valid"];
-          print('''
-schema: $schemaData
-descr: $description
-validationDescription: $validationDescription
-instance: $instance
-expectedResult: $expectedResult
-''');
-          var schema = new Schema.fromMap(schemaData);
-          var validator = new Validator(schema);
-          print("Valid => ${validator.validate(schemaData)}");
+      group("Validations ${path.basename(testEntry.path)}", () {
+        if(
+                [
+                  "type.json",
+                  "items.json",
+                  "additionalItems.json",
+                  "maxItems.json",
+                  "minLength.json",
+                  "maxLength.json",
+                ].indexOf(path.basename(testEntry.path)) < 0) return;
+        List tests = JSON.parse((testEntry as File).readAsStringSync());
+        tests.forEach((testEntry) {
+          var schemaData = testEntry["schema"];
+          var description = testEntry["description"];
+          List validationTests = testEntry["tests"];
+          validationTests.forEach((validationTest) {
+            String validationDescription = validationTest["description"];
+            var instance = validationTest["data"];
+            bool expectedResult = validationTest["valid"];
+//             print('''
+// schema: $schemaData
+// descr: $description
+// validationDescription: $validationDescription
+// instance: $instance
+// expectedResult: $expectedResult
+// ''');
+//            if(expectedResult) return;
+            var schema = new Schema.fromMap(schemaData);
+            var validator = new Validator(schema);
+            bool result = validator.validate(instance);
+            test("${description} : ${validationDescription}", () {
+              expect(result, expectedResult);
+            });
+          });
         });
       });
     }

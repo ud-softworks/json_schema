@@ -24,6 +24,14 @@
         }
     },
     {
+        "description" : "dependencies: values must be object (schema) or array",
+        "schema" : { 
+            "dependencies" : {
+                "p1" : "goo"
+            }
+        }
+    },
+    {
         "description" : "dependencies: property dependencies must be strings",
         "schema" : { 
             "dependencies" : {

@@ -36,7 +36,11 @@ void main() {
           class_('schema')
           ..defaultMemberAccess = IA
           ..ctorCustoms = [ 'fromString', 'fromMap' ]
-          ..doc = 'Constructed with a json schema, either as string or Map'
+          ..doc = '''
+Constructed with a json schema, either as string or Map. Validation of
+the schema itself is done on construction. Any errors in the schema
+result in a FormatException being thrown.
+'''
           ..members = [
             member('schema_text')
             ..doc = 'Text defining the schema for validation'
@@ -124,7 +128,7 @@ void main() {
             member('schema_dependencies')
             ..type = 'Map<String,Schema>',
             member('property_dependencies')
-            ..type = 'List<String>',
+            ..type = 'Map<String,List<String>>',
 
             member('default_value')
             ..type = 'dynamic',
@@ -143,6 +147,8 @@ void main() {
             member('errors')
             ..type = 'List<String>'
             ..classInit = '[]',
+            member('report_multiple_errors')
+            ..type = 'bool',
           ],
         ]
       ]

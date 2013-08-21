@@ -10,6 +10,7 @@ class Validator {
   
   Schema _rootSchema;
   List<String> _errors = [];
+  bool _reportMultipleErrors;
 
   // custom <class Validator>
 
@@ -75,6 +76,17 @@ class Validator {
     }
   }
 
+  void _enumValidation(Schema schema, dynamic instance) {
+    var enumValues = schema._enumValues;
+    if(enumValues != null) {
+      try {
+        enumValues.singleWhere((v) => _jsonEqual(instance, v));
+      } on StateError catch(e) {
+        _err("${schema._path}: enum violated ${instance}");
+      }
+    }
+  }
+
   void _stringValidation(Schema schema, String instance) {
     int actual = instance.length;
     var minLength = schema._minLength;
@@ -128,13 +140,23 @@ class Validator {
     } else if(schema._minItems is int && actual < schema._minItems) {
       _err("${schema._path}: minItems violated ($actual vs $minItems)");
     }
-    
+
+    if(schema._uniqueItems) {
+      int end = instance.length;
+      int penultimate = end -1;
+      for(int i=0; i<penultimate; i++) {
+        for(int j=i+1; j<end; j++) {
+          if(_jsonEqual(instance[i], instance[j])) {
+            _err("${schema._path}: uniqueItems violated: $instance [$i]==[$j]");
+          }
+        }
+      }
+    }
   }
 
   void _validateAllOf(Schema schema, instance) {
     List<Schema> schemas = schema._allOf;
     int errorsSoFar = _errors.length;
-    Schema firstOffender;
     int i=0;
     schemas.every((s) {
       _validate(s, instance);
@@ -160,11 +182,17 @@ class Validator {
     }
   }
 
+  void _validateNot(Schema schema, instance) {
+    if(new Validator(schema._notSchema).validate(instance)) {
+      _err("${schema._notSchema._path}: not violated");
+    }
+  }
+
   void _objectPropertyValidation(Schema schema, Map instance) {
 
     bool propMustValidate = schema._additionalProperties != null &&
       !schema._additionalProperties;
-    
+
     instance.forEach((k, v) {
       bool propCovered = false;
       Schema propSchema = schema._properties[k];
@@ -172,7 +200,7 @@ class Validator {
         _validate(propSchema, v);
         propCovered = true;
       }
-      
+
       schema._patternProperties.forEach((regex, patternSchema) {
         if(regex.hasMatch(k)) {
           _validate(patternSchema, v);
@@ -190,6 +218,26 @@ class Validator {
 
     });
 
+  }
+
+  void _propertyDependenciesValidation(Schema schema, Map instance) {
+    schema._propertyDependencies.forEach((k, dependencies) {
+      if(instance.containsKey(k)) {
+        if(!dependencies.every((prop) => instance.containsKey(prop))) {
+          _err("${schema._path}: prop $k => $dependencies required");
+        }
+      }
+    });
+  }
+
+  void _schemaDependenciesValidation(Schema schema, Map instance) {
+    schema._schemaDependencies.forEach((k, otherSchema) {
+      if(instance.containsKey(k)) {
+        if(!new Validator(otherSchema).validate(instance)) {
+          _err("${otherSchema._path}: prop $k violated schema dependency");
+        }
+      }
+    });
   }
 
   void _objectValidation(Schema schema, Map instance) {
@@ -211,21 +259,43 @@ class Validator {
       });
     }
     _objectPropertyValidation(schema, instance);
+
+    if(schema._propertyDependencies != null)
+      _propertyDependenciesValidation(schema, instance);
+
+    if(schema._schemaDependencies != null)
+      _schemaDependenciesValidation(schema, instance);
+
   }
   
   void _validate(Schema schema, dynamic instance) {
     _typeValidation(schema, instance);
+    _enumValidation(schema, instance);
     if(instance is List) _itemsValidation(schema, instance);
     if(instance is String) _stringValidation(schema, instance);
-    if(instance is num || instance is int) _numberValidation(schema, instance);
+    if(instance is num) _numberValidation(schema, instance);
     if(schema._allOf != null) _validateAllOf(schema, instance);
     if(schema._anyOf != null) _validateAnyOf(schema, instance);
     if(schema._oneOf != null) _validateOneOf(schema, instance);
+    if(schema._notSchema != null) _validateNot(schema, instance);
     if(instance is Map) _objectValidation(schema, instance);
   }
 
-  bool validate(dynamic instance) {
+  bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
+    _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
+    if(!_reportMultipleErrors) {
+      try {
+        _validate(_rootSchema, instance);
+        return true;
+      } on FormatException catch(e) {
+        return false;
+      } catch(e) {
+        _logger.shout("Unexpected Exception: $e");
+        return false;
+      }
+    }
+
     _validate(_rootSchema, instance);
     return _errors.length == 0;
   }
@@ -233,6 +303,8 @@ class Validator {
   void _err(String msg) {
     _logger.warning(msg);
     _errors.add(msg);
+    if(!_reportMultipleErrors)
+      throw new FormatException(msg);
   }
 
   // end <class Validator>

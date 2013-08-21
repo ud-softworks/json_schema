@@ -1,6 +1,9 @@
 part of json_schema;
 
-/// Constructed with a json schema, either as string or Map
+/// Constructed with a json schema, either as string or Map. Validation of
+/// the schema itself is done on construction. Any errors in the schema
+/// result in a FormatException being thrown.
+///
 class Schema {
   Schema.fromString(
     this._schemaText,
@@ -63,7 +66,7 @@ class Schema {
   Schema _additionalPropertiesSchema;
   Map<RegExp,Schema> _patternProperties = {};
   Map<String,Schema> _schemaDependencies;
-  List<String> _propertyDependencies;
+  Map<String,List<String>> _propertyDependencies;
   dynamic _defaultValue;
 
   // custom <class Schema>
@@ -98,7 +101,7 @@ class Schema {
   }
 
   _getMultipleOf(dynamic value) {
-    if((value is num) || (value is int)) {
+    if(value is num) {
       if(value <= 0) {
         _formatException("$_path: multipleOf must be > 0: $value");
       }
@@ -108,7 +111,7 @@ class Schema {
     }
   }
   _getMaximum(dynamic value) {
-    if((value is num) || (value is int)) {
+    if(value is num) {
       _maximum = value;
     } else {
       _formatException("$_path: maximum must be a number: $value");
@@ -122,7 +125,7 @@ class Schema {
     }
   }
   _getMinimum(dynamic value) {
-    if((value is num) || (value is int)) {
+    if(value is num) {
       _minimum = value;
     } else {
       _formatException("$_path: minimum must be a number: $value");
@@ -228,16 +231,17 @@ class Schema {
   }
   _getDependencies(dynamic value) {
     if(value is Map) {
-      _schemaDependencies = {};
-      _propertyDependencies = [];
       value.forEach((k, v) {
         if(v is Map) {
+          if(_schemaDependencies == null) _schemaDependencies = {};
           _schemaDependencies[k] =
             new Schema.fromMap(v, "$_path/dependencies/$k");
         } else if(v is List) {
           if(v.length == 0)
             _formatException(
               "$_path: property deps must be non-empty array");
+          if(_propertyDependencies == null) _propertyDependencies = {};
+
           Set uniqueDeps = new Set();
           v.forEach((propDep) {
             if(propDep is String) {
@@ -245,7 +249,7 @@ class Schema {
                 _formatException(
                   "$_path: property deps must be unique: $v");
               } else {
-                _propertyDependencies.add(propDep);
+                _propertyDependencies.putIfAbsent(k, ()=>[]).add(propDep);
                 uniqueDeps.add(propDep);
               }
             } else {
@@ -253,6 +257,9 @@ class Schema {
                 "$_path: property deps must be strings: $v");
             }
           });
+        } else {
+          _formatException(
+            "$_path: dependency values must be object or array: $v");
         }
       });
     } else {
@@ -375,6 +382,8 @@ class Schema {
       var accessor = _accessMap[k];
       if(accessor != null) {
         accessor(this, v);
+      } else {
+        _formatException("$_path: $k is not valid property for schema");
       }
     });
 

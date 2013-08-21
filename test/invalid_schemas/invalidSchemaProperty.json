@@ -1,0 +1,6 @@
+[
+    {
+        "description" : "foo is not a valid schema property",
+        "schema" : { "foo" : "foo" }
+    }
+]

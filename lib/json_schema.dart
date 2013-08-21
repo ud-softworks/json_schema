@@ -88,8 +88,7 @@ bool _jsonEqual(a, b) {
     if(a.length != b.length) return false;
     for(int i=0; i<a.length; i++) {
       if(!_jsonEqual(a[i], b[i])) {
-        result = false;
-        return;
+        return false;
       }
     }
   } else {

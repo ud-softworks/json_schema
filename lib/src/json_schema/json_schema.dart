@@ -47,7 +47,6 @@ class Schema {
   String _description;
   String _title;
   List<SchemaType> _schemaTypeList;
-  Map<String,Schema> _properties = {};
   /// To match all items to a schema
   Schema _items;
   /// To match each item in array to a schema
@@ -58,45 +57,21 @@ class Schema {
   bool _uniqueItems = false;
   List<String> _requiredProperties;
   int _maxProperties;
-  int _minProperties;
+  int _minProperties = 0;
+  Map<String,Schema> _properties = {};
   bool _additionalProperties;
   Schema _additionalPropertiesSchema;
-  Map _patternProperties;
+  Map<RegExp,Schema> _patternProperties = {};
   Map<String,Schema> _schemaDependencies;
   List<String> _propertyDependencies;
   dynamic _defaultValue;
 
   // custom <class Schema>
 
-  void checkRef() {}
-  void checkAdditionalItems() {}
-  void checkAdditionalProperties() {}
-  void checkAllOf() {}
-  void checkAnyOf() {}
-  void checkDependencies() {}
-  void checkEnum() {}
-  void checkFormat() {}
-  void checkitems() {}
-  void checkMaxItems() {}
-  void checkMaxLength() {}
-  void checkMaxProperties() {}
-  void checkMaximum() {}
-  void checkMinItems() {}
-  void checkMinLength() {}
-  void checkMinProperties() {}
-  void checkMinimum() {}
-  void checkMultipleOf() {}
-  void checkNot() {}
-  void checkOneOf() {}
-  void checkPattern() {}
-  void checkPatternProperties() {}
-  void checkProperties() {}
-  void checkRequired() {}
-  void checkType() {}
-  void checkUniqueItems() {}
+  bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
+  bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
 
-
- String _requireString(String key, dynamic value) {
+  String _requireString(String key, dynamic value) {
     if(value is String) return value;
     _formatException("$_path: $key must be a string: $value");
   }
@@ -242,7 +217,6 @@ class Schema {
   }
   _getPatternProperties(dynamic value) {
     if(value is Map) {
-      _patternProperties = {};
       value.forEach((k, v) {
         _patternProperties[new RegExp(k)] =
           new Schema.fromMap(v, "$_path/patternProperties/$k");
@@ -394,7 +368,7 @@ class Schema {
   };
 
   void _initialize() {
-    if(!(_schemaMap is Map)) 
+    if(!(_schemaMap is Map))
       _formatException("$_path: schema definition must be a map");
 
     _schemaMap.forEach((k, v) {
@@ -442,7 +416,7 @@ $i{
 ${i}  path: $_path
 ${i}  id: $_id
 ${i}  description: $_description
-${i}  type: $_schemaType
+${i}  type: $_schemaTypeList
 ${i}  multipleOf: $_multipleOf
 ${i}  maximum: $_maximum
 ${i}  exclusiveMaximum: $_exclusiveMaximum

@@ -12,6 +12,10 @@
         "schema" : { "multipleOf" : 0 }
     },
     {
+        "description" : "multipleOf: must be 'num' greater than 0.0",
+        "schema" : { "multipleOf" : 0.0 }
+    },
+    {
         "description" : "multipleOf: must be 'num' greater than 0",
         "schema" : { "multipleOf" : -1 }
     },

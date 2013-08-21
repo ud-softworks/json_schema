@@ -87,9 +87,6 @@ void main() {
 
             member('schema_type_list')
             ..type = 'List<SchemaType>',
-            member('properties')
-            ..type = 'Map<String,Schema>'
-            ..classInit = '{}',
             member('items')
             ..doc = 'To match all items to a schema'
             ..type = 'Schema',
@@ -111,13 +108,18 @@ void main() {
             member('max_properties')
             ..type = 'int',
             member('min_properties')
-            ..type = 'int',
+            ..type = 'int'
+            ..classInit = '0',
+            member('properties')
+            ..type = 'Map<String,Schema>'
+            ..classInit = '{}',
             member('additional_properties')
             ..type = 'bool',
             member('additional_properties_schema')
             ..type = 'Schema',
             member('pattern_properties')
-            ..type = 'Map',
+            ..type = 'Map<RegExp,Schema>'
+            ..classInit = '{}',
 
             member('schema_dependencies')
             ..type = 'Map<String,Schema>',
@@ -135,24 +137,13 @@ void main() {
           ..defaultMemberAccess = IA
           ..doc = 'Initialized with schema, validates instances against it'
           ..members = [
-            member('schema')
+            member('root_schema')
             ..type = 'Schema'
-            ..ctors = [''],
-          ],
-          class_('validation')
-          ..ctorCustoms = [ '' ]
-          ..isPublic = false
-          ..members = [
-            member('schema')
-            ..type = 'Schema'
-            ..ctors = [''],
-            member('instance')
-            ..type = 'dynamic'
             ..ctors = [''],
             member('errors')
             ..type = 'List<String>'
             ..classInit = '[]',
-          ]
+          ],
         ]
       ]
     ];

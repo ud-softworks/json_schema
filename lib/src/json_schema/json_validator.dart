@@ -3,43 +3,15 @@ part of json_schema;
 /// Initialized with schema, validates instances against it
 class Validator {
   Validator(
-    this._schema
+    this._rootSchema
   ) {
 
   }
   
-  Schema _schema;
+  Schema _rootSchema;
+  List<String> _errors = [];
 
   // custom <class Validator>
-
-  bool validate(dynamic instance) {
-    var validation = new _Validation(_schema, instance);
-    return validation.errors.length == 0;
-  }
-
-  // end <class Validator>
-}
-
-class _Validation {
-  _Validation(
-    this.schema,
-    this.instance
-  ) {
-    // custom <_Validation>
-
-    _typeValidation();
-    if(instance is List) _itemsValidation();
-    if(instance is String) _stringValidation();
-    if(instance is num || instance is int) _numberValidation();
-
-    // end <_Validation>
-  }
-  
-  Schema schema;
-  dynamic instance;
-  List<String> errors = [];
-
-  // custom <class Validation>
 
   static bool _typeMatch(SchemaType type, dynamic instance) {
     switch(type) {
@@ -54,38 +26,78 @@ class _Validation {
     return false;
   }
 
-  void _numberValidation() {
-  }
+  void _numberValidation(Schema schema, num n) {
+    var maximum = schema._maximum;
+    var minimum = schema._minimum;
+    if(maximum != null) {
+      if(schema.exclusiveMaximum) {
+        if(n >= maximum) {
+          _err("${schema._path}: maximum exceeded ($n >= $maximum)");
+        }
+      } else {
+        if(n > maximum) {
+          _err("${schema._path}: maximum exceeded ($n > $maximum)");
+        }
+      }
+    } else if(minimum != null) {
+      if(schema.exclusiveMinimum) {
+        if(n <= minimum) {
+          _err("${schema._path}: minimum violated ($n <= $minimum)");
+        }
+      } else {
+        if(n < minimum) {
+          _err("${schema._path}: minimum violated ($n < $minimum)");
+        }
+      }
+    }
 
-  void _typeValidation() {
-    var typeList = schema._schemaTypeList;
-    if(typeList != null) {
-      if(!typeList.any((type) => _typeMatch(type, instance))) {
-        errors.add("${schema._path}: type: wanted ${typeList}");
+    var multipleOf = schema._multipleOf;
+    if(multipleOf != null) {
+      if(multipleOf is int && n is int) {
+        if(0 != n % multipleOf) {
+          _err("${schema._path}: multipleOf violated ($n % $multipleOf)");
+        }
+      } else {
+        double result = n / multipleOf;
+        if(result.truncate() != result) {
+          _err("${schema._path}: multipleOf violated ($n % $multipleOf)");
+        }
       }
     }
   }
 
-  void _stringValidation() {
+  void _typeValidation(Schema schema, dynamic instance) {
+    var typeList = schema._schemaTypeList;
+    if(typeList != null) {
+      if(!typeList.any((type) => _typeMatch(type, instance))) {
+        _err("${schema._path}: type: wanted ${typeList} got ${instance.runtimeType}");
+      }
+    }
+  }
+
+  void _stringValidation(Schema schema, String instance) {
     int actual = instance.length;
     var minLength = schema._minLength;
     var maxLength = schema._maxLength;
     if(maxLength is int && actual > maxLength) {
-      errors.add("${schema._path}: maxLength exceeded ($actual vs $maxLength)");
+      _err("${schema._path}: maxLength exceeded ($instance vs $maxLength)");
     } else if(minLength is int && actual < minLength) {
-      errors.add("${schema._path}: minLength violated ($actual vs $minLength)");
+      _err("${schema._path}: minLength violated ($instance vs $minLength)");
+    }
+    var pattern = schema._pattern;
+    if(pattern != null && !pattern.hasMatch(instance)) {
+      _err("${schema._path}: pattern violated ($instance vs $pattern)");
     }
   }
 
-  void _itemsValidation() {
+  void _itemsValidation(Schema schema, dynamic instance) {
     int actual = instance.length;
 
     var singleSchema = schema._items;
     var additionalItems = schema._additionalItems;
     if(singleSchema != null) {
       instance.forEach((item) {
-        var v = new _Validation(singleSchema, item);
-        errors.addAll(v.errors);
+        _validate(singleSchema, item);
       });
     } else {
       var items = schema._itemsList;
@@ -95,17 +107,15 @@ class _Validation {
         int expected = items.length;
         int end = min(expected, actual);
         for(int i=0; i<end; i++) {
-          var v = new _Validation(items[i], instance[i]);
-          errors.addAll(v.errors);
+          _validate(items[i], instance[i]);
         }
         if(additionalItems is Schema) {
           for(int i=end; i<actual; i++) {
-            var v = new _Validation(additionalItems, instance[i]);
-            errors.addAll(v.errors);
+            _validate(additionalItems, instance[i]);
           }
         } else if(additionalItems is bool) {
           if(!additionalItems && actual > end) {
-            errors.add("${schema._path}: additionalItems false");
+            _err("${schema._path}: additionalItems false");
           }
         }
       }
@@ -114,14 +124,118 @@ class _Validation {
     var maxItems = schema._maxItems;
     var minItems = schema._minItems;
     if(maxItems is int && actual > maxItems) {
-      errors.add("${schema._path}: maxItems exceeded ($actual vs $maxItems)");
+      _err("${schema._path}: maxItems exceeded ($actual vs $maxItems)");
     } else if(schema._minItems is int && actual < schema._minItems) {
-      errors.add("${schema._path}: minItems violated ($actual vs $minItems)");
+      _err("${schema._path}: minItems violated ($actual vs $minItems)");
     }
     
   }
 
-  // end <class Validation>
+  void _validateAllOf(Schema schema, instance) {
+    List<Schema> schemas = schema._allOf;
+    int errorsSoFar = _errors.length;
+    Schema firstOffender;
+    int i=0;
+    schemas.every((s) {
+      _validate(s, instance);
+      bool valid = _errors.length == errorsSoFar;
+      if(!valid) {
+        _err("${s._path}/$i: allOf violated ${instance}");
+      }
+      return valid;
+    });
+  }
+
+  void _validateAnyOf(Schema schema, instance) {
+    if(!schema._anyOf.any((s) => new Validator(s).validate(instance))) {
+      _err("${schema._path}/anyOf: anyOf violated");
+    }
+  }
+
+  void _validateOneOf(Schema schema, instance) {
+    try {
+      schema._oneOf.singleWhere((s) => new Validator(s).validate(instance));
+    } on StateError catch(notOneOf) {
+      _err("${schema._path}/oneOf: violated ${notOneOf.message}");
+    }
+  }
+
+  void _objectPropertyValidation(Schema schema, Map instance) {
+
+    bool propMustValidate = schema._additionalProperties != null &&
+      !schema._additionalProperties;
+    
+    instance.forEach((k, v) {
+      bool propCovered = false;
+      Schema propSchema = schema._properties[k];
+      if(propSchema != null) {
+        _validate(propSchema, v);
+        propCovered = true;
+      }
+      
+      schema._patternProperties.forEach((regex, patternSchema) {
+        if(regex.hasMatch(k)) {
+          _validate(patternSchema, v);
+          propCovered = true;
+        }
+      });
+
+      if(!propCovered) {
+        if(schema._additionalPropertiesSchema != null) {
+          _validate(schema._additionalPropertiesSchema, v);
+        } else if(propMustValidate) {
+          _err("${schema._path}: unallowed additional property $k");
+        }
+      }
+
+    });
+
+  }
+
+  void _objectValidation(Schema schema, Map instance) {
+    int numProps = instance.length;
+    int minProps = schema._minProperties;
+    int maxProps = schema._maxProperties;
+    if(numProps < minProps) {
+      _err(
+        "${schema._path}: minProperties violated (${numProps} < ${minProps})");
+    } else if(maxProps != null && numProps > maxProps) {
+      _err(
+        "${schema._path}: maxProperties violated (${numProps} > ${maxProps})");
+    }
+    if(schema._requiredProperties != null) {
+      schema._requiredProperties.forEach((prop) {
+        if(!instance.containsKey(prop)) {
+          _err("${schema._path}: required prop missing: ${prop} from $instance");
+        }
+      });
+    }
+    _objectPropertyValidation(schema, instance);
+  }
+  
+  void _validate(Schema schema, dynamic instance) {
+    _typeValidation(schema, instance);
+    if(instance is List) _itemsValidation(schema, instance);
+    if(instance is String) _stringValidation(schema, instance);
+    if(instance is num || instance is int) _numberValidation(schema, instance);
+    if(schema._allOf != null) _validateAllOf(schema, instance);
+    if(schema._anyOf != null) _validateAnyOf(schema, instance);
+    if(schema._oneOf != null) _validateOneOf(schema, instance);
+    if(instance is Map) _objectValidation(schema, instance);
+  }
+
+  bool validate(dynamic instance) {
+    _errors = [];
+    _validate(_rootSchema, instance);
+    return _errors.length == 0;
+  }
+
+  void _err(String msg) {
+    _logger.warning(msg);
+    _errors.add(msg);
+  }
+
+  // end <class Validator>
 }
 // custom <part json_validator>
 // end <part json_validator>

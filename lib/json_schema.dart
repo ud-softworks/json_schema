@@ -4,6 +4,7 @@ library json_schema;
 import "dart:io";
 import "dart:math";
 import "dart:json" as JSON;
+import "dart:async";
 import "package:logging/logging.dart";
 import "package:logging_handlers/logging_handlers_shared.dart";
 part "src/json_schema/json_schema.dart";

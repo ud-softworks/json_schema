@@ -513,6 +513,10 @@ class Schema {
     if(!(_schemaMap is Map))
       _formatException("$_path: schema definition must be a map");
 
+    if(_registerSchemaRef(_path, _schemaMap)) {
+      _logger.info("Top level schema is ref: $_schemaRefs");
+    }
+
     _schemaMap.forEach((k, v) {
       var accessor = _accessMap[k];
       if(accessor != null) {
@@ -539,6 +543,27 @@ class Schema {
           _logger.info("Matched $path to schema $reference ${match._schemaMap}");
         } else {
           _logger.info("No match to $reference at $path found in schema");
+          Uri remoteSchema = Uri.parse(reference);
+          if(remoteSchema.scheme == 'http') {
+            _logger.info("Schema ref to $remoteSchema with ${remoteSchema.scheme}");
+            var waitingOn = [
+
+              new HttpClient().getUrl(remoteSchema)
+                .then((HttpClientRequest request) {
+                  _logger.info("Sending the request $remoteSchema");
+                  return request.close();
+                })
+                .then((HttpClientResponse response) {
+                  _logger.info("Response $response");
+                })
+
+            ];
+
+            Future.wait(waitingOn)
+              .then((_) => _logger.info("The wait is over"));
+          }
+                  
+          _logger.info("Now what");
         }
       });
     }

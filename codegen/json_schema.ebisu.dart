@@ -29,6 +29,7 @@ void main() {
         'io',
         'math',
         '"dart:json" as JSON',
+        'async',
       ]
       ..parts = [
         part('json_schema')

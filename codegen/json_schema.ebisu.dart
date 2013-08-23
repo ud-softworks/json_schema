@@ -34,8 +34,8 @@ void main() {
         part('json_schema')
         ..classes = [
           class_('schema')
-          ..defaultMemberAccess = IA
-          ..ctorCustoms = [ 'fromString', 'fromMap' ]
+          ..defaultMemberAccess = RO
+          ..ctorCustoms = [ 'fromString', 'fromMap', '_fromMap' ]
           ..doc = '''
 Constructed with a json schema, either as string or Map. Validation of
 the schema itself is done on construction. Any errors in the schema
@@ -45,31 +45,36 @@ result in a FormatException being thrown.
             member('schema_text')
             ..doc = 'Text defining the schema for validation'
             ..ctors = [ 'fromString' ],
+            member('root')
+            ..type = 'Schema'
+            ..ctors = [ '_fromMap' ],
             member('schema_map')
             ..type = 'dynamic'
             ..classInit = '{}'
-            ..ctors = [ 'fromMap' ],
+            ..ctors = [ 'fromMap', '_fromMap' ],
             member('path')
             ..ctorInit = "'#'"
-            ..ctorsOpt = [ 'fromMap', 'fromString' ],
+            ..ctors = [ '_fromMap' ],
 
             member('multiple_of')
             ..type = 'num',
             member('maximum')
             ..type = 'num',
             member('exclusive_maximum')
-            ..type = 'bool',
+            ..type = 'bool'
+            ..access = IA,
             member('minimum')
             ..type = 'num',
             member('exclusive_minimum')
-            ..type = 'bool',
+            ..type = 'bool'
+            ..access = IA,
             member('max_length')
             ..type = 'int',
             member('min_length')
             ..type = 'int',
             member('pattern')
             ..type = 'RegExp',
-          
+
             // Validation keywords for any instance
             member('enum_values')
             ..type = 'List',
@@ -85,7 +90,9 @@ result in a FormatException being thrown.
             ..type = 'Map<String,Schema>',
 
             // Meta-data
-            member('id'),
+            member('id')
+            ..type = 'Uri',
+            member('ref'),
             member('description'),
             member('title'),
 
@@ -133,6 +140,19 @@ result in a FormatException being thrown.
             member('default_value')
             ..type = 'dynamic',
 
+            member('ref_map')
+            ..doc = 'Map of path to schema object'
+            ..type = 'Map<String,Schema>'
+            ..access = IA,
+            member('schema_refs')
+            ..doc = 'Maps path to ref where path is location of schema referring to ref'
+            ..type = 'Map<String,String>'
+            ..access = IA,
+            member('schema_assignments')
+            ..doc = 'Assignments to call for resolution upon end of parse'
+            ..type = 'List'
+            ..classInit = '[]'
+            ..access = IA,
           ]
         ],
         part('json_validator')

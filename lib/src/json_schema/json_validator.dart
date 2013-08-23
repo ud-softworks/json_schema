@@ -269,6 +269,7 @@ class Validator {
   }
   
   void _validate(Schema schema, dynamic instance) {
+    assert(schema != null);
     _typeValidation(schema, instance);
     _enumValidation(schema, instance);
     if(instance is List) _itemsValidation(schema, instance);

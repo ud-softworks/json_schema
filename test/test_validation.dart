@@ -52,6 +52,7 @@ main() {
                   "required.json",
                   "type.json",
                   "uniqueItems.json",
+                  "draft04.json",
                   //"ref.json",
                   //"refRemote.json",
                   //"definitions.json",

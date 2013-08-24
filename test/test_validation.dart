@@ -11,9 +11,9 @@ main() {
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
   //
-  Logger.root.onRecord.listen(new PrintHandler());
-  Logger.root.level = Level.FINE;
-  logFormatExceptions = true;
+  //Logger.root.onRecord.listen(new PrintHandler());
+  //Logger.root.level = Level.INFO;
+  //logFormatExceptions = true;
 
   Options options = new Options();
   String here = path.dirname(path.absolute(options.script));
@@ -33,6 +33,8 @@ main() {
                   "allOf.json",
                   "anyOf.json",
                   "dependencies.json",
+                  "not.json",
+                  "oneOf.json",
                   "enum.json",
                   "items.json",
                   "maxItems.json",
@@ -44,18 +46,16 @@ main() {
                   "minProperties.json",
                   "minimum.json",
                   "multipleOf.json",
-                  "not.json",
-                  "oneOf.json",
                   "pattern.json",
                   "patternProperties.json",
                   "properties.json",
                   "required.json",
                   "type.json",
                   "uniqueItems.json",
-                  "draft04.json",
                   //"ref.json",
-                  //"refRemote.json",
                   //"definitions.json",
+                  //"draft04.json",
+                  //"refRemote.json",
                 ].indexOf(path.basename(testEntry.path)) < 0) return;
         List tests = JSON.parse((testEntry as File).readAsStringSync());
         tests.forEach((testEntry) {

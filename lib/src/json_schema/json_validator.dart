@@ -5,7 +5,9 @@ class Validator {
   Validator(
     this._rootSchema
   ) {
-
+    // custom <Validator>
+    //    _rootSchema = _rootSchema.resolvePath('#');
+    // end <Validator>
   }
   
   Schema _rootSchema;
@@ -283,6 +285,7 @@ class Validator {
   }
 
   bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
+    _logger.info("Validating $instance against ${_rootSchema._schemaTypeList}");
     _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
     if(!_reportMultipleErrors) {

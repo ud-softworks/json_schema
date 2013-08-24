@@ -5,23 +5,6 @@ part of json_schema;
 /// result in a FormatException being thrown.
 ///
 class Schema {
-  Schema.fromMap(
-    this._schemaMap
-  ) {
-    // custom <Schema.fromMap>
-    _initialize();
-    // end <Schema.fromMap>
-  }
-  
-  Schema.fromString(
-    this._schemaText
-  ) {
-    // custom <Schema.fromString>
-    _schemaMap = JSON.parse(_schemaText);
-    _initialize();
-    // end <Schema.fromString>
-  }
-  
   Schema._fromMap(
     this._root,
     this._schemaMap,
@@ -32,9 +15,14 @@ class Schema {
     // end <Schema._fromMap>
   }
   
-  String _schemaText;
-  /// Text defining the schema for validation
-  String get schemaText => _schemaText;
+  Schema._fromRootMap(
+    this._schemaMap
+  ) {
+    // custom <Schema._fromRootMap>
+    _initialize();
+    // end <Schema._fromRootMap>
+  }
+  
   Schema _root;
   Schema get root => _root;
   dynamic _schemaMap = {};
@@ -112,22 +100,26 @@ class Schema {
   dynamic _defaultValue;
   dynamic get defaultValue => _defaultValue;
   /// Map of path to schema object
-  Map<String,Schema> _refMap;
-  /// Maps path to ref where path is location of schema referring to ref
-  Map<String,String> _schemaRefs;
+  Map<String,Schema> _refMap = {};
+  /// For schemas with $ref maps path of schema to $ref path
+  Map<String,String> _schemaRefs = {};
   /// Assignments to call for resolution upon end of parse
   List _schemaAssignments = [];
+  /// Maps any non-key top level property to its original value
+  Map<String,dynamic> _freeFormMap = {};
 
   // custom <class Schema>
 
+  factory Schema.fromMap(Map data) {
+    Schema result = new Schema._fromRootMap(data);
+    return result.resolvePath('#');
+  }
+
+  factory Schema.fromString(String data) =>
+    new Schema.fromMap(JSON.parse(data));
+
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
-
-  // All schema refs are stored in root
-  Map<String,String> get _rootSchemaRefs => _root._schemaRefs;
-
-  // All schemas are stored in root
-  Map<String,Schema> get _rootRefMap => _root._refMap;
 
   String _requireString(String key, dynamic value) {
     if(value is String) return value;
@@ -204,40 +196,35 @@ class Schema {
       _formatException("$_path: pattern must be a string: value");
     }
   }
+
+  // TODO: tighten up schema (make it Map)
+  makeSchema(String path, dynamic schema, assigner(Schema rhs)) {
+    if(_registerSchemaRef(path, schema)) {
+      _schemaAssignments.add(() =>
+          assigner(resolvePath(path)));
+    } else {
+      assigner(_createSubSchema(schema, path));
+    }
+  }
+
   _getProperties(dynamic value) {
     if(value is Map) {
-      value.forEach((property, subSchema) {
-        String path = "$_path/properties/$property";
-        if(_registerSchemaRef(path, subSchema)) {
-          _schemaAssignments.add(() =>
-              _properties[property] = resolvePath(path));
-        } else {
-          _properties[property] =
-            _createSubSchema(subSchema, path);
-        }
-      });
+      value.forEach((property, subSchema) =>
+        makeSchema("$_path/properties/$property", 
+            subSchema, (rhs) => _properties[property] = rhs));
     } else {
       _formatException("$_path: properties must be an object: $value");
     }
   }
   _getItems(dynamic value) {
     if(value is Map) {
-      String path = "$_path/items";
-      if(_registerSchemaRef(path, value)) {
-        _schemaAssignments.add(() => _items = resolvePath(path));
-      } else {
-        _items = _createSubSchema(value, path);
-      }
+      makeSchema("$_path/items", value, (rhs) => _items = rhs);
     } else if(value is List) {
       int index = 0;
       _itemsList = new List(value.length);
       for(int i=0; i<value.length; i++) {
-        String path = "$_path/items/${index++}";
-        if(_registerSchemaRef(path, value[i])) {
-          _schemaAssignments.add(() => _itemsList[i] = resolvePath(path));
-        } else {
-          itemsList[i] = _createSubSchema(value[i], path);
-        }
+        makeSchema("$_path/items/${index++}", value[i],
+            (rhs) => _itemsList[i] = rhs);
       }
     } else {
       _formatException("$_path: items must be object or array: $value");
@@ -247,12 +234,8 @@ class Schema {
     if(value is bool) {
       _additionalItems = value;
     } else if(value is Map) {
-      String path = "$_path/additionalItems";
-      if(_registerSchemaRef(path, value)) {
-        _schemaAssignments.add(() => _additionalItems = resolvePath(path));
-      } else {
-        _additionalItems = _createSubSchema(value, path);
-      }
+      makeSchema("$_path/additionalItems", value, 
+          (rhs) => _additionalItems = rhs);
     } else {
       _formatException(
         "$_path: additionalItems must be bool or object: $value");
@@ -289,13 +272,8 @@ class Schema {
     if(value is bool) {
       _additionalProperties = value;
     } else if(value is Map) {
-      String path = "$_path/additionalProperties";
-      if(_registerSchemaRef(path, value)) {
-        _schemaAssignments.add(() =>
-            _additionalPropertiesSchema = resolvePath(path));
-      } else {
-        _additionalPropertiesSchema = _createSubSchema(value, path);
-      }
+      makeSchema("$_path/additionalProperties", value,
+          (rhs) => _additionalPropertiesSchema = rhs);
     } else {
       _formatException(
         "$_path: additionalProperities must be a bool or schema: $value");
@@ -303,15 +281,9 @@ class Schema {
   }
   _getPatternProperties(dynamic value) {
     if(value is Map) {
-      value.forEach((k, v) {
-        String path = "$_path/patternProperties/$k";
-        if(_registerSchemaRef(path, v)) {
-          _schemaAssignments.add(() =>
-              _patternProperties[new RegExp(k)] = resolvePath(path));
-        } else {
-          _patternProperties[new RegExp(k)] = _createSubSchema(v, path);
-        }
-      });
+      value.forEach((k, v) =>
+        makeSchema("$_path/patternProperties/$k", v,
+            (rhs) => _patternProperties[new RegExp(k)] = rhs));
     } else {
       _formatException(
         "$_path: patternProperties must be an object: $value");
@@ -322,14 +294,8 @@ class Schema {
       value.forEach((k, v) {
         if(v is Map) {
           if(_schemaDependencies == null) _schemaDependencies = {};
-
-          String path = "$_path/dependencies/$k";
-          if(_registerSchemaRef(path, v)) {
-            _schemaAssignments.add(() => 
-                _schemaDependencies[k] = resolvePath(path));
-          } else {
-            _schemaDependencies[k] = _createSubSchema(v, path);
-          }
+          makeSchema("$_path/dependencies/$k", v,
+              (rhs) => _schemaDependencies[k] = rhs);
         } else if(v is List) {
           if(v.length == 0)
             _formatException(
@@ -389,6 +355,10 @@ class Schema {
     } else {
       _formatException("$_path: type must be string or array: $value");
     }
+    
+    if(_schemaTypeList.contains(null)) {
+      _formatException("$_path: type(s) invalid $value");        
+    }
   }
 
   List _requireListOfSchema(String key, dynamic value) {
@@ -397,13 +367,8 @@ class Schema {
         _formatException("$_path: $key array must not be empty");
       List result = new List(value.length);
       for(int i=0; i<value.length; i++) {
-        var v = value[i];
-        String path = "$_path/$key/$i";
-        if(_registerSchemaRef(path, v)) {
-          _schemaAssignments.add(() => result[i] = resolvePath(path));
-        } else {
-          result[i] = _createSubSchema(v, path);
-        }
+        makeSchema("$_path/$key/$i", value[i],
+          (rhs) => result[i] = rhs);
       }
       return result;
     } else {
@@ -419,12 +384,7 @@ class Schema {
     _oneOf = _requireListOfSchema("oneOf", value);
   _getNot(dynamic value) {
     if(value is Map) {
-      String path = "$_path/not";
-      if(_registerSchemaRef(path, value)) {
-        _schemaAssignments.add(() => _notSchema = resolvePath(path));
-      } else {
-        _notSchema = _createSubSchema(value, path);
-      }
+      makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
     } else {
       _formatException("$_path: not must be object: $value");
     }
@@ -432,25 +392,16 @@ class Schema {
   _getDefinitions(dynamic value) {
     if(value is Map) {
       _definitions = {};
-      value.forEach((k,v) {
-        String path = "$_path/definitions/$k";
-        if(_registerSchemaRef(path, v)) {
-          _schemaAssignments.add(() => _definitions[k] = resolvePath(path));
-        } else {
-          _definitions[k] = _createSubSchema(v, path);
-        }
-      });
-
+      value.forEach((k,v) => 
+          makeSchema("$_path/definitions/$k", v,
+              (rhs) => _definitions[k] = rhs));
     } else {
       _formatException("$_path: definition must be an object: $value");
     }
   }
   _getRef(dynamic value) {
-    if(value is String) {
+    assert(value is String);
       _ref = value;
-    } else {
-      _formatException("$_path: \$ref must be a string: $value");
-    }
   }
   _getId(dynamic value) {
     if(value is String) {
@@ -509,9 +460,14 @@ class Schema {
       _root = this;
       _path = '#';
       _refMap = { '#' : this };
+    } else {
+      _schemaRefs = _root._schemaRefs;
+      _refMap = _root._refMap;
+      _freeFormMap = _root._freeFormMap;
     }
+
     if(!(_schemaMap is Map))
-      _formatException("$_path: schema definition must be a map");
+      _formatException("$_path: schema definition must be a map ${_schemaMap}");
 
     if(_registerSchemaRef(_path, _schemaMap)) {
       _logger.info("Top level schema is ref: $_schemaRefs");
@@ -522,7 +478,9 @@ class Schema {
       if(accessor != null) {
         accessor(this, v);
       } else {
-        _formatException("$_path: $k is not valid property for schema");
+        String freeFormPath = PATH.join(_path, _normalizePath(k));
+        _logger.info("$k is free-form non-keyword at $freeFormPath");
+        _freeFormMap[freeFormPath] = v;
       }
     });
 
@@ -532,127 +490,62 @@ class Schema {
     if(_exclusiveMaximum != null && _maximum == null)
       _formatException("$_path: exclusiveMaximum requires maximum");
 
-    if(_root == this && _schemaRefs != null) {
-      _logger.info("The following need to be resolved ${_schemaRefs}");
-      _logger.info("The following are available: ${_refMap.keys.toList()}");
-      _schemaRefs.forEach((path, reference) {
-        Schema match = _refMap[reference];
-        if(match != null) {
-          assert(path == '#' || _refMap[path] ==null);
-          _refMap[path] = match;
-          _logger.info("Matched $path to schema $reference ${match._schemaMap}");
-        } else {
-          _logger.info("No match to $reference at $path found in schema");
-          Uri remoteSchema = Uri.parse(reference);
-          if(remoteSchema.scheme == 'http') {
-            _logger.info("Schema ref to $remoteSchema with ${remoteSchema.scheme}");
-            var waitingOn = [
-
-              new HttpClient().getUrl(remoteSchema)
-                .then((HttpClientRequest request) {
-                  _logger.info("Sending the request $remoteSchema");
-                  return request.close();
-                })
-                .then((HttpClientResponse response) {
-                  _logger.info("Response $response");
-                })
-
-            ];
-
-            Future.wait(waitingOn)
-              .then((_) => _logger.info("The wait is over"));
-          }
-                  
-          _logger.info("Now what");
-        }
-      });
+    if(_root == this) {
+      _schemaAssignments.forEach((assignment) => assignment());
     }
 
-    _schemaAssignments.forEach((assignment) => assignment());
-
   }
 
-  Schema resolvePath(String path) {
-    path = _normalizePath(path);
+  Schema resolvePath(String original) {
+    String path = original;
+    while(_schemaRefs.containsKey(path)) {
+      path = _schemaRefs[path];
+    }
     Schema result = _refMap[path];
-    assert(result != null);
-    return result;
+    if(result == null) {
+      if(_freeFormMap.containsKey(path)) {
+        result = _refMap[path] = 
+          new Schema._fromMap(_root,
+              _freeFormMap[path], path);
+        return result;
+      }
+    } else {
+      return result;
+    }
+
+    _formatException(
+      "$_path: could not resolve ${original} from ${_refMap.keys.toList()}");
   }
 
-  bool _registerSchemaRef(path, dynamic schemaDefinition) {
+  bool _registerSchemaRef(String path, dynamic schemaDefinition) {
     if(schemaDefinition is Map) {
-      String ref = schemaDefinition[r"$ref"];
+      dynamic ref = schemaDefinition[r"$ref"];
       if(ref != null) {
-        if(_rootSchemaRefs == null) _root._schemaRefs = {};
-        _rootSchemaRefs[path] = ref;
-        return true;
+        if(ref is String) {
+          _logger.info("Linking $path to $ref");
+          _schemaRefs[path] = ref;
+          return true;
+        } else {
+          _formatException("$_path: \$ref must be a string: $ref");
+        }
       }
     }
     return false;
   }
 
-  static String _normalizePath(String path) => path;
-//    path.replaceAll('~', '~0')
-//    .replaceAll('/', '~1')
-//    .replaceAll('%', '%25');
+  static String _normalizePath(String path) => path.replaceAll('~', '~0')
+          .replaceAll('/', '~1')
+          .replaceAll('%', '%25');
 
   Schema _createSubSchema(dynamic schemaDefinition, String path) {
-    path = _normalizePath(path);
-    assert(_rootSchemaRefs == null || _rootSchemaRefs[path] != null);
-    assert(!_root._refMap.containsKey(path));
+    if(_schemaRefs[path] != null) _logger.warning("Found $path => ${_schemaRefs[path]} in schemaRefs");
+    assert(!_refMap.containsKey(path));
     Schema result = new Schema._fromMap(_root, schemaDefinition, path);
     _root._refMap[path] = result;
     return result;
   }
 
-  static int _indent = 0;
-  static String get _i {
-    String i = '  ';
-    for(int j=0; j<_indent; j++) i = i + '  ';
-    return i;
-  }
-
-  String ppProperties() {
-    _indent++;
-    String i = _i;
-    String result = _properties.length == 0? '[]' : '''
-
-${i}[
-${_properties.keys.map((property) => 
-  '${i}$property' + _properties[property].toString()).join('\n')}
-${i}]
-''';
-    _indent--;
-    return result;
-  }
-
-  String toString() {
-    _indent++;
-    String i = _i;
-    String result = '''
-
-$i{
-${i}  path: $_path
-${i}  id: $_id
-${i}  description: $_description
-${i}  type: $_schemaTypeList
-${i}  multipleOf: $_multipleOf
-${i}  maximum: $_maximum
-${i}  exclusiveMaximum: $_exclusiveMaximum
-${i}  minimum: $_minimum
-${i}  exclusiveMinimum: $_exclusiveMinimum
-${i}  properties:${ppProperties()}
-${i}  allOf: $_allOf
-${i}  anyOf: $_anyOf
-${i}  oneOf: $_oneOf
-${i}  items: $_items
-${i}  additionalItems: $_additionalItems
-${i}  required: $_requiredProperties
-${i}}
-''';
-    _indent--;
-    return result;
-  }
+  String toString() => "${_schemaMap}";
 
   // end <class Schema>
 }

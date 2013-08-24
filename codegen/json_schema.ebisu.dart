@@ -15,6 +15,8 @@ void main() {
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'
       ..includeLogger = true
+      ..variables = [
+      ]
       ..enums = [
         enum_('schema_type')
         ..isSnakeString = true
@@ -29,6 +31,7 @@ void main() {
         'io',
         'math',
         '"dart:json" as JSON',
+        '"package:path/path.dart" as PATH',
         'async',
       ]
       ..parts = [
@@ -36,23 +39,20 @@ void main() {
         ..classes = [
           class_('schema')
           ..defaultMemberAccess = RO
-          ..ctorCustoms = [ 'fromString', 'fromMap', '_fromMap' ]
+          ..ctorCustoms = [ '_fromRootMap', '_fromMap' ]
           ..doc = '''
 Constructed with a json schema, either as string or Map. Validation of
 the schema itself is done on construction. Any errors in the schema
 result in a FormatException being thrown.
 '''
           ..members = [
-            member('schema_text')
-            ..doc = 'Text defining the schema for validation'
-            ..ctors = [ 'fromString' ],
             member('root')
             ..type = 'Schema'
             ..ctors = [ '_fromMap' ],
             member('schema_map')
             ..type = 'dynamic'
             ..classInit = '{}'
-            ..ctors = [ 'fromMap', '_fromMap' ],
+            ..ctors = [ '_fromRootMap', '_fromMap' ],
             member('path')
             ..ctorInit = "'#'"
             ..ctors = [ '_fromMap' ],
@@ -144,15 +144,22 @@ result in a FormatException being thrown.
             member('ref_map')
             ..doc = 'Map of path to schema object'
             ..type = 'Map<String,Schema>'
-            ..access = IA,
+            ..access = IA
+            ..classInit = '{}',
             member('schema_refs')
-            ..doc = 'Maps path to ref where path is location of schema referring to ref'
+            ..doc = 'For schemas with \$ref maps path of schema to \$ref path'
             ..type = 'Map<String,String>'
-            ..access = IA,
+            ..access = IA
+            ..classInit = '{}',
             member('schema_assignments')
             ..doc = 'Assignments to call for resolution upon end of parse'
             ..type = 'List'
             ..classInit = '[]'
+            ..access = IA,
+            member('free_form_map')
+            ..doc = 'Maps any non-key top level property to its original value'
+            ..type = 'Map<String,dynamic>'
+            ..classInit = '{}'
             ..access = IA,
           ]
         ],
@@ -160,6 +167,7 @@ result in a FormatException being thrown.
         ..classes = [
           class_('validator')
           ..defaultMemberAccess = IA
+          ..ctorCustoms = [ '' ]
           ..doc = 'Initialized with schema, validates instances against it'
           ..members = [
             member('root_schema')

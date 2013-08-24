@@ -20,7 +20,9 @@ main() {
     new Directory("${here}/invalid_schemas");
 
   testSuiteFolder.listSync().forEach((testEntry) {
-    group("Invalid schema: ${path.basename(testEntry.path)}", () {
+    String shortName = path.basename(testEntry.path);
+    //if(shortName != 'freeFormProperty.json') return;
+    group("Invalid schema: ${shortName}", () {
       if(testEntry is File) {
         List tests = JSON.parse((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {

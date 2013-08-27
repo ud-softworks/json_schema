@@ -8,8 +8,8 @@ import "package:path/path.dart" as PATH;
 import "dart:async";
 import "package:logging/logging.dart";
 import "package:logging_handlers/logging_handlers_shared.dart";
-part "src/json_schema/json_schema.dart";
-part "src/json_schema/json_validator.dart";
+part "src/json_schema/schema.dart";
+part "src/json_schema/validator.dart";
 
 final _logger = new Logger("json_schema");
 

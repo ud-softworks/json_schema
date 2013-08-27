@@ -6,12 +6,15 @@ import "package:path/path.dart" as path;
 import "package:logging/logging.dart";
 import "package:logging_handlers/logging_handlers_shared.dart";
 
+final _logger = new Logger("test");
+
 main() {
-  Logger.root.onRecord.listen(new PrintHandler());
-  Logger.root.level = Level.FINE;
 
   ////////////////////////////////////////////////////////////////////////
-  // Uncomment to see logging of excpetions
+  // Uncomment to see logging
+  //
+  Logger.root.onRecord.listen(new PrintHandler());
+  Logger.root.level = Level.FINE;
   logFormatExceptions = true;
 
   Options options = new Options();
@@ -21,7 +24,6 @@ main() {
 
   testSuiteFolder.listSync().forEach((testEntry) {
     String shortName = path.basename(testEntry.path);
-    //if(shortName != 'freeFormProperty.json') return;
     group("Invalid schema: ${shortName}", () {
       if(testEntry is File) {
         List tests = JSON.parse((testEntry as File).readAsStringSync());
@@ -29,11 +31,18 @@ main() {
           var schemaData = testObject["schema"];
           var description = testObject["description"];
           test(description, () {
+            var gotException = (e) {
+              expect(e is FormatException, true);
+              _logger.info("Caught expected $e");
+            };
+            var ensureInvalid = expectAsync1(gotException);
+
             try {
-              Schema schema = new Schema.fromMap(schemaData);
-              throw "$description: Expected FormatException";
+              Schema.createSchema(schemaData).then(ensureInvalid);
             } on FormatException catch(e) {
-              // expected
+              ensureInvalid(e);
+            } catch(e) {
+              ensureInvalid(e);
             }
           });
         });

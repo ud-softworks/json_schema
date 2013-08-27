@@ -121,6 +121,7 @@ class Validator {
         int expected = items.length;
         int end = min(expected, actual);
         for(int i=0; i<end; i++) {
+          assert(items[i] != null);
           _validate(items[i], instance[i]);
         }
         if(additionalItems is Schema) {
@@ -161,18 +162,20 @@ class Validator {
     int errorsSoFar = _errors.length;
     int i=0;
     schemas.every((s) {
+      assert(s != null);
       _validate(s, instance);
       bool valid = _errors.length == errorsSoFar;
       if(!valid) {
         _err("${s._path}/$i: allOf violated ${instance}");
       }
+      i++;
       return valid;
     });
   }
 
   void _validateAnyOf(Schema schema, instance) {
     if(!schema._anyOf.any((s) => new Validator(s).validate(instance))) {
-      _err("${schema._path}/anyOf: anyOf violated");
+      _err("${schema._path}/anyOf: anyOf violated ($instance, ${schema._anyOf})");
     }
   }
 
@@ -199,12 +202,14 @@ class Validator {
       bool propCovered = false;
       Schema propSchema = schema._properties[k];
       if(propSchema != null) {
+        assert(propSchema != null);
         _validate(propSchema, v);
         propCovered = true;
       }
 
       schema._patternProperties.forEach((regex, patternSchema) {
         if(regex.hasMatch(k)) {
+          assert(patternSchema != null);
           _validate(patternSchema, v);
           propCovered = true;
         }
@@ -271,25 +276,25 @@ class Validator {
   }
   
   void _validate(Schema schema, dynamic instance) {
-    assert(schema != null);
     _typeValidation(schema, instance);
     _enumValidation(schema, instance);
     if(instance is List) _itemsValidation(schema, instance);
     if(instance is String) _stringValidation(schema, instance);
     if(instance is num) _numberValidation(schema, instance);
-    if(schema._allOf != null) _validateAllOf(schema, instance);
-    if(schema._anyOf != null) _validateAnyOf(schema, instance);
-    if(schema._oneOf != null) _validateOneOf(schema, instance);
+    if(schema._allOf.length > 0) _validateAllOf(schema, instance);
+    if(schema._anyOf.length > 0) _validateAnyOf(schema, instance);
+    if(schema._oneOf.length > 0) _validateOneOf(schema, instance);
     if(schema._notSchema != null) _validateNot(schema, instance);
     if(instance is Map) _objectValidation(schema, instance);
   }
 
   bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
-    _logger.info("Validating $instance against ${_rootSchema._schemaTypeList}");
+    _logger.info("Validating $instance against ${_rootSchema}");
     _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
     if(!_reportMultipleErrors) {
       try {
+        assert(_rootSchema != null);
         _validate(_rootSchema, instance);
         return true;
       } on FormatException catch(e) {
@@ -300,6 +305,7 @@ class Validator {
       }
     }
 
+    assert(_rootSchema != null);
     _validate(_rootSchema, instance);
     return _errors.length == 0;
   }
@@ -313,6 +319,6 @@ class Validator {
 
   // end <class Validator>
 }
-// custom <part json_validator>
-// end <part json_validator>
+// custom <part validator>
+// end <part validator>
 

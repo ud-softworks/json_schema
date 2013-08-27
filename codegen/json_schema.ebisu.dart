@@ -35,7 +35,7 @@ void main() {
         'async',
       ]
       ..parts = [
-        part('json_schema')
+        part('schema')
         ..classes = [
           class_('schema')
           ..defaultMemberAccess = RO
@@ -80,11 +80,14 @@ result in a FormatException being thrown.
             member('enum_values')
             ..type = 'List',
             member('all_of')
-            ..type = 'List<Schema>',
+            ..type = 'List<Schema>'
+            ..classInit = '[]',
             member('any_of')
-            ..type = 'List<Schema>',
+            ..type = 'List<Schema>'
+            ..classInit = '[]',
             member('one_of')
-            ..type = 'List<Schema>',
+            ..type = 'List<Schema>'
+            ..classInit = '[]',
             member('not_schema')
             ..type = 'Schema',
             member('definitions')
@@ -161,9 +164,16 @@ result in a FormatException being thrown.
             ..type = 'Map<String,dynamic>'
             ..classInit = '{}'
             ..access = IA,
+            member('this_completer')
+            ..type = 'Completer'
+            ..classInit = 'new Completer()'
+            ..access = IA,
+            member('retrieval_requests')
+            ..type = 'Future<Schema>'
+            ..access = IA,
           ]
         ],
-        part('json_validator')
+        part('validator')
         ..classes = [
           class_('validator')
           ..defaultMemberAccess = IA

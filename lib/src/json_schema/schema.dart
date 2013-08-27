@@ -45,11 +45,11 @@ class Schema {
   RegExp get pattern => _pattern;
   List _enumValues;
   List get enumValues => _enumValues;
-  List<Schema> _allOf;
+  List<Schema> _allOf = [];
   List<Schema> get allOf => _allOf;
-  List<Schema> _anyOf;
+  List<Schema> _anyOf = [];
   List<Schema> get anyOf => _anyOf;
-  List<Schema> _oneOf;
+  List<Schema> _oneOf = [];
   List<Schema> get oneOf => _oneOf;
   Schema _notSchema;
   Schema get notSchema => _notSchema;
@@ -107,16 +107,32 @@ class Schema {
   List _schemaAssignments = [];
   /// Maps any non-key top level property to its original value
   Map<String,dynamic> _freeFormMap = {};
+  Completer _thisCompleter = new Completer();
+  Future<Schema> _retrievalRequests;
 
   // custom <class Schema>
 
-  factory Schema.fromMap(Map data) {
-    Schema result = new Schema._fromRootMap(data);
-    return result.resolvePath('#');
+  static Future<Schema> createSchemaFromUrl(String schemaUrl) {
+    var result = new HttpClient().getUrl(Uri.parse(schemaUrl))
+      .then((HttpClientRequest request) => request.close())
+      .then((HttpClientResponse response) {
+        return 
+          response
+          .transform(new StringDecoder())
+          .join()
+          .then((schemaText) {
+            Map map = JSON.parse(schemaText);
+            return createSchema(map);
+          });
+      });
+
+    return result;
   }
 
-  factory Schema.fromString(String data) =>
-    new Schema.fromMap(JSON.parse(data));
+  static Future<Schema> createSchema(Map data) {
+    Schema result = new Schema._fromRootMap(data);
+    return result._thisCompleter.future;
+  }
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
@@ -145,6 +161,11 @@ class Schema {
   int _requireNonNegativeInt(String key, dynamic value) {
     if(value is int) return _requireNonNegative(key, value);
     _formatException("$_path: $key must be an int: $value");
+  }
+
+  void _addSchema(String path, Schema schema) {
+    _logger.info("Added schema at path $path: $schema");
+    _refMap[path] = schema;
   }
 
   _getMultipleOf(dynamic value) {
@@ -197,11 +218,11 @@ class Schema {
     }
   }
 
-  // TODO: tighten up schema (make it Map)
-  makeSchema(String path, dynamic schema, assigner(Schema rhs)) {
+  _makeSchema(String path, dynamic schema, assigner(Schema rhs)) {
+    if(!(schema is Map)) _formatException("$_path: schema must be object");
+    _logger.info("Making schema $path from $schema");
     if(_registerSchemaRef(path, schema)) {
-      _schemaAssignments.add(() =>
-          assigner(resolvePath(path)));
+      _schemaAssignments.add(() => assigner(resolvePath(path)));
     } else {
       assigner(_createSubSchema(schema, path));
     }
@@ -210,7 +231,7 @@ class Schema {
   _getProperties(dynamic value) {
     if(value is Map) {
       value.forEach((property, subSchema) =>
-        makeSchema("$_path/properties/$property", 
+        _makeSchema("$_path/properties/$property", 
             subSchema, (rhs) => _properties[property] = rhs));
     } else {
       _formatException("$_path: properties must be an object: $value");
@@ -218,12 +239,12 @@ class Schema {
   }
   _getItems(dynamic value) {
     if(value is Map) {
-      makeSchema("$_path/items", value, (rhs) => _items = rhs);
+      _makeSchema("$_path/items", value, (rhs) => _items = rhs);
     } else if(value is List) {
       int index = 0;
       _itemsList = new List(value.length);
       for(int i=0; i<value.length; i++) {
-        makeSchema("$_path/items/${index++}", value[i],
+        _makeSchema("$_path/items/${index++}", value[i],
             (rhs) => _itemsList[i] = rhs);
       }
     } else {
@@ -234,7 +255,7 @@ class Schema {
     if(value is bool) {
       _additionalItems = value;
     } else if(value is Map) {
-      makeSchema("$_path/additionalItems", value, 
+      _makeSchema("$_path/additionalItems", value, 
           (rhs) => _additionalItems = rhs);
     } else {
       _formatException(
@@ -272,7 +293,7 @@ class Schema {
     if(value is bool) {
       _additionalProperties = value;
     } else if(value is Map) {
-      makeSchema("$_path/additionalProperties", value,
+      _makeSchema("$_path/additionalProperties", value,
           (rhs) => _additionalPropertiesSchema = rhs);
     } else {
       _formatException(
@@ -282,7 +303,7 @@ class Schema {
   _getPatternProperties(dynamic value) {
     if(value is Map) {
       value.forEach((k, v) =>
-        makeSchema("$_path/patternProperties/$k", v,
+        _makeSchema("$_path/patternProperties/$k", v,
             (rhs) => _patternProperties[new RegExp(k)] = rhs));
     } else {
       _formatException(
@@ -294,7 +315,7 @@ class Schema {
       value.forEach((k, v) {
         if(v is Map) {
           if(_schemaDependencies == null) _schemaDependencies = {};
-          makeSchema("$_path/dependencies/$k", v,
+          _makeSchema("$_path/dependencies/$k", v,
               (rhs) => _schemaDependencies[k] = rhs);
         } else if(v is List) {
           if(v.length == 0)
@@ -361,39 +382,38 @@ class Schema {
     }
   }
 
-  List _requireListOfSchema(String key, dynamic value) {
+  _requireListOfSchema(String key, dynamic value, schemaAdder(Schema schema) ) {
     if(value is List) {
       if(value.length == 0)
         _formatException("$_path: $key array must not be empty");
-      List result = new List(value.length);
       for(int i=0; i<value.length; i++) {
-        makeSchema("$_path/$key/$i", value[i],
-          (rhs) => result[i] = rhs);
+        _makeSchema("$_path/$key/$i", value[i],
+            (rhs) => schemaAdder(rhs));
       }
-      return result;
     } else {
       _formatException("$_path: $key must be an array");
     }
   }
 
   _getAllOf(dynamic value) =>
-    _allOf = _requireListOfSchema("allOf", value);
+    _requireListOfSchema("allOf", value, (schema) => _allOf.add(schema));
   _getAnyOf(dynamic value) =>
-    _anyOf = _requireListOfSchema("anyOf", value);
+    _requireListOfSchema("anyOf", value, (schema) => _anyOf.add(schema));
   _getOneOf(dynamic value) =>
-    _oneOf = _requireListOfSchema("oneOf", value);
+    _requireListOfSchema("oneOf", value, (schema) => _oneOf.add(schema));
   _getNot(dynamic value) {
     if(value is Map) {
-      makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
+      _makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
     } else {
       _formatException("$_path: not must be object: $value");
     }
   }
   _getDefinitions(dynamic value) {
     if(value is Map) {
+      _logger.info("Getting definitions => ${value}");
       _definitions = {};
       value.forEach((k,v) => 
-          makeSchema("$_path/definitions/$k", v,
+          _makeSchema("$_path/definitions/$k", v,
               (rhs) => _definitions[k] = rhs));
     } else {
       _formatException("$_path: definition must be an object: $value");
@@ -401,7 +421,21 @@ class Schema {
   }
   _getRef(dynamic value) {
     assert(value is String);
-      _ref = value;
+    _ref = value;
+
+    if(_ref.length > 0 && _ref[0] == '#') {
+      
+    } else {
+
+      var refSchemaFuture = createSchemaFromUrl(_ref)
+        .then((schema) => _addSchema(_ref, schema));
+
+      if(_retrievalRequests == null) {
+        _retrievalRequests = refSchemaFuture;
+      } else {
+        _retrievalRequests.then(refSchemaFuture);
+      }
+    }
   }
   _getId(dynamic value) {
     if(value is String) {
@@ -455,16 +489,8 @@ class Schema {
     "description" : (s, v) => s._getDescription(v),
   };
 
-  void _initialize() {
-    if(_root == null) {
-      _root = this;
-      _path = '#';
-      _refMap = { '#' : this };
-    } else {
-      _schemaRefs = _root._schemaRefs;
-      _refMap = _root._refMap;
-      _freeFormMap = _root._freeFormMap;
-    }
+  void _validateSchema() {
+    _logger.info("Validating schema $_path");
 
     if(!(_schemaMap is Map))
       _formatException("$_path: schema definition must be a map ${_schemaMap}");
@@ -492,7 +518,36 @@ class Schema {
 
     if(_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
+      if(_retrievalRequests != null) {
+        _retrievalRequests
+          .then((_) => _thisCompleter.complete(this.resolvePath('#')));
+      } else {
+        _thisCompleter.complete(this.resolvePath('#'));
+      }
+      _logger.info("Marked $_path complete");
     }
+
+    _logger.info("Completed Validating schema $_path");
+    //_refMap.forEach((k,v) => _logger.info("\t$k => $v"));
+
+  }
+
+  void _initialize() {
+
+    if(_root == null) {
+      _root = this;
+      _path = '#';
+      _addSchema('#', this);
+      _thisCompleter = new Completer();
+    } else {
+      _schemaRefs = _root._schemaRefs;
+      _refMap = _root._refMap;
+      _freeFormMap = _root._freeFormMap;
+      _thisCompleter = _root._thisCompleter;
+      _schemaAssignments = _root._schemaAssignments;
+    }
+
+    _validateSchema();
 
   }
 
@@ -504,17 +559,18 @@ class Schema {
     Schema result = _refMap[path];
     if(result == null) {
       if(_freeFormMap.containsKey(path)) {
-        result = _refMap[path] = 
-          new Schema._fromMap(_root,
-              _freeFormMap[path], path);
+        result = new Schema._fromMap(_root, _freeFormMap[path], path);
+        _addSchema(path, result);
         return result;
       }
-    } else {
-      return result;
-    }
+      // Fall through to format error
+    } 
+
+    _logger.shout("Resolved $original => $path to $result");
+    if(result != null) return result;
 
     _formatException(
-      "$_path: could not resolve ${original} from ${_refMap.keys.toList()}");
+      "$_path: unresolved $original => $path from ${_refMap}");
   }
 
   bool _registerSchemaRef(String path, dynamic schemaDefinition) {
@@ -541,7 +597,7 @@ class Schema {
     if(_schemaRefs[path] != null) _logger.warning("Found $path => ${_schemaRefs[path]} in schemaRefs");
     assert(!_refMap.containsKey(path));
     Schema result = new Schema._fromMap(_root, schemaDefinition, path);
-    _root._refMap[path] = result;
+    _addSchema(path, result);
     return result;
   }
 
@@ -549,6 +605,6 @@ class Schema {
 
   // end <class Schema>
 }
-// custom <part json_schema>
-// end <part json_schema>
+// custom <part schema>
+// end <part schema>
 

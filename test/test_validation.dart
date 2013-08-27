@@ -11,9 +11,9 @@ main() {
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
   //
-  //Logger.root.onRecord.listen(new PrintHandler());
-  //Logger.root.level = Level.INFO;
-  //logFormatExceptions = true;
+  // Logger.root.onRecord.listen(new PrintHandler());
+  // Logger.root.level = Level.INFO;
+  // logFormatExceptions = true;
 
   Options options = new Options();
   String here = path.dirname(path.absolute(options.script));
@@ -28,6 +28,7 @@ main() {
       group("Validations ${path.basename(testEntry.path)}", () {
         if(
                 [
+                  //"goo.json",
                   "additionalItems.json",
                   "additionalProperties.json",                  
                   "allOf.json",
@@ -52,9 +53,9 @@ main() {
                   "required.json",
                   "type.json",
                   "uniqueItems.json",
-                  //"ref.json",
-                  //"definitions.json",
-                  //"draft04.json",
+                  "ref.json",
+                  "definitions.json",
+                  "draft04.json",
                   //"refRemote.json",
                 ].indexOf(path.basename(testEntry.path)) < 0) return;
         List tests = JSON.parse((testEntry as File).readAsStringSync());
@@ -66,11 +67,15 @@ main() {
             String validationDescription = validationTest["description"];
             test("${description} : ${validationDescription}", () {
               var instance = validationTest["data"];
+              bool validationResult;
               bool expectedResult = validationTest["valid"];
-              var schema = new Schema.fromMap(schemaData);
-              var validator = new Validator(schema);
-              bool result = validator.validate(instance);
-              expect(result, expectedResult);
+              var checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+              Schema.createSchema(schemaData)
+                .then((schema) {
+                  var validator = new Validator(schema);
+                  validationResult = validator.validate(instance);
+                  checkResult();
+                });
             });
           });
         });

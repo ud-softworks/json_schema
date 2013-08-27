@@ -50,7 +50,7 @@ result in a FormatException being thrown.
             ..type = 'Schema'
             ..ctors = [ '_fromMap' ],
             member('schema_map')
-            ..type = 'dynamic'
+            ..type = 'Map'
             ..classInit = '{}'
             ..ctors = [ '_fromRootMap', '_fromMap' ],
             member('path')
@@ -139,7 +139,8 @@ result in a FormatException being thrown.
             member('schema_dependencies')
             ..type = 'Map<String,Schema>',
             member('property_dependencies')
-            ..type = 'Map<String,List<String>>',
+            ..type = 'Map<String,List<String>>'
+            ..classInit = '{}',
 
             member('default_value')
             ..type = 'dynamic',
@@ -177,7 +178,6 @@ result in a FormatException being thrown.
         ..classes = [
           class_('validator')
           ..defaultMemberAccess = IA
-          ..ctorCustoms = [ '' ]
           ..doc = 'Initialized with schema, validates instances against it'
           ..members = [
             member('root_schema')

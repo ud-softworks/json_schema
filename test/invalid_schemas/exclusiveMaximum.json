@@ -1,14 +1,14 @@
 [
     {
-        "description" : "exclusiveMinimum: must be a boolean",
+        "description" : "exclusiveMaximum: must be a boolean",
         "schema" : { "maximum" : 3, "exclusiveMaximum" : "foo" }
     },
     {
-        "description" : "exclusiveMinimum: requires minimum if true",
+        "description" : "exclusiveMaximum: requires maximum if true",
         "schema" : { "exclusiveMaximum" : true }
     },
     {
-        "description" : "exclusiveMinimum: requires minimum if false",
+        "description" : "exclusiveMaximum: requires maximum if false",
         "schema" : { "exclusiveMaximum" : false }
     }
 ]

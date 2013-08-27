@@ -5,9 +5,7 @@ class Validator {
   Validator(
     this._rootSchema
   ) {
-    // custom <Validator>
-    //    _rootSchema = _rootSchema.resolvePath('#');
-    // end <Validator>
+
   }
   
   Schema _rootSchema;
@@ -15,6 +13,27 @@ class Validator {
   bool _reportMultipleErrors;
 
   // custom <class Validator>
+
+  /// Validate the [instance] against the this validator's schema
+  bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
+    _logger.info("Validating $instance against ${_rootSchema}");
+    _reportMultipleErrors = reportMultipleErrors;
+    _errors = [];
+    if(!_reportMultipleErrors) {
+      try {
+        _validate(_rootSchema, instance);
+        return true;
+      } on FormatException catch(e) {
+        return false;
+      } catch(e) {
+        _logger.shout("Unexpected Exception: $e");
+        return false;
+      }
+    }
+
+    _validate(_rootSchema, instance);
+    return _errors.length == 0;
+  }
 
   static bool _typeMatch(SchemaType type, dynamic instance) {
     switch(type) {
@@ -110,9 +129,7 @@ class Validator {
     var singleSchema = schema._items;
     var additionalItems = schema._additionalItems;
     if(singleSchema != null) {
-      instance.forEach((item) {
-        _validate(singleSchema, item);
-      });
+      instance.forEach((item) => _validate(singleSchema, item));
     } else {
       var items = schema._itemsList;
       var additionalItems = schema._additionalItems;
@@ -272,7 +289,6 @@ class Validator {
 
     if(schema._schemaDependencies != null)
       _schemaDependenciesValidation(schema, instance);
-
   }
   
   void _validate(Schema schema, dynamic instance) {
@@ -286,28 +302,6 @@ class Validator {
     if(schema._oneOf.length > 0) _validateOneOf(schema, instance);
     if(schema._notSchema != null) _validateNot(schema, instance);
     if(instance is Map) _objectValidation(schema, instance);
-  }
-
-  bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
-    _logger.info("Validating $instance against ${_rootSchema}");
-    _reportMultipleErrors = reportMultipleErrors;
-    _errors = [];
-    if(!_reportMultipleErrors) {
-      try {
-        assert(_rootSchema != null);
-        _validate(_rootSchema, instance);
-        return true;
-      } on FormatException catch(e) {
-        return false;
-      } catch(e) {
-        _logger.shout("Unexpected Exception: $e");
-        return false;
-      }
-    }
-
-    assert(_rootSchema != null);
-    _validate(_rootSchema, instance);
-    return _errors.length == 0;
   }
 
   void _err(String msg) {

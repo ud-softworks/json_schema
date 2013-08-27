@@ -53,9 +53,9 @@ main() {
                   "required.json",
                   "type.json",
                   "uniqueItems.json",
-                  "ref.json",
-                  "definitions.json",
-                  "draft04.json",
+                  // "ref.json",
+                  // "definitions.json",
+                  //"draft04.json",
                   //"refRemote.json",
                 ].indexOf(path.basename(testEntry.path)) < 0) return;
         List tests = JSON.parse((testEntry as File).readAsStringSync());

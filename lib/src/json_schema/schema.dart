@@ -12,6 +12,7 @@ class Schema {
   ) {
     // custom <Schema._fromMap>
     _initialize();
+    _addSchema(path, this);
     // end <Schema._fromMap>
   }
   
@@ -25,8 +26,8 @@ class Schema {
   
   Schema _root;
   Schema get root => _root;
-  dynamic _schemaMap = {};
-  dynamic get schemaMap => _schemaMap;
+  Map _schemaMap = {};
+  Map get schemaMap => _schemaMap;
   String _path;
   String get path => _path;
   num _multipleOf;
@@ -95,7 +96,7 @@ class Schema {
   Map<RegExp,Schema> get patternProperties => _patternProperties;
   Map<String,Schema> _schemaDependencies;
   Map<String,Schema> get schemaDependencies => _schemaDependencies;
-  Map<String,List<String>> _propertyDependencies;
+  Map<String,List<String>> _propertyDependencies = {};
   Map<String,List<String>> get propertyDependencies => _propertyDependencies;
   dynamic _defaultValue;
   dynamic get defaultValue => _defaultValue;
@@ -112,117 +113,108 @@ class Schema {
 
   // custom <class Schema>
 
-  static Future<Schema> createSchemaFromUrl(String schemaUrl) {
-    var result = new HttpClient().getUrl(Uri.parse(schemaUrl))
-      .then((HttpClientRequest request) => request.close())
-      .then((HttpClientResponse response) {
-        return 
-          response
-          .transform(new StringDecoder())
-          .join()
-          .then((schemaText) {
-            Map map = JSON.parse(schemaText);
-            return createSchema(map);
-          });
-      });
+  static Future<Schema> createSchemaFromUrl(String schemaUrl) =>
+    new HttpClient().getUrl(Uri.parse(schemaUrl))
+    .then((HttpClientRequest request) => request.close())
+    .then((HttpClientResponse response) {
+      return 
+        response
+        .transform(new StringDecoder())
+        .join()
+        .then((schemaText) {
+          Map map = JSON.parse(schemaText);
+          return createSchema(map);
+        });
+    });
 
-    return result;
-  }
-
-  static Future<Schema> createSchema(Map data) {
-    Schema result = new Schema._fromRootMap(data);
-    return result._thisCompleter.future;
-  }
+  static Future<Schema> createSchema(Map data) =>
+    new Schema._fromRootMap(data)._thisCompleter.future;
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
 
+  void _boolError(String key, dynamic instance) =>
+    _error("$key must be boolean: $instance");
+  void _numError(String key, dynamic instance) =>
+    _error("$key must be num: $instance");
+  void _intError(String key, dynamic instance) =>
+    _error("$key must be int: $instance");
+  void _stringError(String key, dynamic instance) =>
+    _error("$key must be string: $instance");
+  void _objectError(String key, dynamic instance) =>
+    _error("$key must be object: $instance");
+  void _arrayError(String key, dynamic instance) =>
+    _error("$key must be array: $instance");
+  void _schemaError(String key, dynamic instance) =>
+    _error("$key must be valid schema object: $instance");
+
+  void _error(String msg) {
+    msg = "$_path: $msg";
+    if(logFormatExceptions) _logger.warning(msg);
+    throw new FormatException(msg);
+  }
+
   String _requireString(String key, dynamic value) {
     if(value is String) return value;
-    _formatException("$_path: $key must be a string: $value");
+    _stringError(key, value);
   }
 
   dynamic _requirePositive(String key, dynamic value) {
-    if(value <= 0) _formatException("$_path: $key must be > 0: $value");
+    if(value <= 0) _error("$key must be > 0: $value");
     return value;
   }
 
   int _requirePositiveInt(String key, dynamic value) {
     if(value is int) return _requirePositive(key, value);
-    _formatException("$_path: $key must be an int: $value");
+    _intError(key, value);
   }
 
   dynamic _requireNonNegative(String key, dynamic value) {
-    if(value < 0)
-      _formatException("$_path: $key must be non-negative: $value");
+    if(value < 0) _error("$key must be non-negative: $value");
     return value;
   }
 
   int _requireNonNegativeInt(String key, dynamic value) {
     if(value is int) return _requireNonNegative(key, value);
-    _formatException("$_path: $key must be an int: $value");
+    _intError(key, value);
   }
 
-  void _addSchema(String path, Schema schema) {
-    _logger.info("Added schema at path $path: $schema");
-    _refMap[path] = schema;
-  }
+  _addSchema(String path, Schema schema) => _refMap[path] = schema;
 
   _getMultipleOf(dynamic value) {
-    if(value is num) {
-      if(value <= 0) {
-        _formatException("$_path: multipleOf must be > 0: $value");
-      }
-      _multipleOf = value;
-    } else {
-      _formatException("$_path: multipleOf must be a number: $value");
-    }
+    if(value is! num) _numError("multiple", value);
+    if(value <= 0) _error("multipleOf must be > 0: $value");
+    _multipleOf = value;
   }
   _getMaximum(dynamic value) {
-    if(value is num) {
-      _maximum = value;
-    } else {
-      _formatException("$_path: maximum must be a number: $value");
-    }
+    if(value is! num) _numError("maximum", value);
+    _maximum = value;
   }
   _getExclusiveMaximum(dynamic value) {
-    if(value is bool) {
-      _exclusiveMaximum = value;
-    } else {
-      _formatException("$_path: exclusiveMaximum must be a bool: $value");
-    }
+    if(value is! bool) _boolError("exclusiveMaximum", value);
+    _exclusiveMaximum = value;
   }
   _getMinimum(dynamic value) {
-    if(value is num) {
-      _minimum = value;
-    } else {
-      _formatException("$_path: minimum must be a number: $value");
-    }
+    if(value is! num) _numError("minimum", value);
+    _minimum = value;
   }
   _getExclusiveMinimum(dynamic value) {
-    if(value is bool) {
-      _exclusiveMinimum = value;
-    } else {
-      _formatException("$_path: exclusiveMinimum must be a boolean: $value");
-    }
+    if(value is! bool) _boolError("exclusiveMinimum", value);
+    _exclusiveMinimum = value;
   }
   _getMaxLength(dynamic value) =>
     _maxLength = _requireNonNegativeInt('maxLength', value);
   _getMinLength(dynamic value) =>
     _minLength = _requireNonNegativeInt('minLength', value);
   _getPattern(dynamic value) {
-    if(value is String) {
-      _pattern = new RegExp(value);
-    } else {
-      _formatException("$_path: pattern must be a string: value");
-    }
+    if(value is! String) _stringError("pattern", value);
+    _pattern = new RegExp(value);
   }
 
   _makeSchema(String path, dynamic schema, assigner(Schema rhs)) {
-    if(!(schema is Map)) _formatException("$_path: schema must be object");
-    _logger.info("Making schema $path from $schema");
+    if(schema is! Map) _schemaError(path, schema);
     if(_registerSchemaRef(path, schema)) {
-      _schemaAssignments.add(() => assigner(resolvePath(path)));
+      _schemaAssignments.add(() => assigner(_resolvePath(path)));
     } else {
       assigner(_createSubSchema(schema, path));
     }
@@ -234,7 +226,7 @@ class Schema {
         _makeSchema("$_path/properties/$property", 
             subSchema, (rhs) => _properties[property] = rhs));
     } else {
-      _formatException("$_path: properties must be an object: $value");
+      _objectError("properties", value);
     }
   }
   _getItems(dynamic value) {
@@ -248,7 +240,7 @@ class Schema {
             (rhs) => _itemsList[i] = rhs);
       }
     } else {
-      _formatException("$_path: items must be object or array: $value");
+      _error("items must be object or array: $value");
     }
   }
   _getAdditionalItems(dynamic value) {
@@ -258,8 +250,7 @@ class Schema {
       _makeSchema("$_path/additionalItems", value, 
           (rhs) => _additionalItems = rhs);
     } else {
-      _formatException(
-        "$_path: additionalItems must be bool or object: $value");
+      _error("additionalItems must be boolean or object: $value");
     }
   }
   _getMaxItems(dynamic value) =>
@@ -267,28 +258,18 @@ class Schema {
   _getMinItems(dynamic value) =>
     _minItems = _requireNonNegativeInt('minItems', value);
   _getUniqueItems(dynamic value) {
-    if(value is bool) {
-      _uniqueItems = value;
-    } else {
-      _formatException("$_path: uniqueItems must be bool: $value");
-    }
+    if(value is! bool) _boolError("uniqueItems", value);
+    _uniqueItems = value;
   }
   _getRequired(dynamic value) {
-    if(value is List) {
-      if(value.length == 0)
-        _formatException("$_path: required must be a non-empty array");
-
-      _requiredProperties = new List.from(value);
-    } else {
-      _formatException("$_path: required must be an array: $value");
-    }
+    if(value is! List) _arrayError("required", value);
+    if(value.length == 0) _error("required must be a non-empty array: $value");
+    _requiredProperties = new List.from(value);
   }
-
   _getMaxProperties(dynamic value) =>
     _maxProperties = _requireNonNegativeInt('maxProperties', value);
   _getMinProperties(dynamic value) =>
     _minProperties = _requireNonNegativeInt('minProperties', value);
-
   _getAdditionalProperties(dynamic value) {
     if(value is bool) {
       _additionalProperties = value;
@@ -296,19 +277,16 @@ class Schema {
       _makeSchema("$_path/additionalProperties", value,
           (rhs) => _additionalPropertiesSchema = rhs);
     } else {
-      _formatException(
-        "$_path: additionalProperities must be a bool or schema: $value");
+      _error(
+        "additionalProperties must be a bool or valid schema object: $value");
     }
   }
   _getPatternProperties(dynamic value) {
-    if(value is Map) {
-      value.forEach((k, v) =>
+    if(value is! Map) _objectError("patternProperties", value);
+
+    value.forEach((k, v) =>
         _makeSchema("$_path/patternProperties/$k", v,
             (rhs) => _patternProperties[new RegExp(k)] = rhs));
-    } else {
-      _formatException(
-        "$_path: patternProperties must be an object: $value");
-    }
   }
   _getDependencies(dynamic value) {
     if(value is Map) {
@@ -319,52 +297,41 @@ class Schema {
               (rhs) => _schemaDependencies[k] = rhs);
         } else if(v is List) {
           if(v.length == 0)
-            _formatException(
-              "$_path: property deps must be non-empty array");
-          if(_propertyDependencies == null) _propertyDependencies = {};
+            _error("property dependencies must be non-empty array");
 
           Set uniqueDeps = new Set();
           v.forEach((propDep) {
-            if(propDep is String) {
-              if(uniqueDeps.contains(propDep)) {
-                _formatException(
-                  "$_path: property deps must be unique: $v");
-              } else {
-                _propertyDependencies.putIfAbsent(k, ()=>[]).add(propDep);
-                uniqueDeps.add(propDep);
-              }
-            } else {
-              _formatException(
-                "$_path: property deps must be strings: $v");
-            }
+            if(propDep is! String) _stringError("propertyDependency", v);
+
+            if(uniqueDeps.contains(propDep))
+              _error("property dependencies must be unique: $v");
+
+            _propertyDependencies.putIfAbsent(k, ()=>[]).add(propDep);
+            uniqueDeps.add(propDep);
           });
         } else {
-          _formatException(
-            "$_path: dependency values must be object or array: $v");
+          _error("dependency values must be object or array: $v");
         }
       });
     } else {
-      _formatException(
-        "$_path: dependencies must be an object: $value");
+      _objectError("dependencies", value);
     }
   }
   _getEnum(dynamic value) {
     _enumValues = [];
     if(value is List) {
-      if(value.length == 0)
-        _formatException("$_path: enum must be a non-empty array");
+      if(value.length == 0) _error("enum must be a non-empty array: $value");
       int i = 0;
       value.forEach((v) {
         for(int j=i+1; j<value.length; j++) {
           if(_jsonEqual(value[i], value[j]))
-              _formatException(
-                "$_path: enum values must be unique: $value [$i]==[$j]");
+            _error("enum values must be unique: $value [$i]==[$j]");
         }
         i++;
         _enumValues.add(v);
       });
     } else {
-      _formatException("$_path: enum must be an array: $value");
+      _arrayError("enum", value);
     }
   }
   _getType(dynamic value) {
@@ -374,27 +341,22 @@ class Schema {
       _schemaTypeList = value.map((v) =>
           SchemaType.fromString(v)).toList();
     } else {
-      _formatException("$_path: type must be string or array: $value");
+      _error("type must be string or array: $value");
     }
     
-    if(_schemaTypeList.contains(null)) {
-      _formatException("$_path: type(s) invalid $value");        
-    }
+    if(_schemaTypeList.contains(null)) _error("type(s) invalid $value");
   }
-
   _requireListOfSchema(String key, dynamic value, schemaAdder(Schema schema) ) {
     if(value is List) {
-      if(value.length == 0)
-        _formatException("$_path: $key array must not be empty");
+      if(value.length == 0) _error("$key array must not be empty");
       for(int i=0; i<value.length; i++) {
         _makeSchema("$_path/$key/$i", value[i],
             (rhs) => schemaAdder(rhs));
       }
     } else {
-      _formatException("$_path: $key must be an array");
+      _arrayError(key, value);
     }
   }
-
   _getAllOf(dynamic value) =>
     _requireListOfSchema("allOf", value, (schema) => _allOf.add(schema));
   _getAnyOf(dynamic value) =>
@@ -405,36 +367,35 @@ class Schema {
     if(value is Map) {
       _makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
     } else {
-      _formatException("$_path: not must be object: $value");
+      _objectError("not", value);
     }
   }
   _getDefinitions(dynamic value) {
     if(value is Map) {
-      _logger.info("Getting definitions => ${value}");
       _definitions = {};
       value.forEach((k,v) => 
           _makeSchema("$_path/definitions/$k", v,
               (rhs) => _definitions[k] = rhs));
     } else {
-      _formatException("$_path: definition must be an object: $value");
+      _objectError("definition", value);
     }
   }
   _getRef(dynamic value) {
-    assert(value is String);
-    _ref = value;
+    if(value is String) {
+      _ref = value;
+      if(_ref.length == 0) _error("\$ref must be non-empty string");
+      if(_ref[0] != '#') {
+        var refSchemaFuture = createSchemaFromUrl(_ref)
+          .then((schema) => _addSchema(_ref, schema));
 
-    if(_ref.length > 0 && _ref[0] == '#') {
-      
-    } else {
-
-      var refSchemaFuture = createSchemaFromUrl(_ref)
-        .then((schema) => _addSchema(_ref, schema));
-
-      if(_retrievalRequests == null) {
-        _retrievalRequests = refSchemaFuture;
-      } else {
-        _retrievalRequests.then(refSchemaFuture);
+        if(_retrievalRequests == null) {
+          _retrievalRequests = refSchemaFuture;
+        } else {
+          _retrievalRequests.then(refSchemaFuture);
+        }
       }
+    } else {
+      _stringError(r"$ref", value);
     }
   }
   _getId(dynamic value) {
@@ -443,10 +404,10 @@ class Schema {
       try {
         _id = Uri.parse(id);
       } catch(e) {
-        _formatException("$_path: id must be a valid URI: $value");
+        _error("id must be a valid URI: $value");
       }
     } else {
-      _formatException("$_path: id must be a string: $value");
+      _stringError("id", value);
     }
   }
   _getTitle(dynamic value) => _title = _requireString("title", value);
@@ -492,9 +453,6 @@ class Schema {
   void _validateSchema() {
     _logger.info("Validating schema $_path");
 
-    if(!(_schemaMap is Map))
-      _formatException("$_path: schema definition must be a map ${_schemaMap}");
-
     if(_registerSchemaRef(_path, _schemaMap)) {
       _logger.info("Top level schema is ref: $_schemaRefs");
     }
@@ -504,31 +462,28 @@ class Schema {
       if(accessor != null) {
         accessor(this, v);
       } else {
-        String freeFormPath = PATH.join(_path, _normalizePath(k));
-        _logger.info("$k is free-form non-keyword at $freeFormPath");
-        _freeFormMap[freeFormPath] = v;
+        _freeFormMap[PATH.join(_path, _normalizePath(k))] = v;
       }
     });
 
     if(_exclusiveMinimum != null && _minimum == null)
-      _formatException("$_path: exclusiveMinimum requires minimum");
+      _error("exclusiveMinimum requires minimum");
 
     if(_exclusiveMaximum != null && _maximum == null)
-      _formatException("$_path: exclusiveMaximum requires maximum");
+      _error("exclusiveMaximum requires maximum");
 
     if(_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if(_retrievalRequests != null) {
         _retrievalRequests
-          .then((_) => _thisCompleter.complete(this.resolvePath('#')));
+          .then((_) => _thisCompleter.complete(_resolvePath('#')));
       } else {
-        _thisCompleter.complete(this.resolvePath('#'));
+        _thisCompleter.complete(_resolvePath('#'));
       }
       _logger.info("Marked $_path complete");
     }
 
     _logger.info("Completed Validating schema $_path");
-    //_refMap.forEach((k,v) => _logger.info("\t$k => $v"));
 
   }
 
@@ -551,26 +506,18 @@ class Schema {
 
   }
 
-  Schema resolvePath(String original) {
+  Schema _resolvePath(String original) {
     String path = original;
     while(_schemaRefs.containsKey(path)) {
       path = _schemaRefs[path];
     }
     Schema result = _refMap[path];
     if(result == null) {
-      if(_freeFormMap.containsKey(path)) {
-        result = new Schema._fromMap(_root, _freeFormMap[path], path);
-        _addSchema(path, result);
-        return result;
-      }
-      // Fall through to format error
+      var schema = _freeFormMap[path];
+      if(schema is! Map) _schemaError("free-form property", schema);
+      return new Schema._fromMap(_root, schema, path);
     } 
-
-    _logger.shout("Resolved $original => $path to $result");
-    if(result != null) return result;
-
-    _formatException(
-      "$_path: unresolved $original => $path from ${_refMap}");
+    return result;
   }
 
   bool _registerSchemaRef(String path, dynamic schemaDefinition) {
@@ -582,23 +529,22 @@ class Schema {
           _schemaRefs[path] = ref;
           return true;
         } else {
-          _formatException("$_path: \$ref must be a string: $ref");
+          _stringError("\$ref", ref);
         }
       }
     }
     return false;
   }
 
-  static String _normalizePath(String path) => path.replaceAll('~', '~0')
-          .replaceAll('/', '~1')
-          .replaceAll('%', '%25');
+  static String _normalizePath(String path) => 
+    path.replaceAll('~', '~0')
+    .replaceAll('/', '~1')
+    .replaceAll('%', '%25');
 
   Schema _createSubSchema(dynamic schemaDefinition, String path) {
-    if(_schemaRefs[path] != null) _logger.warning("Found $path => ${_schemaRefs[path]} in schemaRefs");
+    assert(!_schemaRefs.containsKey(path));
     assert(!_refMap.containsKey(path));
-    Schema result = new Schema._fromMap(_root, schemaDefinition, path);
-    _addSchema(path, result);
-    return result;
+    return new Schema._fromMap(_root, schemaDefinition, path);
   }
 
   String toString() => "${_schemaMap}";

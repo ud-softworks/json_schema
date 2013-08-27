@@ -70,12 +70,6 @@ class SchemaType {
 
 bool logFormatExceptions = false;
 
-void _formatException(String msg) {
-  if(logFormatExceptions)
-    _logger.warning(msg);
-  throw new FormatException(msg);
-}
-
 bool _jsonEqual(a, b) {
   bool result = true;
   if(a is Map && b is Map) {

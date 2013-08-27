@@ -6,5 +6,13 @@
     {
         "description" : "type: must be 'string' or 'array', not object",
         "schema" : { "type" : {} }
+    },
+    {
+        "description" : "type: should be integer, not int",
+        "schema" : { "type" : "int" }
+    },
+    {
+        "description" : "type: sould be boolean not bool",
+        "schema" : { "type" : ["bool"] }
     }
 ]

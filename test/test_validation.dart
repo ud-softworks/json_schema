@@ -53,8 +53,8 @@ main() {
                   "required.json",
                   "type.json",
                   "uniqueItems.json",
-                  // "ref.json",
-                  // "definitions.json",
+                  "ref.json",
+                  //"definitions.json",
                   //"draft04.json",
                   //"refRemote.json",
                 ].indexOf(path.basename(testEntry.path)) < 0) return;
@@ -72,8 +72,7 @@ main() {
               var checkResult = expectAsync0(() => expect(validationResult, expectedResult));
               Schema.createSchema(schemaData)
                 .then((schema) {
-                  var validator = new Validator(schema);
-                  validationResult = validator.validate(instance);
+                  validationResult = schema.validate(instance);
                   checkResult();
                 });
             });

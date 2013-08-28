@@ -11,6 +11,30 @@ void main() {
   System ebisu = system('json_schema')
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
+    ..scripts = [
+      script('schemadot')
+      ..imports = [
+        'package:json_schema/json_schema.dart',
+        '"dart:json" as JSON',
+        'async'
+      ]
+      ..doc = '''
+
+Usage: schemadot --in-uri INPUT_JSON_URI --out-file OUTPUT_FILE
+
+Given an input uri [in-uri] processes content of uri as
+json schema and generates input file for Graphviz dot
+program. If [out-file] provided, output is written to 
+to the file, otherwise written to stdout.
+'''
+      ..args = [
+        scriptArg('in_uri')
+        ..isRequired = true
+        ..abbr = 'i',
+        scriptArg('out_file')
+        ..abbr = 'o',
+      ]
+    ]
     ..libraries = [
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'

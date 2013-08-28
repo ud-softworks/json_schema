@@ -93,10 +93,5 @@ bool _jsonEqual(a, b) {
   return result;
 }
 
-ISchema createSchema(Map schema, [ String path ]) {
-  SchemaType schemaType = SchemaType.fromString(_schemaMap["type"]);
-  
-}
-
 // end <library json_schema>
 

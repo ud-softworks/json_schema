@@ -127,8 +127,14 @@ class Schema {
         });
     });
 
+  /// Create a schema from a [data]
+  ///  Typically [data] is result of JSON.parse(jsonSchemaString)
   static Future<Schema> createSchema(Map data) =>
     new Schema._fromRootMap(data)._thisCompleter.future;
+
+  /// Validate [instance] against this schema
+  bool validate(dynamic instance) =>
+    new Validator(this).validate(instance);
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;

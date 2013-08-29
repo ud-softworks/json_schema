@@ -1,0 +1,26 @@
+[
+    {
+        "description" : "id must be a string - not int",
+        "schema" : { "id" : 1 }
+    },
+    {
+        "description" : "id must be a string - not object",
+        "schema" : { "id" : {} }
+    },
+    {
+        "description" : "id must be a string - not array",
+        "schema" : { "id" : [] }
+    },
+    {
+        "description" : "id must be a string - not int",
+        "schema" : { "id" : 3 }
+    },
+    {
+        "description" : "id must be a string - not num",
+        "schema" : { "id" : 3.14 }
+    },
+    {
+        "description" : "id must be a valid URI",
+        "schema" : { "id" : "^http://foobar" }
+    }
+]

@@ -1,0 +1,22 @@
+[
+    {
+        "description" : "referenced non-keyword property must be valid schema - not array",
+        "schema" : { 
+            "foo" : [],
+            "properties" : {
+                "goo" : { "$ref" : "#/foo" }
+            }
+        }
+    },
+    {
+        "description" : "referenced non-keyword property must be valid schema - invalid schema",
+        "schema" : {
+            "foo" : {
+                "type" : "foo"
+            },
+            "properties" : {
+                "goo" : { "$ref" : "#/foo" }
+            }
+        }
+    }
+]

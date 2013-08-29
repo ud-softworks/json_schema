@@ -1,0 +1,11 @@
+[
+    {
+        "description" : "schema can not have cycles",
+        "schema" : { 
+            "definitions" : {
+                "a" : { "$ref" : "#/definitions/b" },
+                "b" : { "$ref" : "#/definitions/a" }
+            }
+        }
+    }
+]

@@ -1,0 +1,14 @@
+[
+    {
+        "description" : "ref: must be a string - not object",
+        "schema" : { "$ref" : {} }
+    },
+    {
+        "description" : "ref: must be a string - not array",
+        "schema" : { "$ref" : [] }
+    },
+    {
+        "description" : "ref: must be a string - not number",
+        "schema" : { "$ref" : 3.14 }
+    }
+]

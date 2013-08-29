@@ -116,19 +116,31 @@ class Schema {
 
   // custom <class Schema>
 
-  static Future<Schema> createSchemaFromUrl(String schemaUrl) =>
-    new HttpClient().getUrl(Uri.parse(schemaUrl))
-    .then((HttpClientRequest request) => request.close())
-    .then((HttpClientResponse response) {
-      return 
-        response
-        .transform(new StringDecoder())
-        .join()
-        .then((schemaText) {
-          Map map = JSON.parse(schemaText);
-          return createSchema(map);
+  static Future<Schema> createSchemaFromUrl(String schemaUrl) {
+    Uri uri = Uri.parse(schemaUrl);
+    if(uri.scheme == 'http') {
+      return new HttpClient().getUrl(uri)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+          return 
+            response
+            .transform(new StringDecoder())
+            .join()
+            .then((schemaText) {
+              Map map = JSON.parse(schemaText);
+              return createSchema(map);
+            });
         });
-    });
+    } else if(uri.scheme == 'file' || uri.scheme == '') {
+      return new File(uri.scheme == 'file'?
+          uri.toFilePath() : schemaUrl)
+        .readAsString()
+        .then((text) => createSchema(JSON.parse(text)));
+    } else {
+      throw new
+        FormatException("Url schemd must be http, file, or empty: $schemaUrl");
+    }
+  }
 
   /// Create a schema from a [data]
   ///  Typically [data] is result of JSON.parse(jsonSchemaString)

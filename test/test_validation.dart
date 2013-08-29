@@ -54,7 +54,7 @@ main() {
                   "type.json",
                   "uniqueItems.json",
                   "ref.json",
-                  //"definitions.json",
+                  "definitions.json",
                   //"draft04.json",
                   //"refRemote.json",
                 ].indexOf(path.basename(testEntry.path)) < 0) return;

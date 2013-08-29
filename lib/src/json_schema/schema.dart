@@ -44,7 +44,7 @@ class Schema {
   int get minLength => _minLength;
   RegExp _pattern;
   RegExp get pattern => _pattern;
-  List _enumValues;
+  List _enumValues = [];
   List get enumValues => _enumValues;
   List<Schema> _allOf = [];
   List<Schema> get allOf => _allOf;
@@ -54,7 +54,7 @@ class Schema {
   List<Schema> get oneOf => _oneOf;
   Schema _notSchema;
   Schema get notSchema => _notSchema;
-  Map<String,Schema> _definitions;
+  Map<String,Schema> _definitions = {};
   Map<String,Schema> get definitions => _definitions;
   Uri _id;
   Uri get id => _id;
@@ -94,14 +94,15 @@ class Schema {
   Schema get additionalPropertiesSchema => _additionalPropertiesSchema;
   Map<RegExp,Schema> _patternProperties = {};
   Map<RegExp,Schema> get patternProperties => _patternProperties;
-  Map<String,Schema> _schemaDependencies;
+  Map<String,Schema> _schemaDependencies = {};
   Map<String,Schema> get schemaDependencies => _schemaDependencies;
   Map<String,List<String>> _propertyDependencies = {};
   Map<String,List<String>> get propertyDependencies => _propertyDependencies;
   dynamic _defaultValue;
   dynamic get defaultValue => _defaultValue;
-  /// Map of path to schema object
   Map<String,Schema> _refMap = {};
+  /// Map of path to schema object
+  Map<String,Schema> get refMap => _refMap;
   /// For schemas with $ref maps path of schema to $ref path
   Map<String,String> _schemaRefs = {};
   /// Assignments to call for resolution upon end of parse
@@ -110,6 +111,8 @@ class Schema {
   Map<String,dynamic> _freeFormMap = {};
   Completer _thisCompleter = new Completer();
   Future<Schema> _retrievalRequests;
+  /// Set of strings to gaurd against path cycles
+  Set<String> _pathsEncountered = new Set();
 
   // custom <class Schema>
 
@@ -138,6 +141,24 @@ class Schema {
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
+
+  /// Given path, follow all references to an end path pointing to schema
+  String endPath(String path) {
+    _pathsEncountered.clear();
+    return _endPath(path);
+  }
+
+  /// Returns paths of all paths 
+  Set get paths => new Set.from(_schemaRefs.keys)
+    ..addAll(_refMap.keys);
+
+  /// Method to find schema from path
+  Schema resolvePath(String path) {
+    while(_schemaRefs.containsKey(path)) {
+      path = _schemaRefs[path];
+    }
+    return _refMap[path];
+  }
 
   void _boolError(String key, dynamic instance) =>
     _error("$key must be boolean: $instance");
@@ -298,7 +319,6 @@ class Schema {
     if(value is Map) {
       value.forEach((k, v) {
         if(v is Map) {
-          if(_schemaDependencies == null) _schemaDependencies = {};
           _makeSchema("$_path/dependencies/$k", v,
               (rhs) => _schemaDependencies[k] = rhs);
         } else if(v is List) {
@@ -324,7 +344,6 @@ class Schema {
     }
   }
   _getEnum(dynamic value) {
-    _enumValues = [];
     if(value is List) {
       if(value.length == 0) _error("enum must be a non-empty array: $value");
       int i = 0;
@@ -378,7 +397,6 @@ class Schema {
   }
   _getDefinitions(dynamic value) {
     if(value is Map) {
-      _definitions = {};
       value.forEach((k,v) => 
           _makeSchema("$_path/definitions/$k", v,
               (rhs) => _definitions[k] = rhs));
@@ -512,11 +530,21 @@ class Schema {
 
   }
 
-  Schema _resolvePath(String original) {
-    String path = original;
-    while(_schemaRefs.containsKey(path)) {
-      path = _schemaRefs[path];
+  String _endPath(StringPath path) {
+    if(_pathsEncountered.contains(path))
+      _error("Encountered path cycle ${_pathsEncountered}, adding $path");
+
+    var referredTo = _schemaRefs[path];
+    if(referredTo == null) {
+      return path;
+    } else {
+      _pathsEncountered.add(path);
+      return _endPath(referredTo);
     }
+  }
+
+  Schema _resolvePath(String original) {
+    String path = endPath(original);
     Schema result = _refMap[path];
     if(result == null) {
       var schema = _freeFormMap[path];

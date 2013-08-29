@@ -16,7 +16,10 @@ class Validator {
 
   /// Validate the [instance] against the this validator's schema
   bool validate(dynamic instance, [ bool reportMultipleErrors = false ]) {
-    _logger.info("Validating $instance against ${_rootSchema}");
+
+    _logger.info(
+      "Validating ${instance.runtimeType}:$instance on ${_rootSchema}");
+
     _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
     if(!_reportMultipleErrors) {
@@ -90,16 +93,16 @@ class Validator {
 
   void _typeValidation(Schema schema, dynamic instance) {
     var typeList = schema._schemaTypeList;
-    if(typeList != null) {
+    if(typeList != null && typeList.length > 0) {
       if(!typeList.any((type) => _typeMatch(type, instance))) {
-        _err("${schema._path}: type: wanted ${typeList} got ${instance.runtimeType}");
+        _err("${schema._path}: type: wanted ${typeList} got $instance");
       }
     }
   }
 
   void _enumValidation(Schema schema, dynamic instance) {
     var enumValues = schema._enumValues;
-    if(enumValues != null) {
+    if(enumValues.length > 0) {
       try {
         enumValues.singleWhere((v) => _jsonEqual(instance, v));
       } on StateError catch(e) {

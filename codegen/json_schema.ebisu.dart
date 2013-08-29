@@ -16,7 +16,8 @@ void main() {
       ..imports = [
         'package:json_schema/json_schema.dart',
         '"dart:json" as JSON',
-        'async'
+        'math',
+        'async',
       ]
       ..doc = '''
 
@@ -102,7 +103,8 @@ result in a FormatException being thrown.
 
             // Validation keywords for any instance
             member('enum_values')
-            ..type = 'List',
+            ..type = 'List'
+            ..classInit = '[]',
             member('all_of')
             ..type = 'List<Schema>'
             ..classInit = '[]',
@@ -115,7 +117,8 @@ result in a FormatException being thrown.
             member('not_schema')
             ..type = 'Schema',
             member('definitions')
-            ..type = 'Map<String,Schema>',
+            ..type = 'Map<String,Schema>'
+            ..classInit = '{}',
 
             // Meta-data
             member('id')
@@ -161,7 +164,8 @@ result in a FormatException being thrown.
             ..classInit = '{}',
 
             member('schema_dependencies')
-            ..type = 'Map<String,Schema>',
+            ..type = 'Map<String,Schema>'
+            ..classInit = '{}',
             member('property_dependencies')
             ..type = 'Map<String,List<String>>'
             ..classInit = '{}',
@@ -172,7 +176,6 @@ result in a FormatException being thrown.
             member('ref_map')
             ..doc = 'Map of path to schema object'
             ..type = 'Map<String,Schema>'
-            ..access = IA
             ..classInit = '{}',
             member('schema_refs')
             ..doc = 'For schemas with \$ref maps path of schema to \$ref path'
@@ -195,6 +198,11 @@ result in a FormatException being thrown.
             ..access = IA,
             member('retrieval_requests')
             ..type = 'Future<Schema>'
+            ..access = IA,
+            member('paths_encountered')
+            ..doc = 'Set of strings to gaurd against path cycles'
+            ..type = 'Set<String>'
+            ..classInit = 'new Set()'
             ..access = IA,
           ]
         ],

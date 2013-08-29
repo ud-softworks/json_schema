@@ -542,7 +542,7 @@ class Schema {
 
   }
 
-  String _endPath(StringPath path) {
+  String _endPath(String path) {
     if(_pathsEncountered.contains(path))
       _error("Encountered path cycle ${_pathsEncountered}, adding $path");
 

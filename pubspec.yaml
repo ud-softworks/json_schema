@@ -1,0 +1,11 @@
+name: json_schema
+version: 0.0.1
+author: Daniel Davidson <dbdavidson@yahoo.com>
+dependencies:
+# custom <json_schema dependencies>
+  path:
+  unittest:
+  logging:
+  logging_handlers:
+# end <json_schema dependencies>
+

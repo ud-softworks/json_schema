@@ -1,3 +1,5 @@
 *.~*~
 pubspec.lock
 packages
+bin/sampleDot
+test/JSON-Schema-Test-Suite

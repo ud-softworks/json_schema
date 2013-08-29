@@ -24,40 +24,23 @@ main() {
   testSuiteFolder = 
     new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4");
 
-  testSuiteFolder.listSync().forEach((testEntry) {
+  var optionals = 
+    new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
+
+  var all = testSuiteFolder.listSync()..addAll(optionals.listSync());
+
+  all.forEach((testEntry) {
     if(testEntry is File) {
       group("Validations ${path.basename(testEntry.path)}", () {
-        if(
-                [
-                  "additionalItems.json",
-                  "additionalProperties.json",                  
-                  "allOf.json",
-                  "anyOf.json",
-                  "dependencies.json",
-                  "not.json",
-                  "oneOf.json",
-                  "enum.json",
-                  "items.json",
-                  "maxItems.json",
-                  "maxLength.json",
-                  "maxProperties.json",
-                  "maximum.json",
-                  "minItems.json",
-                  "minLength.json",
-                  "minProperties.json",
-                  "minimum.json",
-                  "multipleOf.json",
-                  "pattern.json",
-                  "patternProperties.json",
-                  "properties.json",
-                  "required.json",
-                  "type.json",
-                  "uniqueItems.json",
-                  "ref.json",
-                  "definitions.json",
-                  //"draft04.json",
-                  //"refRemote.json",
-                ].indexOf(path.basename(testEntry.path)) < 0) return;
+
+        // TODO: add these back or get replacements
+        // Skip these for now - reason shown
+        if([ 
+          'refRemote.json', // seems to require webserver running to vend files
+          'format.json',    // optional: add date-time, uri, email, ipv4, ipv6
+        ].contains(path.basename(testEntry.path))) return;
+
+
         List tests = JSON.parse((testEntry as File).readAsStringSync());
         tests.forEach((testEntry) {
           var schemaData = testEntry["schema"];
@@ -80,6 +63,17 @@ main() {
         });
       });
     }
+  });
+
+  test("Schema self validation", () {
+    // Pull in the official schema, verify description and then ensure
+    // that the schema satisfies the schema for schemas
+    String url = "http://json-schema.org/draft-04/schema";
+    Schema.createSchemaFromUrl(url)
+      .then((schema) {
+          expect(schema.schemaMap["description"], "Core schema meta-schema");
+          expect(schema.validate(schema.schemaMap), true);
+      });
   });
 
 }

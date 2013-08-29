@@ -1,3 +1,4 @@
+import "root_finder.dart";
 import "dart:io";
 import "dart:json" as JSON;
 import 'package:unittest/unittest.dart';
@@ -15,20 +16,19 @@ main() {
   // Logger.root.level = Level.INFO;
   // logFormatExceptions = true;
 
-  Options options = new Options();
-  String here = path.dirname(path.absolute(options.script));
+  String here = rootFinder('json_schema');
+
   Directory testSuiteFolder = 
-    new Directory("${here}/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas");
+    new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas");
 
   testSuiteFolder = 
-    new Directory("${here}/JSON-Schema-Test-Suite/tests/draft4");
+    new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4");
 
   testSuiteFolder.listSync().forEach((testEntry) {
     if(testEntry is File) {
       group("Validations ${path.basename(testEntry.path)}", () {
         if(
                 [
-                  //"goo.json",
                   "additionalItems.json",
                   "additionalProperties.json",                  
                   "allOf.json",

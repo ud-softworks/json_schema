@@ -1,4 +1,5 @@
 import "dart:io";
+import "root_finder.dart";
 import "dart:json" as JSON;
 import 'package:unittest/unittest.dart';
 import "package:json_schema/json_schema.dart";
@@ -13,14 +14,12 @@ main() {
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging
   //
-  Logger.root.onRecord.listen(new PrintHandler());
-  Logger.root.level = Level.FINE;
-  logFormatExceptions = true;
+  // Logger.root.onRecord.listen(new PrintHandler());
+  // Logger.root.level = Level.FINE;
+  // logFormatExceptions = true;
 
-  Options options = new Options();
-  String here = path.dirname(path.absolute(options.script));
-  Directory testSuiteFolder = 
-    new Directory("${here}/invalid_schemas");
+  String here = rootFinder('json_schema');
+  Directory testSuiteFolder = new Directory("${here}/test/invalid_schemas");
 
   testSuiteFolder.listSync().forEach((testEntry) {
     String shortName = path.basename(testEntry.path);

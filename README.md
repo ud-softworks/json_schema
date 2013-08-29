@@ -5,7 +5,8 @@
 # How To Validate
 
   To validate instances against a schema first create the schema, then
-  call validate on it. This can be done with an url:
+  call validate on it with an json instance. This can be done with an
+  url:
 
 ### Example 1  
 
@@ -110,6 +111,56 @@
   file, providing a picture of the schema. This does not provide all
   information of the schema, and is a work in progress - but it can be
   useful to *see* what a schema is.
+
+  For example, the grades_schema.json is:
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title" : "Grade Tracker",
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+    	"semesters" : {
+    	    "type" : "array",
+    	    "items" : {
+                    "type" : "object",
+                    "additionalProperties" : false,
+                    "properties" : {
+                        "semester": { "type" : "integer" },
+                        "grades" : {
+                            "type" : "array",
+                            "items" : {
+                                "type" : "object",
+                                "additionalProperties" : false,
+                                "required" : [ "date", "type", "grade", "std" ],
+                                "properties" : {
+                                    "date" : { "type" : "string"},
+                                    "type" : { "enum" : [ "homework", "quiz", "test", "final_exam" ] },
+                                    "grade" : { "type" : "number"},
+                                    "std" : { 
+                                        "oneOf" : [ 
+                                            {"type" : "number"}, 
+                                            {"type" : "null"}
+                                        ] 
+                                    },
+                                    "avg" : { 
+                                        "oneOf" : [ 
+                                            {"type" : "number"}, 
+                                            {"type" : "null"}
+                                        ] 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+      	    }
+        }
+    }
+
+  And the generated image is:
+
+  ![Grades!](https://raw.github.com/patefacio/json_schema/master/examples/from_url/grades_schema.png)  
 
 
 

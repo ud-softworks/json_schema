@@ -3,9 +3,14 @@ version: 0.0.1
 author: Daniel Davidson <dbdavidson@yahoo.com>
 dependencies:
 # custom <json_schema dependencies>
+
   path:
-  unittest:
   logging:
   logging_handlers:
+
+dev_dependencies:
+  unittest:
+  hop:
+
 # end <json_schema dependencies>
 

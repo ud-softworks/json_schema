@@ -162,5 +162,8 @@
 
   ![Grades!](https://raw.github.com/patefacio/json_schema/master/examples/from_url/grades_schema.png)  
 
+  For more detailed image open link:
+  <a href="https://raw.github.com/patefacio/json_schema/master/examples/from_url/grades_schema.png"
+  target="_blank">Grade example schema diagram</a>
 
 

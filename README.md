@@ -1,6 +1,6 @@
 # Json Schema
 
-  A *dart:io* dependent library for validating json instances against json schema
+  A *dart:io* dependent library for validating json instances against json schema (version Draft 04)
 
 [![Build Status](https://drone.io/github.com/patefacio/json_schema/status.png)](https://drone.io/github.com/patefacio/json_schema/latest)
 

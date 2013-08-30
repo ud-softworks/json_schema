@@ -8,14 +8,14 @@
 /// to the file, otherwise written to stdout.
 /// 
 
-import "package:json_schema/json_schema.dart";
-import "dart:json" as JSON;
-import "dart:math";
-import "dart:async";
-import "dart:io";
-import "package:args/args.dart";
-import "package:logging/logging.dart";
-import "package:logging_handlers/logging_handlers_shared.dart";
+import 'package:json_schema/json_schema.dart';
+import 'dart:json' as JSON;
+import 'dart:math';
+import 'dart:async';
+import 'dart:io';
+import 'package:args/args.dart';
+import 'package:logging/logging.dart';
+import 'package:logging_handlers/logging_handlers_shared.dart';
 
 //! The parser for this script
 ArgParser _parser;

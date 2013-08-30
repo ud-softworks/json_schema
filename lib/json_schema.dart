@@ -1,13 +1,13 @@
 /// Support for validating json instances against a json schema
 library json_schema;
 
-import "dart:io";
-import "dart:math";
-import "dart:json" as JSON;
-import "package:path/path.dart" as PATH;
-import "dart:async";
-import "package:logging/logging.dart";
-import "package:logging_handlers/logging_handlers_shared.dart";
+import 'dart:io';
+import 'dart:math';
+import 'dart:json' as JSON;
+import 'package:path/path.dart' as PATH;
+import 'dart:async';
+import 'package:logging/logging.dart';
+import 'package:logging_handlers/logging_handlers_shared.dart';
 part "src/json_schema/schema.dart";
 part "src/json_schema/validator.dart";
 

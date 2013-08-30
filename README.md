@@ -27,7 +27,7 @@
   _file:///absolute\_path\_to/schema.json_ or _subfolder/schema.json_
   where _subfolder_ is a subfolder of current working directory. An
   example of this can be found in
-  _examples/from\_url/validate\_instance\_from\_url.dart_
+  _example/from\_url/validate\_instance\_from\_url.dart_
 
       url = "grades_schema.json";
       Schema.createSchemaFromUrl(url)
@@ -160,10 +160,10 @@
 
   And the generated image is:
 
-  ![Grades!](https://raw.github.com/patefacio/json_schema/master/examples/from_url/grades_schema.png)  
+  ![Grades!](https://raw.github.com/patefacio/json_schema/master/example/from_url/grades_schema.png)  
 
   For more detailed image open link:
-  <a href="https://raw.github.com/patefacio/json_schema/master/examples/from_url/grades_schema.png"
+  <a href="https://raw.github.com/patefacio/json_schema/master/example/from_url/grades_schema.png"
   target="_blank">Grade example schema diagram</a>
 
 

@@ -9,8 +9,9 @@ dependencies:
   logging_handlers:
 
 dev_dependencies:
+
   unittest:
-  hop:
+  hop: "0.24.2"
 
 # end <json_schema dependencies>
 

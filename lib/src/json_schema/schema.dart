@@ -124,7 +124,7 @@ class Schema {
         .then((HttpClientResponse response) {
           return 
             response
-            .transform(new StringDecoder())
+            .transform(new Utf8Decoder())
             .join()
             .then((schemaText) {
               Map map = JSON.parse(schemaText);

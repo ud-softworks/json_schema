@@ -3,6 +3,7 @@ library json_schema;
 
 import 'dart:io';
 import 'dart:math';
+import 'dart:convert';
 import 'dart:json' as JSON;
 import 'package:path/path.dart' as PATH;
 import 'dart:async';

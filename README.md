@@ -166,4 +166,7 @@
   <a href="https://raw.github.com/patefacio/json_schema/master/example/from_url/grades_schema.png"
   target="_blank">Grade example schema diagram</a>
 
-
+# TODOS
+  
+  * Add a remote ref test that does not require files vended from local host
+  * Add support for optional tests: format

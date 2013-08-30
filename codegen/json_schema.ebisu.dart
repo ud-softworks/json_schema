@@ -55,6 +55,7 @@ to the file, otherwise written to stdout.
       ..imports = [
         'io',
         'math',
+        'convert',
         '"dart:json" as JSON',
         '"package:path/path.dart" as PATH',
         'async',

@@ -4,13 +4,13 @@ author: Daniel Davidson <dbdavidson@yahoo.com>
 dependencies:
 # custom <json_schema dependencies>
 
-  path:
-  logging:
-  logging_handlers:
+  path: ">=0.6.21+3"
+  logging: ">=0.5.0+1"
+  logging_handlers: ">=0.5.0+2"
 
 dev_dependencies:
 
-  unittest:
+  unittest: ">=0.6.21+3"
   hop: "0.24.2"
 
 # end <json_schema dependencies>

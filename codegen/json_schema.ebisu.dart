@@ -9,6 +9,9 @@ void main() {
   String here = path.absolute(options.script);
   _topDir = path.dirname(path.dirname(here));
   System ebisu = system('json_schema')
+    ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
+    ..pubSpec.version = '0.0.1'
+    ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
     ..scripts = [

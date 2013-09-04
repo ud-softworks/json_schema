@@ -1,13 +1,23 @@
-import "root_finder.dart";
-import "dart:io";
-import "dart:json" as JSON;
-import 'package:unittest/unittest.dart';
-import "package:json_schema/json_schema.dart";
-import "package:pathos/path.dart" as path;
-import "package:logging/logging.dart";
-import "package:logging_handlers/logging_handlers_shared.dart";
+library test_validation;
 
-main() {
+import 'dart:io';
+import 'dart:convert' as convert;
+import 'package:path/path.dart' as path;
+import 'package:json_schema/json_schema.dart';
+import 'package:unittest/unittest.dart';
+import 'package:logging/logging.dart';
+// custom <additional imports>
+import 'utils.dart';
+// end <additional imports>
+
+
+final _logger = new Logger("test_validation");
+
+// custom <library test_validation>
+// end <library test_validation>
+
+main() { 
+// custom <main>
 
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
@@ -16,7 +26,7 @@ main() {
   // Logger.root.level = Level.INFO;
   // logFormatExceptions = true;
 
-  String here = rootFinder('json_schema');
+  String here = packageRootPath;
 
   Directory testSuiteFolder = 
     new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas");
@@ -41,7 +51,7 @@ main() {
         ].contains(path.basename(testEntry.path))) return;
 
 
-        List tests = JSON.parse((testEntry as File).readAsStringSync());
+        List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
         tests.forEach((testEntry) {
           var schemaData = testEntry["schema"];
           var description = testEntry["description"];
@@ -75,5 +85,7 @@ main() {
           expect(schema.validate(schema.schemaMap), true);
       });
   });
+
+// end <main>
 
 }

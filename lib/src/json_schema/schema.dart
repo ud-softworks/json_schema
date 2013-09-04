@@ -15,7 +15,7 @@ class Schema {
     _addSchema(path, this);
     // end <Schema._fromMap>
   }
-  
+
   Schema._fromRootMap(
     this._schemaMap
   ) {
@@ -23,7 +23,7 @@ class Schema {
     _initialize();
     // end <Schema._fromRootMap>
   }
-  
+
   Schema _root;
   Schema get root => _root;
   Map _schemaMap = {};
@@ -124,10 +124,10 @@ class Schema {
         .then((HttpClientResponse response) {
           return 
             response
-            .transform(new Utf8Decoder())
+            .transform(new convert.Utf8Decoder())
             .join()
             .then((schemaText) {
-              Map map = JSON.parse(schemaText);
+              Map map = convert.JSON.decode(schemaText);
               return createSchema(map);
             });
         });
@@ -135,7 +135,7 @@ class Schema {
       return new File(uri.scheme == 'file'?
           uri.toFilePath() : schemaUrl)
         .readAsString()
-        .then((text) => createSchema(JSON.parse(text)));
+        .then((text) => createSchema(convert.JSON.decode(text)));
     } else {
       throw new
         FormatException("Url schemd must be http, file, or empty: $schemaUrl");
@@ -143,7 +143,7 @@ class Schema {
   }
 
   /// Create a schema from a [data]
-  ///  Typically [data] is result of JSON.parse(jsonSchemaString)
+  ///  Typically [data] is result of JSON.decode(jsonSchemaString)
   static Future<Schema> createSchema(Map data) =>
     new Schema._fromRootMap(data)._thisCompleter.future;
 
@@ -153,6 +153,9 @@ class Schema {
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
+
+  bool propertyRequired(String property) =>
+    _requiredProperties != null && _requiredProperties.contains(property);
 
   /// Given path, follow all references to an end path pointing to schema
   String endPath(String path) {

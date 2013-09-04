@@ -9,16 +9,33 @@ void main() {
   String here = path.absolute(options.script);
   _topDir = path.dirname(path.dirname(here));
   System ebisu = system('json_schema')
+    ..includeHop = true
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
     ..pubSpec.version = '0.0.1'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
+    ..pubSpec.addDependency(new PubDependency('path'))
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
+    ..testLibraries = [
+      library('test_invalid_schemas')
+      ..includeLogger = true
+      ..imports = [
+        'io', '"dart:convert" as convert', '"package:path/path.dart" as path',
+        'package:json_schema/json_schema.dart',
+      ],
+      library('test_validation')
+      ..includeLogger = true
+      ..imports = [
+        'io', '"dart:convert" as convert', '"package:path/path.dart" as path',
+        'package:json_schema/json_schema.dart',
+      ],
+    ]
     ..scripts = [
       script('schemadot')
       ..imports = [
         'package:json_schema/json_schema.dart',
-        '"dart:json" as JSON',
+        'package:json_schema/schema_dot.dart',
+        '"dart:convert" as convert',
         'math',
         'async',
       ]
@@ -40,6 +57,22 @@ to the file, otherwise written to stdout.
       ]
     ]
     ..libraries = [
+      library('schema_dot')
+      ..doc = 'Functionality to create Graphviz input dot file from schema'
+      ..imports = [
+        'package:json_schema/json_schema.dart',
+        'convert',
+        'async',
+      ]
+      ..classes = [
+        class_('schema_node')
+        ..members = [
+          member('schema')
+          ..type = 'Schema',
+          member('links')
+          ..type = 'List<String>'
+        ]
+      ],
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'
       ..includeLogger = true
@@ -58,8 +91,7 @@ to the file, otherwise written to stdout.
       ..imports = [
         'io',
         'math',
-        'convert',
-        '"dart:json" as JSON',
+        '"dart:convert" as convert',
         '"package:path/path.dart" as PATH',
         'async',
       ]
@@ -221,6 +253,7 @@ result in a FormatException being thrown.
             ..ctors = [''],
             member('errors')
             ..type = 'List<String>'
+            ..access = RO
             ..classInit = '[]',
             member('report_multiple_errors')
             ..type = 'bool',

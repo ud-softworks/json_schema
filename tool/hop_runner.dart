@@ -5,23 +5,22 @@ import 'dart:io';
 import 'package:hop/hop.dart';
 import "package:path/path.dart" as PATH;
 import 'package:hop/hop_tasks.dart';
-import '../test/root_finder.dart';
-import '../test/test_runner.dart' as TEST_RUNNER;
+import '../test/utils.dart';
+import '../test/runner.dart' as runner;
 
 void main() {
 
-  Directory.current = rootFinder('json_schema');
+  Directory.current = packageRootPath;
 
   addTask('analyze_lib', createAnalyzerTask(_getLibs));
+  addTask('docs', createDartDocTask(_getLibs));
   addTask('analyze_test', 
       createAnalyzerTask([
-        'test/test_invalid_schemas.dart',
-        'test/test_validation.dart',
+        "test/test_invalid_schemas.dart"
+        "test/test_validation.dart"
       ]));
 
-  addTask('docs', createDartDocTask(_getLibs));
-
-  addTask('test', createUnitTestTask(TEST_RUNNER.testCore));
+  addTask('test', createUnitTestTask(runner.testCore));
 
   runHop();
 }

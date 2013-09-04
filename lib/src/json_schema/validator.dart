@@ -7,9 +7,10 @@ class Validator {
   ) {
 
   }
-  
+
   Schema _rootSchema;
   List<String> _errors = [];
+  List<String> get errors => _errors;
   bool _reportMultipleErrors;
 
   // custom <class Validator>

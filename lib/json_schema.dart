@@ -3,12 +3,13 @@ library json_schema;
 
 import 'dart:io';
 import 'dart:math';
-import 'dart:convert';
-import 'dart:json' as JSON;
+import 'dart:convert' as convert;
 import 'package:path/path.dart' as PATH;
 import 'dart:async';
 import 'package:logging/logging.dart';
-import 'package:logging_handlers/logging_handlers_shared.dart';
+// custom <additional imports>
+// end <additional imports>
+
 part "src/json_schema/schema.dart";
 part "src/json_schema/validator.dart";
 

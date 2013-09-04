@@ -1,5 +1,6 @@
 *.~*~
-pubspec.lock
 packages
-bin/sampleDot
-test/JSON-Schema-Test-Suite
+# custom <additional>
+pubspec.lock
+# end <additional>
+

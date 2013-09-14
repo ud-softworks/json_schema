@@ -5,20 +5,16 @@ part of json_schema;
 /// result in a FormatException being thrown.
 ///
 class Schema {
-  Schema._fromMap(
-    this._root,
-    this._schemaMap,
-    this._path
-  ) {
+
+  Schema._fromMap(this._root, this._schemaMap, this._path) {
     // custom <Schema._fromMap>
     _initialize();
     _addSchema(path, this);
     // end <Schema._fromMap>
   }
 
-  Schema._fromRootMap(
-    this._schemaMap
-  ) {
+
+  Schema._fromRootMap(this._schemaMap) {
     // custom <Schema._fromRootMap>
     _initialize();
     // end <Schema._fromRootMap>
@@ -113,6 +109,8 @@ class Schema {
   Future<Schema> _retrievalRequests;
   /// Set of strings to gaurd against path cycles
   Set<String> _pathsEncountered = new Set();
+  /// Support for optional formats (date-time, uri, email, ipv6, hostname)
+  String _format;
 
   // custom <class Schema>
 
@@ -453,6 +451,9 @@ class Schema {
   _getDescription(dynamic value) =>
     _description = _requireString("description", value);
   _getDefault(dynamic value) => _defaultValue = value;
+  _getFormat(dynamic value) {
+    _format = _requireString("format", value);
+  }
 
   static Map _accessMap = {
     "multipleOf" : (s, v) => s._getMultipleOf(v),
@@ -487,6 +488,7 @@ class Schema {
     "\$ref" : (s, v) => s._getRef(v),
     "title" : (s, v) => s._getTitle(v),
     "description" : (s, v) => s._getDescription(v),
+    "format" : (s, v) => s._getFormat(v),
   };
 
   void _validateSchema() {

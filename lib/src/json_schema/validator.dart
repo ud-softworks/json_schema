@@ -2,11 +2,8 @@ part of json_schema;
 
 /// Initialized with schema, validates instances against it
 class Validator {
-  Validator(
-    this._rootSchema
-  ) {
 
-  }
+  Validator(this._rootSchema);
 
   Schema _rootSchema;
   List<String> _errors = [];
@@ -214,6 +211,58 @@ class Validator {
     }
   }
 
+  void _validateFormat(Schema schema, instance) {
+    switch(schema._format) {
+      case 'date-time': {
+        try {
+          DateTime.parse(instance);
+        } catch(e) {
+          _err("'date-time' format not accepted $instance");
+        }
+        break;
+      }
+      case 'uri': {
+        var isValid = (_uriValidator != null)? 
+        _uriValidator : _defaultUriValidator;
+
+        if(!isValid(instance)) {
+          _err("'uri' format not accepted $instance");
+        }
+        break;
+      }
+      case 'email': {
+        var isValid = (_emailValidator != null)?
+        _emailValidator : _defaultEmailValidator;
+
+        if(!isValid(instance)) {
+          _err("'email' format not accepted $instance");
+        }
+        break;
+      }
+      case 'ipv4': {
+        if(_ipv4Re.firstMatch(instance) == null) {
+          _err("'ipv4' format not accepted $instance");
+        }
+        break;
+      }
+      case 'ipv6': {
+        if(_ipv6Re.firstMatch(instance) == null) {
+          _err("'ipv6' format not accepted $instance");
+        }
+        break;
+      }
+      case 'hostname': {
+        if(_hostnameRe.firstMatch(instance) == null) {
+          _err("'hostname' format not accepted $instance");
+        }
+        break;
+      }
+      default: {
+        _err("${schema._format} not supported as format");
+      }
+    }
+  }
+
   void _objectPropertyValidation(Schema schema, Map instance) {
 
     bool propMustValidate = schema._additionalProperties != null &&
@@ -305,6 +354,7 @@ class Validator {
     if(schema._anyOf.length > 0) _validateAnyOf(schema, instance);
     if(schema._oneOf.length > 0) _validateOneOf(schema, instance);
     if(schema._notSchema != null) _validateNot(schema, instance);
+    if(schema._format != null) _validateFormat(schema, instance);
     if(instance is Map) _objectValidation(schema, instance);
   }
 

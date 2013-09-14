@@ -7,6 +7,7 @@ import 'package:json_schema/json_schema.dart';
 import 'package:unittest/unittest.dart';
 import 'package:logging/logging.dart';
 // custom <additional imports>
+import 'package:logging_handlers/logging_handlers_shared.dart';
 import 'utils.dart';
 // end <additional imports>
 
@@ -21,7 +22,6 @@ main() {
 
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
-  //
   // Logger.root.onRecord.listen(new PrintHandler());
   // Logger.root.level = Level.INFO;
   // logFormatExceptions = true;
@@ -47,7 +47,6 @@ main() {
         // Skip these for now - reason shown
         if([ 
           'refRemote.json', // seems to require webserver running to vend files
-          'format.json',    // optional: add date-time, uri, email, ipv4, ipv6
         ].contains(path.basename(testEntry.path))) return;
 
 

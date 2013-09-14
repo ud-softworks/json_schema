@@ -36,14 +36,6 @@ class SchemaNode {
     .map((schema) => new SchemaNode(schema, links).node)
     .toList();
     lines.addAll(links.map((link) => "$link;"));
-
-    schema
-    .paths
-    .where((path) => path != schema.resolvePath(path).path)
-    .forEach((path) {
-      print("Found referring schema ${path} => ${schema.resolvePath(path).path}");
-    });
-
     return lines.join('\n');
   }
 
@@ -57,7 +49,8 @@ class SchemaNode {
 
   static dynamic schemaType(Schema schema) {
     dynamic result;
-    if(schema.schemaTypeList == null) {
+    var schemaTypeList = schema.schemaTypeList;
+    if(schemaTypeList == null) {
       if(schema.oneOf.length > 0) {
         result = "oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}";
       } else if(schema.anyOf.length > 0) {
@@ -68,7 +61,7 @@ class SchemaNode {
         result = "default=${schema.defaultValue}";
       } else if(schema.ref != null) {
         result = "ref=${schema.ref}";
-      } else if(schema.enumValues != null) {
+      } else if(schema.enumValues != null && schema.enumValues.length > 0) {
         result = "enum=${schema.enumValues}";
       } else if(schema.schemaMap.length == 0) {
         result = "{}";
@@ -76,7 +69,8 @@ class SchemaNode {
         result = "$schema";
       }
     } else {
-      result = schema.schemaTypeList;
+      result = schemaTypeList.length == 1 ? 
+        schemaTypeList[0] : schemaTypeList;
     }
     if((result is List) && result.length == 0) result = {};
     if(result == null) result = {};
@@ -240,7 +234,9 @@ class SchemaNode {
     List<String> props = [];
     if(schema.properties.length > 0) {
       props.add(wrap('Properties'));
-      schema.properties.forEach((prop, propertySchema) {
+      var sortedProps = new List.from(schema.properties.keys)..sort();
+      sortedProps.forEach((prop) {
+        var propertySchema = schema.properties[prop];
         String requiredPrefix = 
           schema.propertyRequired(prop)? '! ' : '? ';
         String port = "@$prop";
@@ -265,7 +261,9 @@ class SchemaNode {
     List<String> definitions = [];
     if(schema.definitions.length > 0) {
       definitions.add('<tr><td bgcolor="wheat" align="center" colspan="2"><font color="black">Definitions</font></td></tr>');
-      schema.definitions.forEach((key, subschema) {
+      var sortedDefinitions = new List.from(schema.definitions.keys)..sort();
+      sortedDefinitions.forEach((key) {
+        var subschema = schema.definitions[key];
         definitions.add(wrapRowDistinct(key, '', "${schema.path}@$key"));
       });
     }

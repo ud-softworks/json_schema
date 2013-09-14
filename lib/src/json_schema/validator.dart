@@ -213,50 +213,56 @@ class Validator {
 
   void _validateFormat(Schema schema, instance) {
     switch(schema._format) {
-      case 'date-time': {
-        try {
-          DateTime.parse(instance);
-        } catch(e) {
-          _err("'date-time' format not accepted $instance");
+      case 'date-time': 
+        {
+          try {
+            DateTime.parse(instance);
+          } catch(e) {
+            _err("'date-time' format not accepted $instance");
+          }
         }
         break;
-      }
-      case 'uri': {
-        var isValid = (_uriValidator != null)? 
-        _uriValidator : _defaultUriValidator;
+      case 'uri': 
+        {
+          var isValid = (_uriValidator != null)? 
+          _uriValidator : _defaultUriValidator;
 
-        if(!isValid(instance)) {
-          _err("'uri' format not accepted $instance");
+          if(!isValid(instance)) {
+            _err("'uri' format not accepted $instance");
+          }
         }
         break;
-      }
-      case 'email': {
-        var isValid = (_emailValidator != null)?
-        _emailValidator : _defaultEmailValidator;
+      case 'email': 
+        {
+          var isValid = (_emailValidator != null)?
+          _emailValidator : _defaultEmailValidator;
 
-        if(!isValid(instance)) {
-          _err("'email' format not accepted $instance");
+          if(!isValid(instance)) {
+            _err("'email' format not accepted $instance");
+          }
         }
         break;
-      }
-      case 'ipv4': {
-        if(_ipv4Re.firstMatch(instance) == null) {
-          _err("'ipv4' format not accepted $instance");
+      case 'ipv4': 
+        {
+          if(_ipv4Re.firstMatch(instance) == null) {
+            _err("'ipv4' format not accepted $instance");
+          }
         }
         break;
-      }
-      case 'ipv6': {
-        if(_ipv6Re.firstMatch(instance) == null) {
-          _err("'ipv6' format not accepted $instance");
+      case 'ipv6': 
+        {
+          if(_ipv6Re.firstMatch(instance) == null) {
+            _err("'ipv6' format not accepted $instance");
+          }
         }
         break;
-      }
-      case 'hostname': {
-        if(_hostnameRe.firstMatch(instance) == null) {
-          _err("'hostname' format not accepted $instance");
+      case 'hostname': 
+        {
+          if(_hostnameRe.firstMatch(instance) == null) {
+            _err("'hostname' format not accepted $instance");
+          }
         }
         break;
-      }
       default: {
         _err("${schema._format} not supported as format");
       }

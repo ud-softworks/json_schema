@@ -76,87 +76,6 @@ to the file, otherwise written to stdout.
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'
       ..includeLogger = true
-      ..variables = [
-        variable('email_re')
-        ..isPublic = false
-        ..type = 'RegExp'
-        ..init = "new RegExp(\n"
-        r'''
-  r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
-  r'@'
-  r'[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$'
-'''
-        ")",
-        variable('default_email_validator')
-        ..type = 'var'
-        ..isPublic = false
-        ..init = '(String email) => _emailRe.firstMatch(email) != null',
-        variable('email_validator')
-        ..isPublic = false
-        ..type = 'var'
-        ..init = '_defaultEmailValidator',
-        variable('ipv4_re')
-        ..isPublic = false
-        ..type = 'RegExp'
-        ..init = "new RegExp(\n"
-        r'''
-  r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$'
-'''
-        ")",
-        variable('ipv6_re')
-        ..isPublic = false
-        ..type = 'RegExp'
-        ..init = "new RegExp(\n"
-        r'''
-  r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
-  r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}$)|'
-  r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}$)|'
-  r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}$)|'
-  r'(^([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}$)|'
-  r'(^([0-9a-f]{1,4}:){1,6}(:[0-9a-f]{1,4}){1,1}$)|'
-  r'(^(([0-9a-f]{1,4}:){1,7}|:):$)|'
-  r'(^:(:[0-9a-f]{1,4}){1,7}$)|'
-  r'(^((([0-9a-f]{1,4}:){6})(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
-  r'(^(([0-9a-f]{1,4}:){5}[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
-  r'(^([0-9a-f]{1,4}:){5}:[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,3}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,2}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,1}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-  r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)'
-'''
-        ")",
-        variable('default_uri_validator')
-        ..type = 'var'
-        ..isPublic = false
-        ..init = '''
-(String uri) {
-  try {
-    Uri.parse(uri);
-    return true;
-  } catch(e) {
-    return false;
-  }
-}''',
-        variable('hostname_re')
-        ..isPublic = false
-        ..type = 'RegExp'
-        ..init = "new RegExp(\n"
-        r'''
-  r'^(?=.{1,255}$)'
-  r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
-  r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$'
-'''
-        ")",
-        variable('uri_validator')
-        ..isPublic = false
-        ..type = 'var'
-        ..init = '_defaultUriValidator',
-      ]
       ..enums = [
         enum_('schema_type')
         ..isSnakeString = true
@@ -325,6 +244,87 @@ result in a FormatException being thrown.
           ]
         ],
         part('validator')
+      ..variables = [
+        variable('email_re')
+        ..isPublic = false
+        ..type = 'RegExp'
+        ..init = "new RegExp(\n"
+        r'''
+  r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
+  r'@'
+  r'[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$'
+'''
+        ")",
+        variable('default_email_validator')
+        ..type = 'var'
+        ..isPublic = false
+        ..init = '(String email) => _emailRe.firstMatch(email) != null',
+        variable('email_validator')
+        ..isPublic = false
+        ..type = 'var'
+        ..init = '_defaultEmailValidator',
+        variable('ipv4_re')
+        ..isPublic = false
+        ..type = 'RegExp'
+        ..init = "new RegExp(\n"
+        r'''
+  r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
+  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
+  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
+  r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$'
+'''
+        ")",
+        variable('ipv6_re')
+        ..isPublic = false
+        ..type = 'RegExp'
+        ..init = "new RegExp(\n"
+        r'''
+  r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
+  r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}$)|'
+  r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}$)|'
+  r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}$)|'
+  r'(^([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}$)|'
+  r'(^([0-9a-f]{1,4}:){1,6}(:[0-9a-f]{1,4}){1,1}$)|'
+  r'(^(([0-9a-f]{1,4}:){1,7}|:):$)|'
+  r'(^:(:[0-9a-f]{1,4}){1,7}$)|'
+  r'(^((([0-9a-f]{1,4}:){6})(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
+  r'(^(([0-9a-f]{1,4}:){5}[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
+  r'(^([0-9a-f]{1,4}:){5}:[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,3}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,2}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,1}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
+  r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)'
+'''
+        ")",
+        variable('default_uri_validator')
+        ..type = 'var'
+        ..isPublic = false
+        ..init = '''
+(String uri) {
+  try {
+    Uri.parse(uri);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}''',
+        variable('hostname_re')
+        ..isPublic = false
+        ..type = 'RegExp'
+        ..init = "new RegExp(\n"
+        r'''
+  r'^(?=.{1,255}$)'
+  r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
+  r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$'
+'''
+        ")",
+        variable('uri_validator')
+        ..isPublic = false
+        ..type = 'var'
+        ..init = '_defaultUriValidator',
+      ]
         ..classes = [
           class_('validator')
           ..defaultMemberAccess = IA

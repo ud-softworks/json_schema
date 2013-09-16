@@ -74,7 +74,8 @@ Map _parseArgs() {
 final _logger = new Logger("schemadot");
 
 main() { 
-  Logger.root.onRecord.listen(new PrintHandler());
+  Logger.root.onRecord.listen((LogRecord r) =>
+      print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Logger.root.level = Level.INFO;
   Map argResults = _parseArgs();
   Map options = argResults['options'];

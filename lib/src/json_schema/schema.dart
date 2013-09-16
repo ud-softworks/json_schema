@@ -384,6 +384,15 @@ class Schema {
       _stringError(r"$ref", value);
     }
   }
+  _getSchema(dynamic value) {
+    if(value is String) {
+      if(value != "http://json-schema.org/draft-04/schema#") {
+        _error("Only draft 4 schema supported");
+      }
+    } else {
+      _stringError(r"$ref", value);
+    }
+  }
   _getId(dynamic value) {
     if(value is String) {
       String id = _requireString("id", value);
@@ -435,6 +444,7 @@ class Schema {
     "definitions" : (s, v) => s._getDefinitions(v),
     "id" : (s, v) => s._getId(v),
     "\$ref" : (s, v) => s._getRef(v),
+    "\$schema" : (s, v) => s._getSchema(v),
     "title" : (s, v) => s._getTitle(v),
     "description" : (s, v) => s._getDescription(v),
     "format" : (s, v) => s._getFormat(v),
@@ -514,7 +524,7 @@ class Schema {
     Schema result = _refMap[path];
     if(result == null) {
       var schema = _freeFormMap[path];
-      if(schema is! Map) _schemaError("free-form property", schema);
+      if(schema is! Map) _schemaError("free-form property $original", schema);
       return new Schema._fromMap(_root, schema, path);
     } 
     return result;

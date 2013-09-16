@@ -151,7 +151,8 @@ class SchemaNode {
       schema.anyOf.forEach((anyOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, anyOfSchema);
-        anyOf.add(wrap("${schemaType(anyOfSchema)}", color:'grey', port:port));
+        anyOf.add(wrap(abbreviatedString("${schemaType(anyOfSchema)}", 30),
+                color:'grey', port:port));
       });
     }
     return anyOf;
@@ -165,7 +166,8 @@ class SchemaNode {
       schema.oneOf.forEach((oneOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, oneOfSchema);
-        oneOf.add(wrap("${schemaType(oneOfSchema)}", color:'grey', port:port));
+        oneOf.add(wrap(abbreviatedString("${schemaType(oneOfSchema)}", 30),
+                color:'grey', port:port));
       });
     }
     return oneOf;
@@ -179,7 +181,8 @@ class SchemaNode {
       schema.allOf.forEach((allOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, allOfSchema);
-        allOf.add(wrap("${schemaType(allOfSchema)}", color:'grey', port:port));
+        allOf.add(wrap(abbreviatedString("${schemaType(allOfSchema)}", 30),
+                color:'grey', port:port));
       });
     }
     return allOf;

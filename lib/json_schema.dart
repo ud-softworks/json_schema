@@ -106,11 +106,11 @@ RegExp _ipv6Re = new RegExp(
 );
 
 var _defaultUriValidator = (String uri) {
-  try { 
-    Uri.parse(uri); 
+  try {
+    Uri.parse(uri);
     return true;
-  } catch(e) { 
-    return false; 
+  } catch(e) {
+    return false;
   }
 };
 

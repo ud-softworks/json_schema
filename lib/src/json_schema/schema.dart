@@ -20,97 +20,46 @@ class Schema {
     // end <Schema._fromRootMap>
   }
 
-  Schema _root;
   Schema get root => _root;
-  Map _schemaMap = {};
   Map get schemaMap => _schemaMap;
-  String _path;
   String get path => _path;
-  num _multipleOf;
   num get multipleOf => _multipleOf;
-  num _maximum;
   num get maximum => _maximum;
-  bool _exclusiveMaximum;
-  num _minimum;
   num get minimum => _minimum;
-  bool _exclusiveMinimum;
-  int _maxLength;
   int get maxLength => _maxLength;
-  int _minLength;
   int get minLength => _minLength;
-  RegExp _pattern;
   RegExp get pattern => _pattern;
-  List _enumValues = [];
   List get enumValues => _enumValues;
-  List<Schema> _allOf = [];
   List<Schema> get allOf => _allOf;
-  List<Schema> _anyOf = [];
   List<Schema> get anyOf => _anyOf;
-  List<Schema> _oneOf = [];
   List<Schema> get oneOf => _oneOf;
-  Schema _notSchema;
   Schema get notSchema => _notSchema;
-  Map<String,Schema> _definitions = {};
   Map<String,Schema> get definitions => _definitions;
-  Uri _id;
   Uri get id => _id;
-  String _ref;
   String get ref => _ref;
-  String _description;
   String get description => _description;
-  String _title;
   String get title => _title;
-  List<SchemaType> _schemaTypeList;
   List<SchemaType> get schemaTypeList => _schemaTypeList;
-  Schema _items;
   /// To match all items to a schema
   Schema get items => _items;
-  List<Schema> _itemsList;
   /// To match each item in array to a schema
   List<Schema> get itemsList => _itemsList;
-  dynamic _additionalItems;
   dynamic get additionalItems => _additionalItems;
-  int _maxItems;
   int get maxItems => _maxItems;
-  int _minItems;
   int get minItems => _minItems;
-  bool _uniqueItems = false;
   bool get uniqueItems => _uniqueItems;
-  List<String> _requiredProperties;
   List<String> get requiredProperties => _requiredProperties;
-  int _maxProperties;
   int get maxProperties => _maxProperties;
-  int _minProperties = 0;
   int get minProperties => _minProperties;
-  Map<String,Schema> _properties = {};
   Map<String,Schema> get properties => _properties;
-  bool _additionalProperties;
   bool get additionalProperties => _additionalProperties;
-  Schema _additionalPropertiesSchema;
   Schema get additionalPropertiesSchema => _additionalPropertiesSchema;
-  Map<RegExp,Schema> _patternProperties = {};
   Map<RegExp,Schema> get patternProperties => _patternProperties;
-  Map<String,Schema> _schemaDependencies = {};
   Map<String,Schema> get schemaDependencies => _schemaDependencies;
-  Map<String,List<String>> _propertyDependencies = {};
   Map<String,List<String>> get propertyDependencies => _propertyDependencies;
-  dynamic _defaultValue;
   dynamic get defaultValue => _defaultValue;
-  Map<String,Schema> _refMap = {};
   /// Map of path to schema object
   Map<String,Schema> get refMap => _refMap;
-  /// For schemas with $ref maps path of schema to $ref path
-  Map<String,String> _schemaRefs = {};
-  /// Assignments to call for resolution upon end of parse
-  List _schemaAssignments = [];
-  /// Maps any non-key top level property to its original value
-  Map<String,dynamic> _freeFormMap = {};
-  Completer _thisCompleter = new Completer();
-  Future<Schema> _retrievalRequests;
-  /// Set of strings to gaurd against path cycles
-  Set<String> _pathsEncountered = new Set();
-  /// Support for optional formats (date-time, uri, email, ipv6, hostname)
-  String _format;
 
   // custom <class Schema>
 
@@ -601,6 +550,57 @@ class Schema {
   String toString() => "${_schemaMap}";
 
   // end <class Schema>
+  Schema _root;
+  Map _schemaMap = {};
+  String _path;
+  num _multipleOf;
+  num _maximum;
+  bool _exclusiveMaximum;
+  num _minimum;
+  bool _exclusiveMinimum;
+  int _maxLength;
+  int _minLength;
+  RegExp _pattern;
+  List _enumValues = [];
+  List<Schema> _allOf = [];
+  List<Schema> _anyOf = [];
+  List<Schema> _oneOf = [];
+  Schema _notSchema;
+  Map<String,Schema> _definitions = {};
+  Uri _id;
+  String _ref;
+  String _description;
+  String _title;
+  List<SchemaType> _schemaTypeList;
+  Schema _items;
+  List<Schema> _itemsList;
+  dynamic _additionalItems;
+  int _maxItems;
+  int _minItems;
+  bool _uniqueItems = false;
+  List<String> _requiredProperties;
+  int _maxProperties;
+  int _minProperties = 0;
+  Map<String,Schema> _properties = {};
+  bool _additionalProperties;
+  Schema _additionalPropertiesSchema;
+  Map<RegExp,Schema> _patternProperties = {};
+  Map<String,Schema> _schemaDependencies = {};
+  Map<String,List<String>> _propertyDependencies = {};
+  dynamic _defaultValue;
+  Map<String,Schema> _refMap = {};
+  /// For schemas with $ref maps path of schema to $ref path
+  Map<String,String> _schemaRefs = {};
+  /// Assignments to call for resolution upon end of parse
+  List _schemaAssignments = [];
+  /// Maps any non-key top level property to its original value
+  Map<String,dynamic> _freeFormMap = {};
+  Completer _thisCompleter = new Completer();
+  Future<Schema> _retrievalRequests;
+  /// Set of strings to gaurd against path cycles
+  Set<String> _pathsEncountered = new Set();
+  /// Support for optional formats (date-time, uri, email, ipv6, hostname)
+  String _format;
 }
 // custom <part schema>
 // end <part schema>

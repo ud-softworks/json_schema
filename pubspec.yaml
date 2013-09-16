@@ -7,22 +7,20 @@ description: >
 dependencies:
   path: "any"
 
-  logging: ">=0.6.21+3 <0.6.22"
-
-  logging_handlers: ">=0.5.0+3 <0.5.1"
+  logging: ">=0.7.1"
 
 # custom <json_schema dependencies>
 
-  path: ">=0.6.21+3"
+  path: ">=0.7.1"
 
 # end <json_schema dependencies>
 
 dev_dependencies:
-  hop: "0.24.2"
+  hop: "0.24.4"
 
 # custom <json_schema dev dependencies>
 
-  unittest: ">=0.6.21+3"
+  unittest: ">=0.7.1"
 
 # end <json_schema dev dependencies>
 

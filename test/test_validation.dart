@@ -7,7 +7,6 @@ import 'package:json_schema/json_schema.dart';
 import 'package:unittest/unittest.dart';
 import 'package:logging/logging.dart';
 // custom <additional imports>
-import 'package:logging_handlers/logging_handlers_shared.dart';
 import 'utils.dart';
 // end <additional imports>
 
@@ -22,9 +21,10 @@ main() {
 
   ////////////////////////////////////////////////////////////////////////
   // Uncomment to see logging of excpetions
-  // Logger.root.onRecord.listen(new PrintHandler());
-  // Logger.root.level = Level.INFO;
-  // logFormatExceptions = true;
+  // Logger.root.onRecord.listen((LogRecord r) =>
+  //   print("${r.loggerName} [${r.level}]:\t${r.message}"));
+
+  Logger.root.level = Level.INFO;
 
   String here = packageRootPath;
 

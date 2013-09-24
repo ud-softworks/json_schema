@@ -1,10 +1,13 @@
 import "dart:io";
 import "package:path/path.dart" as path;
 import "package:ebisu/ebisu_dart_meta.dart";
+import "package:logging/logging.dart";
 
 String _topDir;
 
 void main() {
+  Logger.root.onRecord.listen((LogRecord r) =>
+      print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Options options = new Options();
   String here = path.absolute(options.script);
   _topDir = path.dirname(path.dirname(here));
@@ -14,6 +17,7 @@ void main() {
     ..pubSpec.version = '0.0.2'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..pubSpec.addDependency(new PubDependency('path'))
+    ..pubSpec.addDevDependency(new PubDependency('unittest'))
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
     ..testLibraries = [

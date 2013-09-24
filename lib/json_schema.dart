@@ -1,12 +1,12 @@
 /// Support for validating json instances against a json schema
 library json_schema;
 
+import 'dart:async';
+import 'dart:convert' as convert;
 import 'dart:io';
 import 'dart:math';
-import 'dart:convert' as convert;
-import 'package:path/path.dart' as PATH;
-import 'dart:async';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as PATH;
 // custom <additional imports>
 // end <additional imports>
 

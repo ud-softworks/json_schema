@@ -8,13 +8,13 @@
 /// to the file, otherwise written to stdout.
 /// 
 
+import 'dart:async';
+import 'dart:convert' as convert;
+import 'dart:io';
+import 'dart:math';
+import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
-import 'dart:convert' as convert;
-import 'dart:math';
-import 'dart:async';
-import 'dart:io';
-import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
 //! The parser for this script

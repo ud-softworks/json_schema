@@ -1,9 +1,9 @@
 /// Functionality to create Graphviz input dot file from schema
 library schema_dot;
 
-import 'package:json_schema/json_schema.dart';
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
+import 'package:json_schema/json_schema.dart';
 // custom <additional imports>
 // end <additional imports>
 

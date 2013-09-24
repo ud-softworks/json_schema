@@ -1,11 +1,11 @@
 library test_invalid_schemas;
 
-import 'dart:io';
 import 'dart:convert' as convert;
-import 'package:path/path.dart' as path;
+import 'dart:io';
 import 'package:json_schema/json_schema.dart';
-import 'package:unittest/unittest.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
+import 'package:unittest/unittest.dart';
 // custom <additional imports>
 import 'utils.dart';
 // end <additional imports>

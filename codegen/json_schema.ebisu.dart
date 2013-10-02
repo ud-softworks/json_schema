@@ -70,10 +70,13 @@ to the file, otherwise written to stdout.
       ]
       ..classes = [
         class_('schema_node')
+        ..doc = 'Represents one node in the schema diagram'
         ..members = [
           member('schema')
+          ..doc = 'Referenced schema this node portrays'
           ..type = 'Schema',
           member('links')
+          ..doc = 'List of links (resulting in graph edge) from this node to another'
           ..type = 'List<String>'
         ]
       ],

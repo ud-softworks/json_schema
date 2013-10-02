@@ -10,8 +10,8 @@ import 'package:path/path.dart' as PATH;
 // custom <additional imports>
 // end <additional imports>
 
-part "src/json_schema/schema.dart";
-part "src/json_schema/validator.dart";
+part 'src/json_schema/schema.dart';
+part 'src/json_schema/validator.dart';
 
 final _logger = new Logger("json_schema");
 

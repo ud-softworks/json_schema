@@ -8,8 +8,11 @@ import 'package:json_schema/json_schema.dart';
 // end <additional imports>
 
 
+/// Represents one node in the schema diagram
 class SchemaNode {
+  /// Referenced schema this node portrays
   Schema schema;
+  /// List of links (resulting in graph edge) from this node to another
   List<String> links;
 
   // custom <class SchemaNode>
@@ -215,7 +218,8 @@ class SchemaNode {
 
   makeSchemaLink(String port, Schema src, Schema target) {
     if(schemaShown(target))
-      links.add('${makeSchemaPort(port, src)} -> ${makeSchemaPort("@path", target)}');
+      links.add(
+        '${makeSchemaPort(port, src)} -> ${makeSchemaPort("@path", target)}');
   }
 
   List<String> get additionalPropertiesSchema {

@@ -524,7 +524,8 @@ class Schema {
     Schema result = _refMap[path];
     if(result == null) {
       var schema = _freeFormMap[path];
-      if(schema is! Map) _schemaError("free-form property $original", schema);
+      if(schema is! Map) 
+        _schemaError("free-form property $original at $path", schema);
       return new Schema._fromMap(_root, schema, path);
     } 
     return result;

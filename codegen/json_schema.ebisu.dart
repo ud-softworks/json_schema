@@ -8,13 +8,13 @@ String _topDir;
 void main() {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
-  Options options = new Options();
-  String here = path.absolute(options.script);
+  var arguments = Platform.executableArguments;
+  String here = path.absolute(Platform.script.path);
   _topDir = path.dirname(path.dirname(here));
   System ebisu = system('json_schema')
     ..includeHop = true
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
-    ..pubSpec.version = '0.0.2'
+    ..pubSpec.version = '1.0.0'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..pubSpec.addDependency(new PubDependency('path'))
     ..pubSpec.addDevDependency(new PubDependency('unittest'))

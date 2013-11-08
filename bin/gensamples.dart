@@ -4,7 +4,7 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 
 main() {
-  var sourcePath = join(dirname(dirname(absolute(new Options().script))), 
+  var sourcePath = join(dirname(dirname(absolute(Platform.script.path))),
       'dot_samples', 'schemas');
   var outPath = join(dirname(sourcePath), 'schemaout');
   new Directory(sourcePath).listSync().forEach((jsonFile) {

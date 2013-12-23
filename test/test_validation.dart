@@ -15,8 +15,7 @@ final _logger = new Logger("test_validation");
 
 // custom <library test_validation>
 // end <library test_validation>
-
-main() { 
+main() {
 // custom <main>
 
   ////////////////////////////////////////////////////////////////////////

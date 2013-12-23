@@ -131,7 +131,7 @@ class Validator {
     } else {
       var items = schema._itemsList;
       var additionalItems = schema._additionalItems;
-  
+
       if(items != null) {
         int expected = items.length;
         int end = min(expected, actual);
@@ -210,7 +210,7 @@ class Validator {
 
   void _validateFormat(Schema schema, instance) {
     switch(schema._format) {
-      case 'date-time': 
+      case 'date-time':
         {
           try {
             DateTime.parse(instance);
@@ -219,9 +219,9 @@ class Validator {
           }
         }
         break;
-      case 'uri': 
+      case 'uri':
         {
-          var isValid = (_uriValidator != null)? 
+          var isValid = (_uriValidator != null)?
           _uriValidator : _defaultUriValidator;
 
           if(!isValid(instance)) {
@@ -229,7 +229,7 @@ class Validator {
           }
         }
         break;
-      case 'email': 
+      case 'email':
         {
           var isValid = (_emailValidator != null)?
           _emailValidator : _defaultEmailValidator;
@@ -239,21 +239,21 @@ class Validator {
           }
         }
         break;
-      case 'ipv4': 
+      case 'ipv4':
         {
           if(_ipv4Re.firstMatch(instance) == null) {
             _err("'ipv4' format not accepted $instance");
           }
         }
         break;
-      case 'ipv6': 
+      case 'ipv6':
         {
           if(_ipv6Re.firstMatch(instance) == null) {
             _err("'ipv6' format not accepted $instance");
           }
         }
         break;
-      case 'hostname': 
+      case 'hostname':
         {
           if(_hostnameRe.firstMatch(instance) == null) {
             _err("'hostname' format not accepted $instance");
@@ -346,7 +346,7 @@ class Validator {
     if(schema._schemaDependencies != null)
       _schemaDependenciesValidation(schema, instance);
   }
-  
+
   void _validate(Schema schema, dynamic instance) {
     _typeValidation(schema, instance);
     _enumValidation(schema, instance);
@@ -375,6 +375,7 @@ class Validator {
 }
 // custom <part validator>
 // end <part validator>
+
 
 RegExp _emailRe = new RegExp(
   r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
@@ -429,4 +430,3 @@ RegExp _hostnameRe = new RegExp(
 );
 
 var _uriValidator = _defaultUriValidator;
-

@@ -15,7 +15,7 @@ part 'src/json_schema/validator.dart';
 
 final _logger = new Logger("json_schema");
 
-class SchemaType {
+class SchemaType implements Comparable<SchemaType> {
   static const ARRAY = const SchemaType._(0);
   static const BOOLEAN = const SchemaType._(1);
   static const INTEGER = const SchemaType._(2);
@@ -38,6 +38,8 @@ class SchemaType {
 
   const SchemaType._(this.value);
 
+  int compareTo(SchemaType other) => value.compareTo(other.value);
+
   String toString() {
     switch(this) {
       case ARRAY: return "array";
@@ -51,6 +53,7 @@ class SchemaType {
   }
 
   static SchemaType fromString(String s) {
+    if(s == null) return null;
     switch(s) {
       case "array": return ARRAY;
       case "boolean": return BOOLEAN;
@@ -59,6 +62,7 @@ class SchemaType {
       case "null": return NULL;
       case "object": return OBJECT;
       case "string": return STRING;
+      default: return null;
     }
   }
 
@@ -102,4 +106,3 @@ bool _jsonEqual(a, b) {
 }
 
 // end <library json_schema>
-

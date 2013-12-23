@@ -4,8 +4,8 @@
 ///
 /// Given an input uri [in-uri] processes content of uri as
 /// json schema and generates input file for Graphviz dot
-/// program. If [out-file] provided, output is written to 
-/// to the file, otherwise written to stdout.
+/// program. If [out-file] provided, output is written to
+/// the file, otherwise written to stdout.
 /// 
 
 import 'dart:async';
@@ -21,15 +21,15 @@ import 'package:logging/logging.dart';
 ArgParser _parser;
 
 //! The comment and usage associated with this script
-void _usage() { 
+void _usage() {
   print('''
 
 Usage: schemadot --in-uri INPUT_JSON_URI --out-file OUTPUT_FILE
 
 Given an input uri [in-uri] processes content of uri as
 json schema and generates input file for Graphviz dot
-program. If [out-file] provided, output is written to 
-to the file, otherwise written to stdout.
+program. If [out-file] provided, output is written to
+the file, otherwise written to stdout.
 
 ''');
   print(_parser.getUsage());
@@ -37,20 +37,20 @@ to the file, otherwise written to stdout.
 
 //! Method to parse command line options.
 //! The result is a map containing all options, including positional options
-Map _parseArgs() { 
+Map _parseArgs() {
   ArgResults argResults;
   Map result = { };
   List remaining = [];
 
   _parser = new ArgParser();
-  try { 
+  try {
     /// Fill in expectations of the parser
-    _parser.addOption('in-uri', 
+    _parser.addOption('in-uri',
       defaultsTo: null,
       allowMultiple: false,
       abbr: 'i',
       allowed: null);
-    _parser.addOption('out-file', 
+    _parser.addOption('out-file',
       defaultsTo: null,
       allowMultiple: false,
       abbr: 'o',
@@ -59,13 +59,13 @@ Map _parseArgs() {
     /// Parse the command line options (excluding the script)
     var arguments = new Options().arguments;
     argResults = _parser.parse(arguments);
-    argResults.options.forEach((opt) { 
+    argResults.options.forEach((opt) {
       result[opt] = argResults[opt];
     });
-    
+
     return { 'options': result, 'rest': remaining };
 
-  } catch(e) { 
+  } catch(e) {
     _usage();
     throw e;
   }
@@ -73,7 +73,7 @@ Map _parseArgs() {
 
 final _logger = new Logger("schemadot");
 
-main() { 
+main() {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Logger.root.level = Level.INFO;
@@ -81,11 +81,11 @@ main() {
   Map options = argResults['options'];
   List positionals = argResults['rest'];
 
-  try { 
+  try {
     if(options["in-uri"] == null)
       throw new ArgumentError("option: in-uri is required");
 
-  } on ArgumentError catch(e) { 
+  } on ArgumentError catch(e) {
     print(e);
     _usage();
   }
@@ -133,5 +133,4 @@ main() {
 // custom <schemadot global>
 
 // end <schemadot global>
-
 

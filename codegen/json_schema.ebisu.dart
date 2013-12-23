@@ -49,8 +49,8 @@ Usage: schemadot --in-uri INPUT_JSON_URI --out-file OUTPUT_FILE
 
 Given an input uri [in-uri] processes content of uri as
 json schema and generates input file for Graphviz dot
-program. If [out-file] provided, output is written to 
-to the file, otherwise written to stdout.
+program. If [out-file] provided, output is written to
+the file, otherwise written to stdout.
 '''
       ..args = [
         scriptArg('in_uri')
@@ -352,4 +352,3 @@ result in a FormatException being thrown.
     ];
   ebisu.generate();
 }
-

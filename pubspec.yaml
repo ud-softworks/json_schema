@@ -5,7 +5,7 @@ homepage: https://github.com/patefacio/json_schema
 description: >
   Provide support for validating instances against json schema
 dependencies:
-  path: ">=0.9.0 < 0.10.0"
+  path: ">=1.0.0 < 1.10.0"
 
   logging: ">=0.7.1"
 
@@ -20,9 +20,12 @@ dev_dependencies:
 
 # custom <json_schema dev dependencies>
 
-environment: 
-  sdk: ">=0.8.10+6 <2.0.0" 
+environment:
+  sdk: ">=0.8.10+6 <2.0.0"
 
 # end <json_schema dev dependencies>
 
+transformers:
+# custom <json_schema transformers>
+# end <json_schema transformers>
 

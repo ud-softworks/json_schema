@@ -15,8 +15,7 @@ final _logger = new Logger("test_invalid_schemas");
 
 // custom <library test_invalid_schemas>
 // end <library test_invalid_schemas>
-
-main() { 
+main() {
 // custom <main>
 
   String here = packageRootPath;

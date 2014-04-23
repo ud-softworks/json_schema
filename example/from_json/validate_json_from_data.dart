@@ -1,12 +1,12 @@
 #!/usr/bin/env dart
 
-import "dart:json" as JSON;
 import "package:json_schema/json_schema.dart";
 import "package:logging/logging.dart";
-import "package:logging_handlers/logging_handlers_shared.dart";
 
 main() {
-  Logger.root.onRecord.listen(new PrintHandler());
+
+  Logger.root.onRecord.listen((LogRecord rec) =>
+    print('${rec.level.name}: ${rec.time}: ${rec.message}'));
   Logger.root.level = Level.SHOUT;
 
   //////////////////////////////////////////////////////////////////////

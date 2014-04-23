@@ -1,5 +1,5 @@
 name: json_schema
-version: 1.0.0
+version: 1.0.1
 author: Daniel Davidson <dbdavidson@yahoo.com>
 homepage: https://github.com/patefacio/json_schema
 description: >
@@ -9,7 +9,7 @@ dependencies:
   logging: ">=0.8.0 <0.10.0"
 
 # custom <json_schema dependencies>
-  quiver: ">=0.18.0<0.19.0"
+
 # end <json_schema dependencies>
 
 dev_dependencies:

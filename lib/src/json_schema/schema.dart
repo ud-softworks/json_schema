@@ -3,7 +3,7 @@ part of json_schema.json_schema;
 /// Constructed with a json schema, either as string or Map. Validation of
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
-/// 
+///
 class Schema {
 
   Schema._fromMap(this._root, this._schemaMap, this._path) {
@@ -66,9 +66,12 @@ class Schema {
     Uri uri = Uri.parse(schemaUrl);
     if(uri.scheme == 'http') {
       return new HttpClient().getUrl(uri)
-        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientRequest request) {
+          request.followRedirects = true;
+          return request.close();
+        })
         .then((HttpClientResponse response) {
-          return 
+          return
             response
             .transform(new convert.Utf8Decoder())
             .join()
@@ -109,7 +112,7 @@ class Schema {
     return _endPath(path);
   }
 
-  /// Returns paths of all paths 
+  /// Returns paths of all paths
   Set get paths => new Set.from(_schemaRefs.keys)
     ..addAll(_refMap.keys);
 
@@ -211,7 +214,7 @@ class Schema {
   _getProperties(dynamic value) {
     if(value is Map) {
       value.forEach((property, subSchema) =>
-        _makeSchema("$_path/properties/$property", 
+        _makeSchema("$_path/properties/$property",
             subSchema, (rhs) => _properties[property] = rhs));
     } else {
       _objectError("properties", value);
@@ -235,7 +238,7 @@ class Schema {
     if(value is bool) {
       _additionalItems = value;
     } else if(value is Map) {
-      _makeSchema("$_path/additionalItems", value, 
+      _makeSchema("$_path/additionalItems", value,
           (rhs) => _additionalItems = rhs);
     } else {
       _error("additionalItems must be boolean or object: $value");
@@ -329,7 +332,7 @@ class Schema {
     } else {
       _error("type must be string or array: $value");
     }
-    
+
     if(_schemaTypeList.contains(null)) _error("type(s) invalid $value");
   }
   _requireListOfSchema(String key, dynamic value, schemaAdder(Schema schema) ) {
@@ -358,7 +361,7 @@ class Schema {
   }
   _getDefinitions(dynamic value) {
     if(value is Map) {
-      value.forEach((k,v) => 
+      value.forEach((k,v) =>
           _makeSchema("$_path/definitions/$k", v,
               (rhs) => _definitions[k] = rhs));
     } else {
@@ -523,10 +526,10 @@ class Schema {
     Schema result = _refMap[path];
     if(result == null) {
       var schema = _freeFormMap[path];
-      if(schema is! Map) 
+      if(schema is! Map)
         _schemaError("free-form property $original at $path", schema);
       return new Schema._fromMap(_root, schema, path);
-    } 
+    }
     return result;
   }
 
@@ -546,7 +549,7 @@ class Schema {
     return false;
   }
 
-  static String _normalizePath(String path) => 
+  static String _normalizePath(String path) =>
     path.replaceAll('~', '~0')
     .replaceAll('/', '~1')
     .replaceAll('%', '%25');

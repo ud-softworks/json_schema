@@ -14,7 +14,7 @@ void main() {
   System ebisu = system('json_schema')
     ..includeHop = true
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
-    ..pubSpec.version = '1.0.0'
+    ..pubSpec.version = '1.0.1'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..pubSpec.addDependency(new PubDependency('path'))
     ..pubSpec.addDevDependency(new PubDependency('unittest'))

@@ -1,9 +1,9 @@
-part of json_schema;
+part of json_schema.json_schema;
 
 /// Constructed with a json schema, either as string or Map. Validation of
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
-///
+/// 
 class Schema {
 
   Schema._fromMap(this._root, this._schemaMap, this._path) {
@@ -12,7 +12,6 @@ class Schema {
     _addSchema(path, this);
     // end <Schema._fromMap>
   }
-
 
   Schema._fromRootMap(this._schemaMap) {
     // custom <Schema._fromRootMap>
@@ -399,7 +398,7 @@ class Schema {
       try {
         _id = Uri.parse(id);
       } catch(e) {
-        _error("id must be a valid URI: $value");
+        _error("id must be a valid URI: $value ($e)");
       }
     } else {
       _stringError("id", value);

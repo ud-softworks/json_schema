@@ -1,4 +1,4 @@
-part of json_schema;
+part of json_schema.json_schema;
 
 /// Initialized with schema, validates instances against it
 class Validator {
@@ -376,24 +376,19 @@ class Validator {
 // custom <part validator>
 // end <part validator>
 
-
 RegExp _emailRe = new RegExp(
   r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
   r'@'
   r'[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$'
 );
-
 var _defaultEmailValidator = (String email) => _emailRe.firstMatch(email) != null;
-
 var _emailValidator = _defaultEmailValidator;
-
 RegExp _ipv4Re = new RegExp(
   r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
   r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
   r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
   r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$'
 );
-
 RegExp _ipv6Re = new RegExp(
   r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
   r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}$)|'
@@ -413,7 +408,6 @@ RegExp _ipv6Re = new RegExp(
   r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
   r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)'
 );
-
 var _defaultUriValidator = (String uri) {
   try {
     Uri.parse(uri);
@@ -422,11 +416,9 @@ var _defaultUriValidator = (String uri) {
     return false;
   }
 };
-
 RegExp _hostnameRe = new RegExp(
   r'^(?=.{1,255}$)'
   r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
   r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$'
 );
-
 var _uriValidator = _defaultUriValidator;

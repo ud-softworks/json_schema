@@ -45,16 +45,21 @@ Map _parseArgs() {
   _parser = new ArgParser();
   try {
     /// Fill in expectations of the parser
+
     _parser.addOption('in-uri',
+      help: '',
       defaultsTo: null,
       allowMultiple: false,
       abbr: 'i',
-      allowed: null);
+      allowed: null
+    );
     _parser.addOption('out-file',
+      help: '',
       defaultsTo: null,
       allowMultiple: false,
       abbr: 'o',
-      allowed: null);
+      allowed: null
+    );
 
     /// Parse the command line options (excluding the script)
     var arguments = new Options().arguments;
@@ -71,7 +76,7 @@ Map _parseArgs() {
   }
 }
 
-final _logger = new Logger("schemadot");
+final _logger = new Logger('schemadot');
 
 main() {
   Logger.root.onRecord.listen((LogRecord r) =>
@@ -80,15 +85,15 @@ main() {
   Map argResults = _parseArgs();
   Map options = argResults['options'];
   List positionals = argResults['rest'];
-
-  try {
-    if(options["in-uri"] == null)
+try {
+(    if(options["in-uri"] == null)
       throw new ArgumentError("option: in-uri is required");
+)
+} on ArgumentError catch(e) {
+  print(e);
+  _usage();
+}
 
-  } on ArgumentError catch(e) {
-    print(e);
-    _usage();
-  }
   // custom <schemadot main>
 
   Logger.root.level = Level.SHOUT;

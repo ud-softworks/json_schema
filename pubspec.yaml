@@ -6,17 +6,17 @@ description: >
   Provide support for validating instances against json schema
 dependencies:
   path: ">=1.0.0 < 1.10.0"
-
-  logging: ">=0.7.1"
+  logging: ">=0.8.0 <0.10.0"
 
 # custom <json_schema dependencies>
-
+  quiver: ">=0.18.0<0.19.0"
 # end <json_schema dependencies>
 
 dev_dependencies:
-  unittest: ">=0.9.0 < 0.10.0"
-
+  unittest: ">=0.9.0 < 0.11.0"
+  browser: "any"
   hop: ">=0.27.0"
+  hop_docgen: ">=0.1.0 <0.2.0"
 
 # custom <json_schema dev dependencies>
 
@@ -26,6 +26,7 @@ environment:
 # end <json_schema dev dependencies>
 
 transformers:
+
 # custom <json_schema transformers>
 # end <json_schema transformers>
 

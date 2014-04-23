@@ -1,5 +1,5 @@
 /// Support for validating json instances against a json schema
-library json_schema;
+library json_schema.json_schema;
 
 import 'dart:async';
 import 'dart:convert' as convert;
@@ -13,7 +13,7 @@ import 'package:path/path.dart' as PATH;
 part 'src/json_schema/schema.dart';
 part 'src/json_schema/validator.dart';
 
-final _logger = new Logger("json_schema");
+final _logger = new Logger('json_schema');
 
 class SchemaType implements Comparable<SchemaType> {
   static const ARRAY = const SchemaType._(0);
@@ -36,7 +36,11 @@ class SchemaType implements Comparable<SchemaType> {
 
   final int value;
 
+  int get hashCode => value;
+
   const SchemaType._(this.value);
+
+  copy() => this;
 
   int compareTo(SchemaType other) => value.compareTo(other.value);
 
@@ -50,6 +54,7 @@ class SchemaType implements Comparable<SchemaType> {
       case OBJECT: return "object";
       case STRING: return "string";
     }
+    return null;
   }
 
   static SchemaType fromString(String s) {
@@ -66,10 +71,8 @@ class SchemaType implements Comparable<SchemaType> {
     }
   }
 
-
   // custom <enum SchemaType>
   // end <enum SchemaType>
-
 }
 
 // custom <library json_schema>

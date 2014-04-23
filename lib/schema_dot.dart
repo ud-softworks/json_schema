@@ -1,5 +1,5 @@
 /// Functionality to create Graphviz input dot file from schema
-library schema_dot;
+library json_schema.schema_dot;
 
 import 'dart:async';
 import 'dart:convert';
@@ -7,9 +7,9 @@ import 'package:json_schema/json_schema.dart';
 // custom <additional imports>
 // end <additional imports>
 
-
 /// Represents one node in the schema diagram
 class SchemaNode {
+
   /// Referenced schema this node portrays
   Schema schema;
   /// List of links (resulting in graph edge) from this node to another

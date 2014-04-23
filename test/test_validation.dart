@@ -1,4 +1,4 @@
-library test_validation;
+library json_schema.test.test_validation;
 
 import 'dart:convert' as convert;
 import 'dart:io';
@@ -7,11 +7,9 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 // custom <additional imports>
-import 'utils.dart';
 // end <additional imports>
 
-
-final _logger = new Logger("test_validation");
+final _logger = new Logger('test_validation');
 
 // custom <library test_validation>
 // end <library test_validation>
@@ -25,15 +23,17 @@ main() {
 
   Logger.root.level = Level.INFO;
 
-  String here = packageRootPath;
+  String here = path.dirname(
+    path.dirname(
+      path.absolute(Platform.script.path)));
 
-  Directory testSuiteFolder = 
+  Directory testSuiteFolder =
     new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas");
 
-  testSuiteFolder = 
+  testSuiteFolder =
     new Directory("${here}/test/JSON-Schema-Test-Suite/tests/draft4");
 
-  var optionals = 
+  var optionals =
     new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
 
   var all = testSuiteFolder.listSync()..addAll(optionals.listSync());
@@ -44,7 +44,7 @@ main() {
 
         // TODO: add these back or get replacements
         // Skip these for now - reason shown
-        if([ 
+        if([
           'refRemote.json', // seems to require webserver running to vend files
         ].contains(path.basename(testEntry.path))) return;
 

@@ -21,6 +21,10 @@
     },
     {
         "description" : "id must be a valid URI",
-        "schema" : { "id" : "^http://foobar" }
+        "schema" : { "id" : "127.0.0.1:0xfff" }
+    },
+    {
+        "description" : "id must be a valid URI",
+        "schema" : { "id" : "http://localhost:^" }
     }
 ]

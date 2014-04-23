@@ -1,4 +1,4 @@
-library test_invalid_schemas;
+library json_schema.test.test_invalid_schemas;
 
 import 'dart:convert' as convert;
 import 'dart:io';
@@ -7,35 +7,40 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 // custom <additional imports>
-import 'utils.dart';
+
 // end <additional imports>
 
-
-final _logger = new Logger("test_invalid_schemas");
+final _logger = new Logger('test_invalid_schemas');
 
 // custom <library test_invalid_schemas>
 // end <library test_invalid_schemas>
 main() {
 // custom <main>
 
-  String here = packageRootPath;
+  String here = path.dirname(
+    path.dirname(
+      path.absolute(Platform.script.path)));
+
   Directory testSuiteFolder = new Directory("${here}/test/invalid_schemas");
 
   testSuiteFolder.listSync().forEach((testEntry) {
     String shortName = path.basename(testEntry.path);
     group("Invalid schema: ${shortName}", () {
       if(testEntry is File) {
-        List tests = 
+        List tests =
           convert.JSON.decode((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {
           var schemaData = testObject["schema"];
           var description = testObject["description"];
           test(description, () {
             var gotException = (e) {
-              expect(e is FormatException, true);
               _logger.info("Caught expected $e");
+              if(!(e is FormatException)) {
+                _logger.info('${shortName} wtf it is a ${e.runtimeType}');
+              }
+              expect(e is FormatException, true);
             };
-            var ensureInvalid = expectAsync1(gotException);
+            var ensureInvalid = expectAsync(gotException);
 
             try {
               Schema.createSchema(schemaData).then(ensureInvalid);

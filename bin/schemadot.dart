@@ -6,7 +6,7 @@
 /// json schema and generates input file for Graphviz dot
 /// program. If [out-file] provided, output is written to
 /// the file, otherwise written to stdout.
-/// 
+///
 
 import 'dart:async';
 import 'dart:convert' as convert;
@@ -37,7 +37,7 @@ the file, otherwise written to stdout.
 
 //! Method to parse command line options.
 //! The result is a map containing all options, including positional options
-Map _parseArgs() {
+Map _parseArgs(List<String> args) {
   ArgResults argResults;
   Map result = { };
   List remaining = [];
@@ -62,8 +62,7 @@ Map _parseArgs() {
     );
 
     /// Parse the command line options (excluding the script)
-    var arguments = new Options().arguments;
-    argResults = _parser.parse(arguments);
+    argResults = _parser.parse(args);
     argResults.options.forEach((opt) {
       result[opt] = argResults[opt];
     });
@@ -78,21 +77,22 @@ Map _parseArgs() {
 
 final _logger = new Logger('schemadot');
 
-main() {
+main(List<String> args) {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Logger.root.level = Level.INFO;
-  Map argResults = _parseArgs();
+  Map argResults = _parseArgs(args);
   Map options = argResults['options'];
   List positionals = argResults['rest'];
-try {
-(    if(options["in-uri"] == null)
+  try {
+
+    if(options["in-uri"] == null)
       throw new ArgumentError("option: in-uri is required");
-)
-} on ArgumentError catch(e) {
-  print(e);
-  _usage();
-}
+
+  } on ArgumentError catch(e) {
+    print(e);
+    _usage();
+  }
 
   // custom <schemadot main>
 

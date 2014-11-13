@@ -35,11 +35,10 @@
                 "valid": true
             },
             {
-                "description": "an invalid URI",
-                "data": "%(foo.com)\\goo",
+                "description": "a valid URI path part may not be //",
+                "data": "http://ibm.com//goo",
                 "valid": false
             }
-
         ]
     },
     {

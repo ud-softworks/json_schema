@@ -410,7 +410,8 @@ RegExp _ipv6Re = new RegExp(
 );
 var _defaultUriValidator = (String uri) {
   try {
-    Uri.parse(uri);
+    final result = Uri.parse(uri);
+    if(result.path.startsWith('//')) return false;
     return true;
   } catch(e) {
     return false;

@@ -20,7 +20,6 @@ void main(List<String> args) {
         "test/test_validation.dart"
       ]));
 
-  addTask('test', createUnitTestTask(runner.testCore));
 
   runHop(args);
 }

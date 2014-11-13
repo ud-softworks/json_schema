@@ -60,7 +60,7 @@ main() {
               var instance = validationTest["data"];
               bool validationResult;
               bool expectedResult = validationTest["valid"];
-              var checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+              var checkResult = expectAsync(() => expect(validationResult, expectedResult));
               Schema.createSchema(schemaData)
                 .then((schema) {
                   validationResult = schema.validate(instance);

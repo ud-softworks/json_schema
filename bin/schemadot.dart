@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-///
+/// 
 /// Usage: schemadot --in-uri INPUT_JSON_URI --out-file OUTPUT_FILE
 ///
 /// Given an input uri [in-uri] processes content of uri as
@@ -138,3 +138,4 @@ main(List<String> args) {
 // custom <schemadot global>
 
 // end <schemadot global>
+

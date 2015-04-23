@@ -2,6 +2,7 @@ library json_schema.test.test_validation;
 
 import 'dart:convert' as convert;
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
@@ -13,7 +14,11 @@ final _logger = new Logger('test_validation');
 
 // custom <library test_validation>
 // end <library test_validation>
-main() {
+
+main([List<String> args]) {
+  Logger.root.onRecord.listen((LogRecord r) =>
+      print("${r.loggerName} [${r.level}]:\t${r.message}"));
+  Logger.root.level = Level.OFF;
 // custom <main>
 
   ////////////////////////////////////////////////////////////////////////
@@ -85,5 +90,6 @@ main() {
   });
 
 // end <main>
+
 
 }

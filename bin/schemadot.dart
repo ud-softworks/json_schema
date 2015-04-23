@@ -7,7 +7,6 @@
 /// program. If [out-file] provided, output is written to
 /// the file, otherwise written to stdout.
 ///
-
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
@@ -16,13 +15,11 @@ import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
-
 //! The parser for this script
 ArgParser _parser;
-
 //! The comment and usage associated with this script
 void _usage() {
-  print('''
+  print(r'''
 
 Usage: schemadot --in-uri INPUT_JSON_URI --out-file OUTPUT_FILE
 
@@ -34,7 +31,6 @@ the file, otherwise written to stdout.
 ''');
   print(_parser.getUsage());
 }
-
 //! Method to parse command line options.
 //! The result is a map containing all options, including positional options
 Map _parseArgs(List<String> args) {
@@ -45,6 +41,13 @@ Map _parseArgs(List<String> args) {
   _parser = new ArgParser();
   try {
     /// Fill in expectations of the parser
+    _parser.addFlag('help',
+      help: r'''
+Display this help screen
+''',
+      abbr: 'h',
+      defaultsTo: false
+    );
 
     _parser.addOption('in-uri',
       help: '',
@@ -60,40 +63,51 @@ Map _parseArgs(List<String> args) {
       abbr: 'o',
       allowed: null
     );
+    _parser.addOption('log-level',
+      help: r'''
+Select log level from:
+[ all, config, fine, finer, finest, info, levels,
+  off, severe, shout, warning ]
+
+''',
+      defaultsTo: null,
+      allowMultiple: false,
+      abbr: null,
+      allowed: null
+    );
 
     /// Parse the command line options (excluding the script)
     argResults = _parser.parse(args);
-    argResults.options.forEach((opt) {
-      result[opt] = argResults[opt];
-    });
+    if(argResults.wasParsed('help')) {
+      _usage();
+      exit(0);
+    }
+    result['in-uri'] = argResults['in-uri'];
+    result['out-file'] = argResults['out-file'];
+    result['help'] = argResults['help'];
+    result['log-level'] = argResults['log-level'];
 
-    return { 'options': result, 'rest': remaining };
+  if(result['log-level'] != null) {
+    const choices = const {
+      'all': Level.ALL, 'config': Level.CONFIG, 'fine': Level.FINE, 'finer': Level.FINER,
+      'finest': Level.FINEST, 'info': Level.INFO, 'levels': Level.LEVELS, 'off': Level.OFF,
+      'severe': Level.SEVERE, 'shout': Level.SHOUT, 'warning': Level.WARNING };
+    final selection = choices[result['log-level'].toLowerCase()];
+    if(selection != null) Logger.root.level = selection;
+  }
+
+    return { 'options': result, 'rest': argResults.rest };
 
   } catch(e) {
     _usage();
     throw e;
   }
 }
-
 final _logger = new Logger('schemadot');
-
 main(List<String> args) {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
-  Logger.root.level = Level.INFO;
-  Map argResults = _parseArgs(args);
-  Map options = argResults['options'];
-  List positionals = argResults['rest'];
-  try {
-
-    if(options["in-uri"] == null)
-      throw new ArgumentError("option: in-uri is required");
-
-  } on ArgumentError catch(e) {
-    print(e);
-    _usage();
-  }
-
+  Logger.root.level = Level.OFF;
   // custom <schemadot main>
 
   Logger.root.level = Level.OFF;
@@ -132,6 +146,7 @@ main(List<String> args) {
 
 
   // end <schemadot main>
+
 
 }
 

@@ -304,7 +304,9 @@ class SchemaNode {
 
 
   // end <class SchemaNode>
+
 }
+
 
 // custom <library schema_dot>
 
@@ -334,3 +336,4 @@ ${new SchemaNode(schema).nodes}
 ''';
 
 // end <library schema_dot>
+

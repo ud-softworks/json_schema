@@ -11,23 +11,21 @@ void main() {
   String here = path.absolute(Platform.script.path);
   _topDir = path.dirname(path.dirname(here));
   System ebisu = system('json_schema')
-    ..includeHop = true
+    ..includesHop = true
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
     ..pubSpec.version = '1.0.1'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
-    ..pubSpec.addDependency(new PubDependency('path'))
-    ..pubSpec.addDevDependency(new PubDependency('unittest'))
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
     ..testLibraries = [
       library('test_invalid_schemas')
-      ..includeLogger = true
+      ..includesLogger = true
       ..imports = [
         'io', '"dart:convert" as convert', '"package:path/path.dart" as path',
         'package:json_schema/json_schema.dart',
       ],
       library('test_validation')
-      ..includeLogger = true
+      ..includesLogger = true
       ..imports = [
         'io', '"dart:convert" as convert', '"package:path/path.dart" as path',
         'package:json_schema/json_schema.dart',
@@ -81,7 +79,7 @@ the file, otherwise written to stdout.
       ],
       library('json_schema')
       ..doc = 'Support for validating json instances against a json schema'
-      ..includeLogger = true
+      ..includesLogger = true
       ..enums = [
         enum_('schema_type')
         ..isSnakeString = true

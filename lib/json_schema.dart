@@ -73,7 +73,9 @@ class SchemaType implements Comparable<SchemaType> {
 
   // custom <enum SchemaType>
   // end <enum SchemaType>
+
 }
+
 
 // custom <library json_schema>
 
@@ -109,3 +111,4 @@ bool _jsonEqual(a, b) {
 }
 
 // end <library json_schema>
+

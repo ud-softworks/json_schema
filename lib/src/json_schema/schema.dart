@@ -563,6 +563,7 @@ class Schema {
   String toString() => "${_schemaMap}";
 
   // end <class Schema>
+
   Schema _root;
   Map _schemaMap = {};
   String _path;
@@ -614,6 +615,8 @@ class Schema {
   Set<String> _pathsEncountered = new Set();
   /// Support for optional formats (date-time, uri, email, ipv6, hostname)
   String _format;
+
 }
+
 // custom <part schema>
 // end <part schema>

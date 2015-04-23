@@ -369,10 +369,13 @@ class Validator {
   }
 
   // end <class Validator>
+
   Schema _rootSchema;
   List<String> _errors = [];
   bool _reportMultipleErrors;
+
 }
+
 // custom <part validator>
 // end <part validator>
 

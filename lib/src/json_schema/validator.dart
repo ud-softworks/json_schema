@@ -426,3 +426,4 @@ RegExp _hostnameRe = new RegExp(
   r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$'
 );
 var _uriValidator = _defaultUriValidator;
+

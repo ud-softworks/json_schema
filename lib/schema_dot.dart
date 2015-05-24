@@ -4,6 +4,7 @@ library json_schema.schema_dot;
 import 'dart:async';
 import 'dart:convert';
 import 'package:json_schema/json_schema.dart';
+
 // custom <additional imports>
 // end <additional imports>
 
@@ -307,7 +308,6 @@ class SchemaNode {
 
 }
 
-
 // custom <library schema_dot>
 
 
@@ -336,4 +336,5 @@ ${new SchemaNode(schema).nodes}
 ''';
 
 // end <library schema_dot>
+
 

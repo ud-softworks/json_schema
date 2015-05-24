@@ -8,7 +8,7 @@ String _topDir;
 void main() {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
-  String here = path.absolute(Platform.script.path);
+  String here = path.absolute(Platform.script.toFilePath());
   _topDir = path.dirname(path.dirname(here));
   System ebisu = system('json_schema')
     ..includesHop = true

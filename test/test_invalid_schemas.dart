@@ -1,4 +1,4 @@
-library json_schema.test.test_invalid_schemas;
+library json_schema.test_invalid_schemas;
 
 import 'dart:convert' as convert;
 import 'dart:io';
@@ -6,7 +6,8 @@ import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
 // custom <additional imports>
 
 // end <additional imports>
@@ -24,7 +25,7 @@ main([List<String> args]) {
 
   String here = path.dirname(
     path.dirname(
-      path.absolute(Platform.script.path)));
+        path.absolute(Platform.script.toFilePath())));
 
   Directory testSuiteFolder = new Directory("${here}/test/invalid_schemas");
 
@@ -64,3 +65,5 @@ main([List<String> args]) {
 
 
 }
+
+

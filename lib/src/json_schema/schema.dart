@@ -3,7 +3,6 @@ part of json_schema.json_schema;
 /// Constructed with a json schema, either as string or Map. Validation of
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
-///
 class Schema {
 
   Schema._fromMap(this._root, this._schemaMap, this._path) {
@@ -620,3 +619,4 @@ class Schema {
 
 // custom <part schema>
 // end <part schema>
+

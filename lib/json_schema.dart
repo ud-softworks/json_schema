@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as PATH;
+
 // custom <additional imports>
 // end <additional imports>
 
@@ -76,7 +77,6 @@ class SchemaType implements Comparable<SchemaType> {
 
 }
 
-
 // custom <library json_schema>
 
 /// Used to provide your own uri validator (if default does not suit needs)
@@ -111,4 +111,5 @@ bool _jsonEqual(a, b) {
 }
 
 // end <library json_schema>
+
 

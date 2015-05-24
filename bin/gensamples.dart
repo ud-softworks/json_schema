@@ -4,7 +4,7 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 
 main() {
-  var sourcePath = join(dirname(dirname(absolute(Platform.script.path))),
+  var sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))),
       'dot_samples', 'schemas');
   var outPath = join(dirname(sourcePath), 'schemaout');
   new Directory(sourcePath).listSync().forEach((jsonFile) {
@@ -18,7 +18,7 @@ main() {
         new File(dotFilename).writeAsStringSync(createDot(schema));
       })
       .then((_) {
-    
+
         Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename])
           .then((ProcessResult processResult) {
             if(processResult.exitCode == 0) {

@@ -25,7 +25,7 @@ dev_dependencies:
   yaml: "^2.1.0"
 
 environment:
-  sdk: ">=0.8.10+6 <2.0.0"
+  sdk: ">=1.8.0 <2.0.0"
 
 # end <json_schema dev dependencies>
 

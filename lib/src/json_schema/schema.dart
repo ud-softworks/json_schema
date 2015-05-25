@@ -64,6 +64,7 @@ class Schema {
   static Future<Schema> createSchemaFromUrl(String schemaUrl) {
     Uri uri = Uri.parse(schemaUrl);
     if(uri.scheme == 'http') {
+      _logger.info('Getting url $uri');
       return new HttpClient().getUrl(uri)
         .then((HttpClientRequest request) {
           request.followRedirects = true;

@@ -79,6 +79,7 @@ Validations ref.json remote ref, containing refs itself : remote ref valid
   package:json_schema/src/json_schema/schema.dart 97:9    Schema.createSchema
   test/test_validation.dart 69:22                         main.<fn>.<fn>.<fn>.<fn>.<fn>
 ''');
+            return;
           }
 
           validationTests.forEach((validationTest) {

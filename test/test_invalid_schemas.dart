@@ -2,7 +2,6 @@ library json_schema.test_invalid_schemas;
 
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;

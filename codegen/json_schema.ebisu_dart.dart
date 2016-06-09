@@ -1,6 +1,7 @@
 import "dart:io";
 import "package:path/path.dart" as path;
 import "package:ebisu/ebisu_dart_meta.dart";
+import "package:ebisu/ebisu.dart";
 import "package:logging/logging.dart";
 
 String _topDir;
@@ -10,10 +11,10 @@ void main() {
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
   String here = path.absolute(Platform.script.toFilePath());
   _topDir = path.dirname(path.dirname(here));
+  useDartFormatter = true;
   System ebisu = system('json_schema')
-    ..includesHop = true
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
-    ..pubSpec.version = '1.0.3'
+    ..pubSpec.version = '1.0.4'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'
@@ -235,7 +236,8 @@ result in a FormatException being thrown.
             ..classInit = 'new Completer()'
             ..access = IA,
             member('retrieval_requests')
-            ..type = 'Future<Schema>'
+            ..type = 'List<Future<Schema>>'
+            ..init = []
             ..access = IA,
             member('paths_encountered')
             ..doc = 'Set of strings to gaurd against path cycles'

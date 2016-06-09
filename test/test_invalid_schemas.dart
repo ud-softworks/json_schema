@@ -17,30 +17,29 @@ final _logger = new Logger('test_invalid_schemas');
 // end <library test_invalid_schemas>
 
 main([List<String> args]) {
-  Logger.root.onRecord.listen((LogRecord r) =>
-      print("${r.loggerName} [${r.level}]:\t${r.message}"));
+  Logger.root.onRecord.listen(
+      (LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
   Logger.root.level = Level.OFF;
 // custom <main>
 
-  String here = path.dirname(
-    path.dirname(
-        path.absolute(Platform.script.toFilePath())));
+  String here =
+      path.dirname(path.dirname(path.absolute(Platform.script.toFilePath())));
 
   Directory testSuiteFolder = new Directory("${here}/test/invalid_schemas");
 
   testSuiteFolder.listSync().forEach((testEntry) {
     String shortName = path.basename(testEntry.path);
     group("Invalid schema: ${shortName}", () {
-      if(testEntry is File) {
+      if (testEntry is File) {
         List tests =
-          convert.JSON.decode((testEntry as File).readAsStringSync());
+            convert.JSON.decode((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {
           var schemaData = testObject["schema"];
           var description = testObject["description"];
           test(description, () {
             var gotException = (e) {
               _logger.info("Caught expected $e");
-              if(!(e is FormatException)) {
+              if (!(e is FormatException)) {
                 _logger.info('${shortName} wtf it is a ${e.runtimeType}');
               }
               expect(e is FormatException, true);
@@ -49,9 +48,9 @@ main([List<String> args]) {
 
             try {
               Schema.createSchema(schemaData).then(ensureInvalid);
-            } on FormatException catch(e) {
+            } on FormatException catch (e) {
               ensureInvalid(e);
-            } catch(e) {
+            } catch (e) {
               ensureInvalid(e);
             }
           });
@@ -61,8 +60,4 @@ main([List<String> args]) {
   });
 
 // end <main>
-
-
 }
-
-

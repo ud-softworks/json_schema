@@ -12,7 +12,6 @@ main() async {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  final here = Platform.script.toFilePath();
   final results = await runAndCollect('runner.dart');
 
   final untested = {};

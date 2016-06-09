@@ -25,15 +25,7 @@ class SchemaType implements Comparable<SchemaType> {
   static const OBJECT = const SchemaType._(5);
   static const STRING = const SchemaType._(6);
 
-  static get values => [
-    ARRAY,
-    BOOLEAN,
-    INTEGER,
-    NUMBER,
-    NULL,
-    OBJECT,
-    STRING
-  ];
+  static get values => [ARRAY, BOOLEAN, INTEGER, NUMBER, NULL, OBJECT, STRING];
 
   final int value;
 
@@ -46,29 +38,44 @@ class SchemaType implements Comparable<SchemaType> {
   int compareTo(SchemaType other) => value.compareTo(other.value);
 
   String toString() {
-    switch(this) {
-      case ARRAY: return "array";
-      case BOOLEAN: return "boolean";
-      case INTEGER: return "integer";
-      case NUMBER: return "number";
-      case NULL: return "null";
-      case OBJECT: return "object";
-      case STRING: return "string";
+    switch (this) {
+      case ARRAY:
+        return "array";
+      case BOOLEAN:
+        return "boolean";
+      case INTEGER:
+        return "integer";
+      case NUMBER:
+        return "number";
+      case NULL:
+        return "null";
+      case OBJECT:
+        return "object";
+      case STRING:
+        return "string";
     }
     return null;
   }
 
   static SchemaType fromString(String s) {
-    if(s == null) return null;
-    switch(s) {
-      case "array": return ARRAY;
-      case "boolean": return BOOLEAN;
-      case "integer": return INTEGER;
-      case "number": return NUMBER;
-      case "null": return NULL;
-      case "object": return OBJECT;
-      case "string": return STRING;
-      default: return null;
+    if (s == null) return null;
+    switch (s) {
+      case "array":
+        return ARRAY;
+      case "boolean":
+        return BOOLEAN;
+      case "integer":
+        return INTEGER;
+      case "number":
+        return NUMBER;
+      case "null":
+        return NULL;
+      case "object":
+        return OBJECT;
+      case "string":
+        return STRING;
+      default:
+        return null;
     }
   }
 
@@ -89,18 +96,18 @@ bool logFormatExceptions = false;
 
 bool _jsonEqual(a, b) {
   bool result = true;
-  if(a is Map && b is Map) {
-    if(a.length != b.length) return false;
+  if (a is Map && b is Map) {
+    if (a.length != b.length) return false;
     a.keys.forEach((k) {
-      if(!_jsonEqual(a[k], b[k])) {
+      if (!_jsonEqual(a[k], b[k])) {
         result = false;
         return;
       }
     });
-  } else if(a is List && b is List) {
-    if(a.length != b.length) return false;
-    for(int i=0; i<a.length; i++) {
-      if(!_jsonEqual(a[i], b[i])) {
+  } else if (a is List && b is List) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (!_jsonEqual(a[i], b[i])) {
         return false;
       }
     }
@@ -111,5 +118,3 @@ bool _jsonEqual(a, b) {
 }
 
 // end <library json_schema>
-
-

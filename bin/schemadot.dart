@@ -15,6 +15,8 @@ import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
+// custom <additional imports>
+// end <additional imports>
 //! The parser for this script
 ArgParser _parser;
 //! The comment and usage associated with this script
@@ -104,6 +106,7 @@ Select log level from:
   }
 }
 final _logger = new Logger('schemadot');
+
 main(List<String> args) {
   Logger.root.onRecord.listen((LogRecord r) =>
       print("${r.loggerName} [${r.level}]:\t${r.message}"));
@@ -119,6 +122,7 @@ main(List<String> args) {
   } on ArgumentError catch(e) {
     print(e);
     _usage();
+    exit(-1);
   }
   // custom <schemadot main>
 
@@ -158,7 +162,6 @@ main(List<String> args) {
 
 
   // end <schemadot main>
-
 
 }
 

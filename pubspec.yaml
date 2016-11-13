@@ -1,5 +1,5 @@
 name: json_schema
-version: 1.0.4
+version: 1.0.5
 author: Daniel Davidson <dbdavidson@yahoo.com>
 homepage: https://github.com/patefacio/json_schema
 description: >
@@ -18,7 +18,6 @@ dependencies:
 # end <json_schema dependencies>
 
 dev_dependencies:
-  yaml: "any"
   browser: "any"
 
 # custom <json_schema dev dependencies>

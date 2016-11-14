@@ -482,8 +482,9 @@ class Schema {
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
-        Future.wait(_retrievalRequests)
-          .then((_) => _thisCompleter.complete(_resolvePath('#')));
+        Future
+            .wait(_retrievalRequests)
+            .then((_) => _thisCompleter.complete(_resolvePath('#')));
       } else {
         _thisCompleter.complete(_resolvePath('#'));
       }

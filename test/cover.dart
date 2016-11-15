@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:coverage/coverage.dart';
-import 'package:ebisu/ebisu.dart';
 import 'runner.dart' as runner;
 import 'package:path/path.dart';
 

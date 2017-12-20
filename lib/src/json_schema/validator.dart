@@ -409,7 +409,8 @@ RegExp _ipv6Re = new RegExp(r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
     r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,1}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
     r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
     r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)');
-var _defaultUriValidator = (String uri) {
+var _defaultUriValidator = _defaultUriValidatorImpl;
+bool _defaultUriValidatorImpl(String uri) {
   try {
     final result = Uri.parse(uri);
     if (result.path.startsWith('//')) return false;
@@ -417,7 +418,7 @@ var _defaultUriValidator = (String uri) {
   } catch (e) {
     return false;
   }
-};
+}
 RegExp _hostnameRe = new RegExp(r'^(?=.{1,255}$)'
     r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
     r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$');

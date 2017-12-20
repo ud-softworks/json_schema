@@ -94,10 +94,10 @@ class SchemaType implements Comparable<SchemaType> {
 // custom <library json_schema>
 
 /// Used to provide your own uri validator (if default does not suit needs)
-set uriValidator(bool validator(String)) => _uriValidator = validator;
+set uriValidator(bool validator(String s)) => _uriValidator = validator;
 
 /// Used to provide your own email validator (if default does not suit needs)
-set emailValidator(bool validator(String)) => _emailValidator = validator;
+set emailValidator(bool validator(String s)) => _emailValidator = validator;
 
 bool logFormatExceptions = false;
 

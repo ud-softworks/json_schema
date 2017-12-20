@@ -18,7 +18,6 @@ dependencies:
 # end <json_schema dependencies>
 
 dev_dependencies:
-  browser: "any"
 
 # custom <json_schema dev dependencies>
 

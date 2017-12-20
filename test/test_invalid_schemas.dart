@@ -11,15 +11,17 @@ import 'package:test/test.dart';
 
 // end <additional imports>
 
-final _logger = new Logger('test_invalid_schemas');
+final Logger _logger = new Logger('test_invalid_schemas');
 
 // custom <library test_invalid_schemas>
 // end <library test_invalid_schemas>
 
-main([List<String> args]) {
-  Logger.root.onRecord.listen(
-      (LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
-  Logger.root.level = Level.OFF;
+void main([List<String> args]) {
+  if (args?.isEmpty ?? false) {
+    Logger.root.onRecord.listen(
+        (LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
+    Logger.root.level = Level.OFF;
+  }
 // custom <main>
 
   String here =

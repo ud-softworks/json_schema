@@ -14,7 +14,7 @@ void main() {
   useDartFormatter = true;
   System ebisu = system('json_schema')
     ..pubSpec.homepage = 'https://github.com/patefacio/json_schema'
-    ..pubSpec.version = '1.0.4'
+    ..pubSpec.version = '1.0.7'
     ..pubSpec.doc = 'Provide support for validating instances against json schema'
     ..rootPath = '$_topDir'
     ..doc = 'Json Schema related functionality'

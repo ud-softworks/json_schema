@@ -17,11 +17,11 @@ main() {
   Schema.createSchemaFromUrl(url)
     .then((Schema schema) {
 
-      // TODO: Figure out the redirect issues here
-      if(false) {
-        print('''Does schema validate itself?
-          ${schema.validate(schema.schemaMap)}''');
-      }
+    // TODO: Figure out the redirect issues here
+    //   if(false) {
+    //     print('''Does schema validate itself?
+    //       ${schema.validate(schema.schemaMap)}''');
+    //   }
 
       var validSchema = { "type" : "integer" };
       print('''Does schema validate valid schema $validSchema?

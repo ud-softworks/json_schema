@@ -1,9 +1,5 @@
-import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:coverage/coverage.dart';
-import 'runner.dart' as runner;
-import 'package:path/path.dart';
-
 
 main() async {
   Logger.root.level = Level.OFF;

@@ -67,7 +67,7 @@ void main([List<String> args]) {
               bool validationResult;
               bool expectedResult = validationTest["valid"];
               var checkResult =
-                  expectAsync(() => expect(validationResult, expectedResult));
+                  expectAsync0(() => expect(validationResult, expectedResult));
               Schema.createSchema(schemaData).then((schema) {
                 validationResult = schema.validate(instance);
                 checkResult();

@@ -11,7 +11,6 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'dart:math';
 import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
@@ -33,7 +32,7 @@ program. If [out-file] provided, output is written to
 the file, otherwise written to stdout.
 
 ''');
-  print(_parser.getUsage());
+  print(_parser.usage);
 }
 
 //! Method to parse command line options.
@@ -41,7 +40,6 @@ the file, otherwise written to stdout.
 Map _parseArgs(List<String> args) {
   ArgResults argResults;
   Map result = {};
-  List remaining = [];
 
   _parser = new ArgParser();
   try {
@@ -121,7 +119,7 @@ main(List<String> args) {
   Logger.root.level = Level.OFF;
   Map argResults = _parseArgs(args);
   Map options = argResults['options'];
-  List positionals = argResults['rest'];
+  
   try {
     if (options["in-uri"] == null)
       throw new ArgumentError("option: in-uri is required");

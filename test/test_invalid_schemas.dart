@@ -46,7 +46,7 @@ void main([List<String> args]) {
               }
               expect(e is FormatException, true);
             };
-            var ensureInvalid = expectAsync(gotException);
+            var ensureInvalid = expectAsync1(gotException);
 
             try {
               Schema.createSchema(schemaData).then(ensureInvalid);

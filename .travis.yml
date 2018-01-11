@@ -4,7 +4,7 @@ dart:
   - stable
 script:
   - pub get --packages-dir
-  - pub run dependency_validator --ignore dart_style
+  - pub run dependency_validator --ignore dart_style,coverage
   - pub run dart_dev format --check
   - pub run dart_dev analyze
   - pub run dart_dev test

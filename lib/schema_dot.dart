@@ -1,3 +1,41 @@
+// Copyright 2013-2018 Workiva Inc.
+//
+// Licensed under the Boost Software License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.boost.org/LICENSE_1_0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This software or document includes material copied from or derived
+// from JSON-Schema-Test-Suite (https://github.com/json-schema-org/JSON-Schema-Test-Suite),
+// Copyright (c) 2012 Julian Berman, which is licensed under the following terms:
+//
+//     Copyright (c) 2012 Julian Berman
+//
+//     Permission is hereby granted, free of charge, to any person obtaining a copy
+//     of this software and associated documentation files (the "Software"), to deal
+//     in the Software without restriction, including without limitation the rights
+//     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//     copies of the Software, and to permit persons to whom the Software is
+//     furnished to do so, subject to the following conditions:
+//
+//     The above copyright notice and this permission notice shall be included in
+//     all copies or substantial portions of the Software.
+//
+//     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//     THE SOFTWARE.
+
 /// Functionality to create Graphviz input dot file from schema
 library json_schema.schema_dot;
 
@@ -51,14 +89,11 @@ class SchemaNode {
     var schemaTypeList = schema.schemaTypeList;
     if (schemaTypeList == null) {
       if (schema.oneOf.length > 0) {
-        result =
-            "oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}";
+        result = "oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}";
       } else if (schema.anyOf.length > 0) {
-        result =
-            "anyOf:${schema.anyOf.map((schema) => schemaType(schema)).toList()}";
+        result = "anyOf:${schema.anyOf.map((schema) => schemaType(schema)).toList()}";
       } else if (schema.allOf.length > 0) {
-        result =
-            "allOf:${schema.allOf.map((schema) => schemaType(schema)).toList()}";
+        result = "allOf:${schema.allOf.map((schema) => schemaType(schema)).toList()}";
       } else if (schema.defaultValue != null) {
         result = "default=${schema.defaultValue}";
       } else if (schema.ref != null) {
@@ -151,8 +186,7 @@ class SchemaNode {
       schema.anyOf.forEach((anyOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, anyOfSchema);
-        anyOf.add(wrap(abbreviatedString("${schemaType(anyOfSchema)}", 30),
-            color: 'grey', port: port));
+        anyOf.add(wrap(abbreviatedString("${schemaType(anyOfSchema)}", 30), color: 'grey', port: port));
       });
     }
     return anyOf;
@@ -166,8 +200,7 @@ class SchemaNode {
       schema.oneOf.forEach((oneOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, oneOfSchema);
-        oneOf.add(wrap(abbreviatedString("${schemaType(oneOfSchema)}", 30),
-            color: 'grey', port: port));
+        oneOf.add(wrap(abbreviatedString("${schemaType(oneOfSchema)}", 30), color: 'grey', port: port));
       });
     }
     return oneOf;
@@ -181,8 +214,7 @@ class SchemaNode {
       schema.allOf.forEach((allOfSchema) {
         String port = "${i++}";
         makeSchemaLink(port, schema, allOfSchema);
-        allOf.add(wrap(abbreviatedString("${schemaType(allOfSchema)}", 30),
-            color: 'grey', port: port));
+        allOf.add(wrap(abbreviatedString("${schemaType(allOfSchema)}", 30), color: 'grey', port: port));
       });
     }
     return allOf;
@@ -213,9 +245,7 @@ class SchemaNode {
   makeSchemaPort(String port, Schema schema) => '"${schema.path}":"$port"';
 
   makeSchemaLink(String port, Schema src, Schema target) {
-    if (schemaShown(target))
-      links.add(
-          '${makeSchemaPort(port, src)} -> ${makeSchemaPort("@path", target)}');
+    if (schemaShown(target)) links.add('${makeSchemaPort(port, src)} -> ${makeSchemaPort("@path", target)}');
   }
 
   List<String> get additionalPropertiesSchema {
@@ -225,8 +255,7 @@ class SchemaNode {
       result.add(wrap('Additional Properties', color: 'lemonchiffon'));
       String port = "mustBe";
       makeSchemaLink(port, schema, other);
-      result.add(wrapRowDistinct('Must Be: ',
-          abbreviatedString(schemaType(other).toString(), 30), port));
+      result.add(wrapRowDistinct('Must Be: ', abbreviatedString(schemaType(other).toString(), 30), port));
     }
     return result;
   }
@@ -242,14 +271,11 @@ class SchemaNode {
         String port = "@$prop";
         if (schemaShown(propertySchema)) {
           makeSchemaLink(port, schema, propertySchema);
-        } else if (propertySchema.items is Schema &&
-            schemaShown(propertySchema.items)) {
+        } else if (propertySchema.items is Schema && schemaShown(propertySchema.items)) {
           makeSchemaLink(port, schema, propertySchema.items);
         }
         props.add(wrapRowDistinct(
-            "$requiredPrefix$prop",
-            abbreviatedString(schemaType(propertySchema).toString(), 30),
-            port));
+            "$requiredPrefix$prop", abbreviatedString(schemaType(propertySchema).toString(), 30), port));
       });
     }
     return props;
@@ -258,8 +284,8 @@ class SchemaNode {
   List<String> get definitionEntries {
     List<String> definitions = [];
     if (schema.definitions.length > 0) {
-      definitions.add(
-          '<tr><td bgcolor="wheat" align="center" colspan="2"><font color="black">Definitions</font></td></tr>');
+      definitions
+          .add('<tr><td bgcolor="wheat" align="center" colspan="2"><font color="black">Definitions</font></td></tr>');
       var sortedDefinitions = new List.from(schema.definitions.keys)..sort();
       sortedDefinitions.forEach((key) {
         definitions.add(wrapRowDistinct(key, '', "${schema.path}@$key"));
@@ -275,13 +301,9 @@ class SchemaNode {
   String wrapRowDistinct(String first, String second, [String port = '']) =>
       '<tr><td align="left" port="$port">$first</td>$first<td bgcolor="grey" align="right">$second</td></tr>';
 
-  String get title => schema.title != null
-      ? abbreviatedString("title=${schema.title}", 30)
-      : null;
+  String get title => schema.title != null ? abbreviatedString("title=${schema.title}", 30) : null;
 
-  String get description => schema.description != null
-      ? abbreviatedString("descr=${schema.description}", 30)
-      : null;
+  String get description => schema.description != null ? abbreviatedString("descr=${schema.description}", 30) : null;
 
   String abbreviatedString(String s, [int len = 15]) {
     if (s == null) return s;

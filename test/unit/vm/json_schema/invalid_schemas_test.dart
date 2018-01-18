@@ -36,30 +36,53 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+library json_schema.test_invalid_schemas;
+
+import 'dart:convert' as convert;
 import 'dart:io';
-import 'package:path/path.dart';
 import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/schema_dot.dart';
+import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
+import 'package:test/test.dart';
 
-main() {
-  var sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  var outPath = join(dirname(sourcePath), 'schemaout');
-  new Directory(sourcePath).listSync().forEach((jsonFile) {
-    var fname = jsonFile.path;
-    var base = basenameWithoutExtension(fname);
-    var dotFilename = join(outPath, '$base.dot');
-    var pngOut = join(outPath, '$base.png');
+final Logger _logger = new Logger('test_invalid_schemas');
 
-    Schema.createSchemaFromUrl(fname).then((schema) {
-      new File(dotFilename).writeAsStringSync(createDot(schema));
-    }).then((_) {
-      Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
-        if (processResult.exitCode == 0) {
-          print("Finished running dot -Tpng -o$pngOut $fname");
-        } else {
-          print("FAILED: running dot -Tpng -o$pngOut $fname");
-        }
-      });
+void main([List<String> args]) {
+  if (args?.isEmpty ?? false) {
+    Logger.root.onRecord.listen((LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
+    Logger.root.level = Level.OFF;
+  }
+
+  Directory testSuiteFolder = new Directory("./test/invalid_schemas");
+
+  testSuiteFolder.listSync().forEach((testEntry) {
+    String shortName = path.basename(testEntry.path);
+    group("Invalid schema: ${shortName}", () {
+      if (testEntry is File) {
+        List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
+        tests.forEach((testObject) {
+          var schemaData = testObject["schema"];
+          var description = testObject["description"];
+          test(description, () {
+            var gotException = (e) {
+              _logger.info("Caught expected $e");
+              if (!(e is FormatException)) {
+                _logger.info('${shortName} wtf it is a ${e.runtimeType}');
+              }
+              expect(e is FormatException, true);
+            };
+            var ensureInvalid = expectAsync1(gotException);
+
+            try {
+              Schema.createSchema(schemaData).then(ensureInvalid);
+            } on FormatException catch (e) {
+              ensureInvalid(e);
+            } catch (e) {
+              ensureInvalid(e);
+            }
+          });
+        });
+      }
     });
   });
 }

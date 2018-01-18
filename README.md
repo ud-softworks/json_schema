@@ -2,7 +2,7 @@
 
   A *dart:io* dependent library for validating json instances against json schema (version Draft 04)
 
-![Build Status](https://travis-ci.org/patefacio/json_schema.svg)
+![Build Status](https://travis-ci.org/workiva/json_schema.svg)
 
 
 # How To Validate

@@ -1,3 +1,41 @@
+// Copyright 2013-2018 Workiva Inc.
+//
+// Licensed under the Boost Software License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.boost.org/LICENSE_1_0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This software or document includes material copied from or derived
+// from JSON-Schema-Test-Suite (https://github.com/json-schema-org/JSON-Schema-Test-Suite),
+// Copyright (c) 2012 Julian Berman, which is licensed under the following terms:
+//
+//     Copyright (c) 2012 Julian Berman
+//
+//     Permission is hereby granted, free of charge, to any person obtaining a copy
+//     of this software and associated documentation files (the "Software"), to deal
+//     in the Software without restriction, including without limitation the rights
+//     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//     copies of the Software, and to permit persons to whom the Software is
+//     furnished to do so, subject to the following conditions:
+//
+//     The above copyright notice and this permission notice shall be included in
+//     all copies or substantial portions of the Software.
+//
+//     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//     THE SOFTWARE.
+
 part of json_schema.json_schema;
 
 /// Constructed with a json schema, either as string or Map. Validation of
@@ -75,10 +113,7 @@ class Schema {
         request.followRedirects = true;
         return request.close();
       }).then((HttpClientResponse response) {
-        return response
-            .transform(new convert.Utf8Decoder())
-            .join()
-            .then((schemaText) {
+        return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
           Map map = convert.JSON.decode(schemaText);
           return createSchema(map);
         });
@@ -88,15 +123,13 @@ class Schema {
           .readAsString()
           .then((text) => createSchema(convert.JSON.decode(text)));
     } else {
-      throw new FormatException(
-          "Url schemd must be http, file, or empty: $schemaUrl");
+      throw new FormatException("Url schemd must be http, file, or empty: $schemaUrl");
     }
   }
 
   /// Create a schema from a [data]
   ///  Typically [data] is result of JSON.decode(jsonSchemaString)
-  static Future<Schema> createSchema(Map data) =>
-      new Schema._fromRootMap(data)._thisCompleter.future;
+  static Future<Schema> createSchema(Map data) => new Schema._fromRootMap(data)._thisCompleter.future;
 
   /// Validate [instance] against this schema
   bool validate(dynamic instance) => new Validator(this).validate(instance);
@@ -104,8 +137,7 @@ class Schema {
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
   bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
 
-  bool propertyRequired(String property) =>
-      _requiredProperties != null && _requiredProperties.contains(property);
+  bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 
   /// Given path, follow all references to an end path pointing to schema
   String endPath(String path) {
@@ -124,20 +156,13 @@ class Schema {
     return _refMap[path];
   }
 
-  FormatException _boolError(String key, dynamic instance) =>
-      _error("$key must be boolean: $instance");
-  FormatException _numError(String key, dynamic instance) =>
-      _error("$key must be num: $instance");
-  FormatException _intError(String key, dynamic instance) =>
-      _error("$key must be int: $instance");
-  FormatException _stringError(String key, dynamic instance) =>
-      _error("$key must be string: $instance");
-  FormatException _objectError(String key, dynamic instance) =>
-      _error("$key must be object: $instance");
-  FormatException _arrayError(String key, dynamic instance) =>
-      _error("$key must be array: $instance");
-  FormatException _schemaError(String key, dynamic instance) =>
-      _error("$key must be valid schema object: $instance");
+  FormatException _boolError(String key, dynamic instance) => _error("$key must be boolean: $instance");
+  FormatException _numError(String key, dynamic instance) => _error("$key must be num: $instance");
+  FormatException _intError(String key, dynamic instance) => _error("$key must be int: $instance");
+  FormatException _stringError(String key, dynamic instance) => _error("$key must be string: $instance");
+  FormatException _objectError(String key, dynamic instance) => _error("$key must be object: $instance");
+  FormatException _arrayError(String key, dynamic instance) => _error("$key must be array: $instance");
+  FormatException _schemaError(String key, dynamic instance) => _error("$key must be valid schema object: $instance");
 
   FormatException _error(String msg) {
     msg = "$_path: $msg";
@@ -188,10 +213,8 @@ class Schema {
     _exclusiveMinimum = value;
   }
 
-  _getMaxLength(dynamic value) =>
-      _maxLength = _requireNonNegativeInt('maxLength', value);
-  _getMinLength(dynamic value) =>
-      _minLength = _requireNonNegativeInt('minLength', value);
+  _getMaxLength(dynamic value) => _maxLength = _requireNonNegativeInt('maxLength', value);
+  _getMinLength(dynamic value) => _minLength = _requireNonNegativeInt('minLength', value);
 
   _getPattern(dynamic value) {
     if (value is! String) throw _stringError("pattern", value);
@@ -209,10 +232,8 @@ class Schema {
 
   _getProperties(dynamic value) {
     if (value is Map) {
-      value.forEach((property, subSchema) => _makeSchema(
-          "$_path/properties/$property",
-          subSchema,
-          (rhs) => _properties[property] = rhs));
+      value.forEach((property, subSchema) =>
+          _makeSchema("$_path/properties/$property", subSchema, (rhs) => _properties[property] = rhs));
     } else {
       throw _objectError("properties", value);
     }
@@ -225,8 +246,7 @@ class Schema {
       int index = 0;
       _itemsList = new List(value.length);
       for (int i = 0; i < value.length; i++) {
-        _makeSchema(
-            "$_path/items/${index++}", value[i], (rhs) => _itemsList[i] = rhs);
+        _makeSchema("$_path/items/${index++}", value[i], (rhs) => _itemsList[i] = rhs);
       }
     } else {
       throw _error("items must be object or array: $value");
@@ -237,17 +257,14 @@ class Schema {
     if (value is bool) {
       _additionalItems = value;
     } else if (value is Map) {
-      _makeSchema(
-          "$_path/additionalItems", value, (rhs) => _additionalItems = rhs);
+      _makeSchema("$_path/additionalItems", value, (rhs) => _additionalItems = rhs);
     } else {
       throw _error("additionalItems must be boolean or object: $value");
     }
   }
 
-  _getMaxItems(dynamic value) =>
-      _maxItems = _requireNonNegativeInt('maxItems', value);
-  _getMinItems(dynamic value) =>
-      _minItems = _requireNonNegativeInt('minItems', value);
+  _getMaxItems(dynamic value) => _maxItems = _requireNonNegativeInt('maxItems', value);
+  _getMinItems(dynamic value) => _minItems = _requireNonNegativeInt('minItems', value);
   _getUniqueItems(dynamic value) {
     if (value is! bool) throw _boolError("uniqueItems", value);
     _uniqueItems = value;
@@ -255,50 +272,42 @@ class Schema {
 
   _getRequired(dynamic value) {
     if (value is! List) throw _arrayError("required", value);
-    if (value.length == 0)
-      throw _error("required must be a non-empty array: $value");
+    if (value.length == 0) throw _error("required must be a non-empty array: $value");
     _requiredProperties = new List.from(value);
   }
 
-  _getMaxProperties(dynamic value) =>
-      _maxProperties = _requireNonNegativeInt('maxProperties', value);
-  _getMinProperties(dynamic value) =>
-      _minProperties = _requireNonNegativeInt('minProperties', value);
+  _getMaxProperties(dynamic value) => _maxProperties = _requireNonNegativeInt('maxProperties', value);
+  _getMinProperties(dynamic value) => _minProperties = _requireNonNegativeInt('minProperties', value);
   _getAdditionalProperties(dynamic value) {
     if (value is bool) {
       _additionalProperties = value;
     } else if (value is Map) {
-      _makeSchema("$_path/additionalProperties", value,
-          (rhs) => _additionalPropertiesSchema = rhs);
+      _makeSchema("$_path/additionalProperties", value, (rhs) => _additionalPropertiesSchema = rhs);
     } else {
-      throw _error(
-          "additionalProperties must be a bool or valid schema object: $value");
+      throw _error("additionalProperties must be a bool or valid schema object: $value");
     }
   }
 
   _getPatternProperties(dynamic value) {
     if (value is! Map) throw _objectError("patternProperties", value);
 
-    value.forEach((k, v) => _makeSchema("$_path/patternProperties/$k", v,
-        (rhs) => _patternProperties[new RegExp(k)] = rhs));
+    value.forEach(
+        (k, v) => _makeSchema("$_path/patternProperties/$k", v, (rhs) => _patternProperties[new RegExp(k)] = rhs));
   }
 
   _getDependencies(dynamic value) {
     if (value is Map) {
       value.forEach((k, v) {
         if (v is Map) {
-          _makeSchema("$_path/dependencies/$k", v,
-              (rhs) => _schemaDependencies[k] = rhs);
+          _makeSchema("$_path/dependencies/$k", v, (rhs) => _schemaDependencies[k] = rhs);
         } else if (v is List) {
-          if (v.length == 0)
-            throw _error("property dependencies must be non-empty array");
+          if (v.length == 0) throw _error("property dependencies must be non-empty array");
 
           Set uniqueDeps = new Set();
           v.forEach((propDep) {
             if (propDep is! String) throw _stringError("propertyDependency", v);
 
-            if (uniqueDeps.contains(propDep))
-              throw _error("property dependencies must be unique: $v");
+            if (uniqueDeps.contains(propDep)) throw _error("property dependencies must be unique: $v");
 
             _propertyDependencies.putIfAbsent(k, () => []).add(propDep);
             uniqueDeps.add(propDep);
@@ -314,13 +323,11 @@ class Schema {
 
   _getEnum(dynamic value) {
     if (value is List) {
-      if (value.length == 0)
-        throw _error("enum must be a non-empty array: $value");
+      if (value.length == 0) throw _error("enum must be a non-empty array: $value");
       int i = 0;
       value.forEach((v) {
         for (int j = i + 1; j < value.length; j++) {
-          if (_jsonEqual(value[i], value[j]))
-            throw _error("enum values must be unique: $value [$i]==[$j]");
+          if (_jsonEqual(value[i], value[j])) throw _error("enum values must be unique: $value [$i]==[$j]");
         }
         i++;
         _enumValues.add(v);
@@ -352,12 +359,9 @@ class Schema {
     }
   }
 
-  _getAllOf(dynamic value) =>
-      _requireListOfSchema("allOf", value, (schema) => _allOf.add(schema));
-  _getAnyOf(dynamic value) =>
-      _requireListOfSchema("anyOf", value, (schema) => _anyOf.add(schema));
-  _getOneOf(dynamic value) =>
-      _requireListOfSchema("oneOf", value, (schema) => _oneOf.add(schema));
+  _getAllOf(dynamic value) => _requireListOfSchema("allOf", value, (schema) => _allOf.add(schema));
+  _getAnyOf(dynamic value) => _requireListOfSchema("anyOf", value, (schema) => _anyOf.add(schema));
+  _getOneOf(dynamic value) => _requireListOfSchema("oneOf", value, (schema) => _oneOf.add(schema));
   _getNot(dynamic value) {
     if (value is Map) {
       _makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
@@ -368,8 +372,7 @@ class Schema {
 
   _getDefinitions(dynamic value) {
     if (value is Map) {
-      value.forEach((k, v) => _makeSchema(
-          "$_path/definitions/$k", v, (rhs) => _definitions[k] = rhs));
+      value.forEach((k, v) => _makeSchema("$_path/definitions/$k", v, (rhs) => _definitions[k] = rhs));
     } else {
       throw _objectError("definition", value);
     }
@@ -380,8 +383,7 @@ class Schema {
       _ref = value;
       if (_ref.length == 0) throw _error("\$ref must be non-empty string");
       if (_ref[0] != '#') {
-        var refSchemaFuture = createSchemaFromUrl(_ref)
-            .then((schema) => _addSchema(_ref, schema));
+        var refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
         _retrievalRequests.add(refSchemaFuture);
       }
     } else {
@@ -413,8 +415,7 @@ class Schema {
   }
 
   _getTitle(dynamic value) => _title = _requireString("title", value);
-  _getDescription(dynamic value) =>
-      _description = _requireString("description", value);
+  _getDescription(dynamic value) => _description = _requireString("description", value);
   _getDefault(dynamic value) => _defaultValue = value;
   _getFormat(dynamic value) {
     _format = _requireString("format", value);
@@ -473,18 +474,14 @@ class Schema {
       }
     });
 
-    if (_exclusiveMinimum != null && _minimum == null)
-      throw _error("exclusiveMinimum requires minimum");
+    if (_exclusiveMinimum != null && _minimum == null) throw _error("exclusiveMinimum requires minimum");
 
-    if (_exclusiveMaximum != null && _maximum == null)
-      throw _error("exclusiveMaximum requires maximum");
+    if (_exclusiveMaximum != null && _maximum == null) throw _error("exclusiveMaximum requires maximum");
 
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
-        Future
-            .wait(_retrievalRequests)
-            .then((_) => _thisCompleter.complete(_resolvePath('#')));
+        Future.wait(_retrievalRequests).then((_) => _thisCompleter.complete(_resolvePath('#')));
       } else {
         _thisCompleter.complete(_resolvePath('#'));
       }
@@ -512,8 +509,7 @@ class Schema {
   }
 
   String _endPath(String path) {
-    if (_pathsEncountered.contains(path))
-      throw _error("Encountered path cycle ${_pathsEncountered}, adding $path");
+    if (_pathsEncountered.contains(path)) throw _error("Encountered path cycle ${_pathsEncountered}, adding $path");
 
     var referredTo = _schemaRefs[path];
     if (referredTo == null) {
@@ -529,8 +525,7 @@ class Schema {
     Schema result = _refMap[path];
     if (result == null) {
       var schema = _freeFormMap[path];
-      if (schema is! Map)
-        throw _schemaError("free-form property $original at $path", schema);
+      if (schema is! Map) throw _schemaError("free-form property $original at $path", schema);
       return new Schema._fromMap(_root, schema, path);
     }
     return result;
@@ -552,8 +547,7 @@ class Schema {
     return false;
   }
 
-  static String _normalizePath(String path) =>
-      path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
+  static String _normalizePath(String path) => path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
 
   Schema _createSubSchema(dynamic schemaDefinition, String path) {
     assert(!_schemaRefs.containsKey(path));

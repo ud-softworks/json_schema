@@ -1,39 +1,24 @@
 name: json_schema
 version: 1.0.7
-author: Daniel Davidson <dbdavidson@yahoo.com>
-homepage: https://github.com/patefacio/json_schema
+
+authors:
+  - Michael Carter <michael.carter@workiva.com>
+  - Daniel Davidson <dbdavidson@yahoo.com>
+  
+homepage: https://github.com/workiva/json_schema
 description: >
   Provide support for validating instances against json schema
 environment:
-  sdk: '>=1.8.2 <2.0.0'
+  sdk: ">=1.8.2 <2.0.0"
 
 dependencies:
-
-# custom <json_schema dependencies>
-
-  path: "^1.3.0"
-  logging: ">=0.9.3<0.12.0"
   args: ">=0.11.0 <2.0.0"
-
-# end <json_schema dependencies>
+  logging: ">=0.9.3<0.12.0"
+  path: "^1.3.0"
 
 dev_dependencies:
-
-# custom <json_schema dev dependencies>
-
-  test: "^0.12.13"
-  yaml: "^2.1.0"
   coverage: ">=0.7.6"
-
-# end <json_schema dev dependencies>
-
-dependency_overrides:
-# custom <json_schema dependency overrides>
-
-# end <json_schema dependency overrides>
-
-transformers:
-
-# custom <json_schema transformers>
-# end <json_schema transformers>
-
+  dart_dev: any
+  dart_style: any
+  dependency_validator: ^1.0.0
+  test: "^0.12.13"

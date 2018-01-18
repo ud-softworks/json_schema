@@ -36,30 +36,33 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'dart:io';
-import 'package:path/path.dart';
-import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/schema_dot.dart';
+import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
 
-main() {
-  var sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  var outPath = join(dirname(sourcePath), 'schemaout');
-  new Directory(sourcePath).listSync().forEach((jsonFile) {
-    var fname = jsonFile.path;
-    var base = basenameWithoutExtension(fname);
-    var dotFilename = join(outPath, '$base.dot');
-    var pngOut = join(outPath, '$base.png');
+main(List<String> args) async {
+  config.analyze
+    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
+    ..fatalWarnings = true
+    ..strong = true;
 
-    Schema.createSchemaFromUrl(fname).then((schema) {
-      new File(dotFilename).writeAsStringSync(createDot(schema));
-    }).then((_) {
-      Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
-        if (processResult.exitCode == 0) {
-          print("Finished running dot -Tpng -o$pngOut $fname");
-        } else {
-          print("FAILED: running dot -Tpng -o$pngOut $fname");
-        }
-      });
-    });
-  });
+  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
+
+  config.coverage..reportOn = ['lib/'];
+
+  config.format
+    ..lineLength = 120
+    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
+
+  config.format.exclude = const [
+    'test/unit/generated_runner_test.dart',
+    'test/unit/browser/generated_runner_test.dart',
+    'test/unit/vm/generated_runner_test.dart',
+  ];
+
+  config.genTestRunner.configs = [
+    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
+  ];
+
+  config.test.unitTests = const ['test/unit/vm/generated_runner_test.dart'];
+
+  await dev(args);
 }

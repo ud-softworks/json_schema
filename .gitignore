@@ -1,18 +1,17 @@
 *.~*~
+.idea/
 .packages
-packages
-build/
-.pub/
 .project
+.pub/
+*.dart.js
 *.iml
 *.ipr
 *.iws
-.idea/
-*.dart.js
 *.js_
 *.js.deps
 *.js.map
-# custom <additional>
+build/
+coverage
+packages
 pubspec.lock
-# end <additional>
 

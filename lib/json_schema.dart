@@ -36,49 +36,5 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-/// Support for validating json instances against a json schema
-library json_schema.json_schema;
-
-import 'package:logging/logging.dart';
-import 'package:w_transport/w_transport.dart';
-
-export 'src/json_schema/schema_type.dart' show SchemaType;
-
-export 'src/json_schema/validator.dart' show JsonSchemaValidator;
-export 'src/json_schema/abstract_json_schema.dart' show AbstractJsonSchema;
-
-final Logger _logger = new Logger('json_schema');
-
-/// Used to provide your own uri validator (if default does not suit needs)
-set uriValidator(bool validator(String s)) => _uriValidator = validator;
-
-/// Used to provide your own email validator (if default does not suit needs)
-set emailValidator(bool validator(String s)) => _emailValidator = validator;
-
-bool logFormatExceptions = false;
-
-
-/// create a class like this for json schema
-abstract class JsonSchema extends AbstractJsonSchema {
-  factory JsonSchema({TransportPlatform transportPlatform}) {
-    // If a transport platform is not explicitly given, fallback to the globally
-    // configured platform.
-    transportPlatform ??= globalTransportPlatform;
-
-    if (MockTransportsInternal.isInstalled) {
-      // If transports are mocked, return a mock HttpClient instance. This
-      // mock instance will construct mock-aware BaseRequest and WebSocket
-      // instances that will be able to decide at the time of dispatch
-      // whether or not the mock logic should be used.
-      return MockAwareTransportPlatform.newHttpClient(transportPlatform);
-    } else if (transportPlatform != null) {
-      // Otherwise, return a real instance using the given transport platform.
-      return transportPlatform.newHttpClient();
-    } else {
-      // If transports are not mocked and a transport platform is not available
-      // (neither explicitly given nor configured globally), then we cannot
-      // successfully construct an HttpClient.
-      throw new TransportPlatformMissing.httpClientFailed();
-    }
-  }
-}
+export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
+export 'package:json_schema/src/json_schema/validator.dart' show Validator;

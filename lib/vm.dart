@@ -36,14 +36,14 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-library json_schema.browser;
+library json_schema.vm;
 
 import 'package:json_schema/src/json_schema/global_platform_functions.dart';
-import 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+import 'package:json_schema/src/json_schema/vm/platform_functions.dart' show createSchemaFromUrlVm;
 
-export 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+export 'package:json_schema/src/json_schema/vm/platform_functions.dart' show createSchemaFromUrlVm;
 
 /// Configures json_schema for use in the browser via dart:html.
-void configureJsonSchemaForBrowser() {
-  globalCreateJsonSchemaFromUrl = createSchemaFromUrlBrowser;
+void configureJsonSchemaForVm() {
+  globalCreateJsonSchemaFromUrl = createSchemaFromUrlVm;
 }

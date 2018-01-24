@@ -36,14 +36,43 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-library json_schema.browser;
+import 'package:json_schema/src/json_schema/constants.dart';
 
-import 'package:json_schema/src/json_schema/global_platform_functions.dart';
-import 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+class JsonSchemaUtils {
+  static bool jsonEqual(a, b) {
+    bool result = true;
+    if (a is Map && b is Map) {
+      if (a.length != b.length) return false;
+      a.keys.forEach((k) {
+        if (!jsonEqual(a[k], b[k])) {
+          result = false;
+          return;
+        }
+      });
+    } else if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (int i = 0; i < a.length; i++) {
+        if (!jsonEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+    } else {
+      return a == b;
+    }
+    return result;
+  }
+}
 
-export 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+class DefaultValidators {
+  emailValidator(String email) => JsonSchemaValidationRegexes.email.firstMatch(email) != null;
 
-/// Configures json_schema for use in the browser via dart:html.
-void configureJsonSchemaForBrowser() {
-  globalCreateJsonSchemaFromUrl = createSchemaFromUrlBrowser;
+  uriValidator(String uri) {
+    try {
+      final result = Uri.parse(uri);
+      if (result.path.startsWith('//')) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

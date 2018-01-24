@@ -36,14 +36,23 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-library json_schema.browser;
+import 'dart:async';
 
-import 'package:json_schema/src/json_schema/global_platform_functions.dart';
-import 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+import 'package:w_transport/w_transport.dart';
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
-export 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl) async {
+  HttpClient client = new HttpClient();
+  Uri uri = Uri.parse(schemaUrl);
+  if (uri.scheme == 'http' || uri.scheme == '') {
+    // _logger.info('Getting url $uri'); TODO: re-add logger.
+    JsonRequest request = client.newJsonRequest();
 
-/// Configures json_schema for use in the browser via dart:html.
-void configureJsonSchemaForBrowser() {
-  globalCreateJsonSchemaFromUrl = createSchemaFromUrlBrowser;
+    request.uri = uri;
+
+    Response response = await request.get();
+    return JsonSchema.createSchema(response.body.asJson());
+  } else {
+    throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
+  }
 }

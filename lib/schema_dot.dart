@@ -41,24 +41,19 @@ library json_schema.schema_dot;
 
 import 'package:json_schema/json_schema.dart';
 
-// custom <additional imports>
-// end <additional imports>
-
 /// Represents one node in the schema diagram
 class SchemaNode {
   /// Referenced schema this node portrays
-  Schema schema;
+  JsonSchema schema;
 
   /// List of links (resulting in graph edge) from this node to another
   List<String> links;
 
-  // custom <class SchemaNode>
-
-  SchemaNode(Schema this.schema, [this.links]) {
+  SchemaNode(JsonSchema this.schema, [this.links]) {
     if (links == null) links = [];
   }
 
-  static bool schemaShown(Schema schema) =>
+  static bool schemaShown(JsonSchema schema) =>
       schema.properties.length > 0 ||
       schema.definitions.length > 0 ||
       schema.anyOf.length > 0 ||
@@ -75,7 +70,7 @@ class SchemaNode {
         .where((schema) => schemaShown(schema))
         .map((schema) => new SchemaNode(schema, links).node)
         .toList();
-    lines.addAll(links.map((link) => "$link;"));
+    lines.addAll(links.map((link) => '$link;'));
     return lines.join('\n');
   }
 
@@ -84,26 +79,26 @@ class SchemaNode {
     return data.join('\n');
   }
 
-  static dynamic schemaType(Schema schema) {
+  static dynamic schemaType(JsonSchema schema) {
     dynamic result;
     var schemaTypeList = schema.schemaTypeList;
     if (schemaTypeList == null) {
       if (schema.oneOf.length > 0) {
-        result = "oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}";
+        result = 'oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}';
       } else if (schema.anyOf.length > 0) {
-        result = "anyOf:${schema.anyOf.map((schema) => schemaType(schema)).toList()}";
+        result = 'anyOf:${schema.anyOf.map((schema) => schemaType(schema)).toList()}';
       } else if (schema.allOf.length > 0) {
-        result = "allOf:${schema.allOf.map((schema) => schemaType(schema)).toList()}";
+        result = 'allOf:${schema.allOf.map((schema) => schemaType(schema)).toList()}';
       } else if (schema.defaultValue != null) {
-        result = "default=${schema.defaultValue}";
+        result = 'default=${schema.defaultValue}';
       } else if (schema.ref != null) {
-        result = "ref=${schema.ref}";
+        result = 'ref=${schema.ref}';
       } else if (schema.enumValues != null && schema.enumValues.length > 0) {
-        result = "enum=${schema.enumValues}";
+        result = 'enum=${schema.enumValues}';
       } else if (schema.schemaMap.length == 0) {
-        result = "{}";
+        result = '{}';
       } else {
-        result = "$schema";
+        result = '$schema';
       }
     } else {
       result = schemaTypeList.length == 1 ? schemaTypeList[0] : schemaTypeList;
@@ -116,7 +111,7 @@ class SchemaNode {
   List<String> get label {
     return ['label =<']
       ..add('<table border="0" cellborder="0" cellpadding="1" bgcolor="white">')
-      ..add(wrap(schema.path, port: "@path"))
+      ..add(wrap(schema.path, port: '@path'))
       ..add(wrap(title))
       ..add(wrap(description))
       ..addAll(definitionEntries)
@@ -138,7 +133,7 @@ class SchemaNode {
   List<String> get defaultValue {
     List<String> result = [];
     if (schema.defaultValue != null) {
-      result.add(wrapRowDistinct('default', "${schema.defaultValue}"));
+      result.add(wrapRowDistinct('default', '${schema.defaultValue}'));
     }
     return result;
   }
@@ -146,7 +141,7 @@ class SchemaNode {
   List<String> get minimum {
     List<String> result = [];
     if (schema.minimum != null) {
-      result.add(wrapRowDistinct('minimum', "${schema.minimum}"));
+      result.add(wrapRowDistinct('minimum', '${schema.minimum}'));
     }
     return result;
   }
@@ -154,7 +149,7 @@ class SchemaNode {
   List<String> get maximum {
     List<String> result = [];
     if (schema.maximum != null) {
-      result.add(wrapRowDistinct('maximum', "${schema.maximum}"));
+      result.add(wrapRowDistinct('maximum', '${schema.maximum}'));
     }
     return result;
   }
@@ -162,7 +157,7 @@ class SchemaNode {
   List<String> get multipleOf {
     List<String> result = [];
     if (schema.multipleOf != null) {
-      result.add(wrapRowDistinct('multipleOf', "${schema.multipleOf}"));
+      result.add(wrapRowDistinct('multipleOf', '${schema.multipleOf}'));
     }
     return result;
   }
@@ -172,7 +167,7 @@ class SchemaNode {
     if (schema.enumValues.length > 0) {
       enumValues.add(wrap('Enum Values', color: 'beige'));
       schema.enumValues.forEach((value) {
-        enumValues.add(wrap("$value", color: 'grey'));
+        enumValues.add(wrap('$value', color: 'grey'));
       });
     }
     return enumValues;
@@ -184,9 +179,9 @@ class SchemaNode {
       anyOf.add(wrap('Any Of', color: 'beige'));
       int i = 0;
       schema.anyOf.forEach((anyOfSchema) {
-        String port = "${i++}";
+        String port = '${i++}';
         makeSchemaLink(port, schema, anyOfSchema);
-        anyOf.add(wrap(abbreviatedString("${schemaType(anyOfSchema)}", 30), color: 'grey', port: port));
+        anyOf.add(wrap(abbreviatedString('${schemaType(anyOfSchema)}', 30), color: 'grey', port: port));
       });
     }
     return anyOf;
@@ -198,9 +193,9 @@ class SchemaNode {
       oneOf.add(wrap('One Of', color: 'beige'));
       int i = 0;
       schema.oneOf.forEach((oneOfSchema) {
-        String port = "${i++}";
+        String port = '${i++}';
         makeSchemaLink(port, schema, oneOfSchema);
-        oneOf.add(wrap(abbreviatedString("${schemaType(oneOfSchema)}", 30), color: 'grey', port: port));
+        oneOf.add(wrap(abbreviatedString('${schemaType(oneOfSchema)}', 30), color: 'grey', port: port));
       });
     }
     return oneOf;
@@ -212,9 +207,9 @@ class SchemaNode {
       allOf.add(wrap('All Of', color: 'beige'));
       int i = 0;
       schema.allOf.forEach((allOfSchema) {
-        String port = "${i++}";
+        String port = '${i++}';
         makeSchemaLink(port, schema, allOfSchema);
-        allOf.add(wrap(abbreviatedString("${schemaType(allOfSchema)}", 30), color: 'grey', port: port));
+        allOf.add(wrap(abbreviatedString('${schemaType(allOfSchema)}', 30), color: 'grey', port: port));
       });
     }
     return allOf;
@@ -242,18 +237,18 @@ class SchemaNode {
     return result;
   }
 
-  makeSchemaPort(String port, Schema schema) => '"${schema.path}":"$port"';
+  makeSchemaPort(String port, JsonSchema schema) => '"${schema.path}":"$port"';
 
-  makeSchemaLink(String port, Schema src, Schema target) {
+  makeSchemaLink(String port, JsonSchema src, JsonSchema target) {
     if (schemaShown(target)) links.add('${makeSchemaPort(port, src)} -> ${makeSchemaPort("@path", target)}');
   }
 
   List<String> get additionalPropertiesSchema {
     List<String> result = [];
-    Schema other = schema.additionalPropertiesSchema;
+    JsonSchema other = schema.additionalPropertiesSchema;
     if (other != null) {
       result.add(wrap('Additional Properties', color: 'lemonchiffon'));
-      String port = "mustBe";
+      String port = 'mustBe';
       makeSchemaLink(port, schema, other);
       result.add(wrapRowDistinct('Must Be: ', abbreviatedString(schemaType(other).toString(), 30), port));
     }
@@ -268,14 +263,14 @@ class SchemaNode {
       sortedProps.forEach((prop) {
         var propertySchema = schema.properties[prop];
         String requiredPrefix = schema.propertyRequired(prop) ? '! ' : '? ';
-        String port = "@$prop";
+        String port = '@$prop';
         if (schemaShown(propertySchema)) {
           makeSchemaLink(port, schema, propertySchema);
-        } else if (propertySchema.items is Schema && schemaShown(propertySchema.items)) {
+        } else if (propertySchema.items is JsonSchema && schemaShown(propertySchema.items)) {
           makeSchemaLink(port, schema, propertySchema.items);
         }
         props.add(wrapRowDistinct(
-            "$requiredPrefix$prop", abbreviatedString(schemaType(propertySchema).toString(), 30), port));
+            '$requiredPrefix$prop', abbreviatedString(schemaType(propertySchema).toString(), 30), port));
       });
     }
     return props;
@@ -288,7 +283,7 @@ class SchemaNode {
           .add('<tr><td bgcolor="wheat" align="center" colspan="2"><font color="black">Definitions</font></td></tr>');
       var sortedDefinitions = new List.from(schema.definitions.keys)..sort();
       sortedDefinitions.forEach((key) {
-        definitions.add(wrapRowDistinct(key, '', "${schema.path}@$key"));
+        definitions.add(wrapRowDistinct(key, '', '${schema.path}@$key'));
       });
     }
     return definitions;
@@ -303,7 +298,7 @@ class SchemaNode {
 
   String get title => schema.title != null ? abbreviatedString("title=${schema.title}", 30) : null;
 
-  String get description => schema.description != null ? abbreviatedString("descr=${schema.description}", 30) : null;
+  String get description => schema.description != null ? abbreviatedString('descr=${schema.description}', 30) : null;
 
   String abbreviatedString(String s, [int len = 15]) {
     if (s == null) return s;
@@ -314,15 +309,10 @@ class SchemaNode {
       return s.substring(0, len) + '...';
     }
   }
-
-  // end <class SchemaNode>
-
 }
 
-// custom <library schema_dot>
-
 /// Return a dot specification for [schema]
-String createDot(Schema schema) => '''
+String createDot(JsonSchema schema) => '''
 digraph G {
   fontname = "Bitstream Vera Sans"
   fontsize = 8
@@ -344,5 +334,3 @@ ${new SchemaNode(schema).nodes}
 }
 
 ''';
-
-// end <library schema_dot>

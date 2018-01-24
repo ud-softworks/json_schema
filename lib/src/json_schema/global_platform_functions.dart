@@ -36,37 +36,39 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'dart:io';
-import 'dart:async';
-import 'dart:convert' as convert;
+import 'package:json_schema/json_schema.dart';
+import 'package:json_schema/src/json_schema/typedefs.dart';
+import 'package:json_schema/src/json_schema/utils.dart';
 
-import 'package:json_schema/src/json_schema/abstract_json_schema.dart';
-import 'package:json_schema/src/json_schema/common/json_schema.dart';
-
-/// Constructed with a json schema, either as string or Map. Validation of
-/// the schema itself is done on construction. Any errors in the schema
-/// result in a FormatException being thrown.
-class JsonSchemaVm extends JsonSchemaCommon {
-  
-  Future<JsonSchemaVm> createSchemaFromUrl(String schemaUrl) {
-    Uri uri = Uri.parse(schemaUrl);
-    if (uri.scheme == 'http') {
-      _logger.info('Getting url $uri');
-      return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
-        request.followRedirects = true;
-        return request.close();
-      }).then((HttpClientResponse response) {
-        return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-          Map map = convert.JSON.decode(schemaText);
-          return createSchema(map);
-        });
-      });
-    } else if (uri.scheme == 'file' || uri.scheme == '') {
-      return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
-          .readAsString()
-          .then((text) => createSchema(convert.JSON.decode(text)));
-    } else {
-      throw new FormatException("Url schemd must be http, file, or empty: $schemaUrl");
-    }
+/// The globally configured json shema class. Any json schema class that is not
+/// explicitly given a [JsonSchema] instance upon construction will
+/// inherit this global one.
+CreateJsonSchemaFromUrl get globalCreateJsonSchemaFromUrl => _globalCreateJsonSchemaFromUrl;
+set globalCreateJsonSchemaFromUrl(CreateJsonSchemaFromUrl createJsonSchemaFromUrl) {
+  if (createJsonSchemaFromUrl == null) {
+    throw new ArgumentError('json_schema: Global createJsonSchemaFromUrl '
+        'implementation must not be null.');
   }
+
+  _globalCreateJsonSchemaFromUrl = createJsonSchemaFromUrl;
 }
+
+CreateJsonSchemaFromUrl _globalCreateJsonSchemaFromUrl;
+
+/// Reset the globally configured json schema class.
+void resetGlobalTransportPlatform() {
+  _globalCreateJsonSchemaFromUrl = null;
+}
+
+/// Default validators for all [JsonSchema]s.
+DefaultValidators get defaultValidators => _defaultValidators ?? new DefaultValidators();
+set defaultValidators(DefaultValidators defaultValidators) {
+  if (defaultValidators == null) {
+    throw new ArgumentError('json_schema: default validators '
+        'implementation must not be null.');
+  }
+
+  _defaultValidators = defaultValidators;
+}
+
+DefaultValidators _defaultValidators;

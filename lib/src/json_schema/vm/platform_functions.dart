@@ -36,36 +36,30 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert' as convert;
 
-import 'package:json_schema/src/json_schema/abstract_json_schema.dart';
-import 'package:json_schema/src/json_schema/common/json_schema.dart';
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
-/// Constructed with a json schema, either as string or Map. Validation of
-/// the schema itself is done on construction. Any errors in the schema
-/// result in a FormatException being thrown.
-class JsonSchemaBrowser extends JsonSchemaCommon {
-  
-  Future<JsonSchemaBrowser> createSchemaFromUrl(String schemaUrl) {
-    Uri uri = Uri.parse(schemaUrl);
-    if (uri.scheme == 'http') {
-      _logger.info('Getting url $uri');
-      return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
-        request.followRedirects = true;
-        return request.close();
-      }).then((HttpClientResponse response) {
-        return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-          Map map = convert.JSON.decode(schemaText);
-          return createSchema(map);
-        });
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) {
+  Uri uri = Uri.parse(schemaUrl);
+  if (uri.scheme == 'http') {
+    // _logger.info('Getting url $uri'); TODO: re-add logger
+    return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
+      request.followRedirects = true;
+      return request.close();
+    }).then((HttpClientResponse response) {
+      return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
+        Map map = convert.JSON.decode(schemaText);
+        return JsonSchema.createSchema(map);
       });
-    } else if (uri.scheme == 'file' || uri.scheme == '') {
-      return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
-          .readAsString()
-          .then((text) => createSchema(convert.JSON.decode(text)));
-    } else {
-      throw new FormatException("Url schemd must be http, file, or empty: $schemaUrl");
-    }
+    });
+  } else if (uri.scheme == 'file' || uri.scheme == '') {
+    return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
+        .readAsString()
+        .then((text) => JsonSchema.createSchema(convert.JSON.decode(text)));
+  } else {
+    throw new FormatException('Url schemd must be http, file, or empty: $schemaUrl');
   }
 }

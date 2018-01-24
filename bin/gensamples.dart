@@ -50,14 +50,14 @@ main() {
     var dotFilename = join(outPath, '$base.dot');
     var pngOut = join(outPath, '$base.png');
 
-    Schema.createSchemaFromUrl(fname).then((schema) {
+    JsonSchema.createSchemaFromUrl(fname).then((schema) {
       new File(dotFilename).writeAsStringSync(createDot(schema));
     }).then((_) {
       Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
         if (processResult.exitCode == 0) {
-          print("Finished running dot -Tpng -o$pngOut $fname");
+          print('Finished running dot -Tpng -o$pngOut $fname');
         } else {
-          print("FAILED: running dot -Tpng -o$pngOut $fname");
+          print('FAILED: running dot -Tpng -o$pngOut $fname');
         }
       });
     });

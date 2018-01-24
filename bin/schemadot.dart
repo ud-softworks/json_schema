@@ -53,8 +53,6 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
 
-// custom <additional imports>
-// end <additional imports>
 //! The parser for this script
 ArgParser _parser;
 //! The comment and usage associated with this script
@@ -153,7 +151,6 @@ main(List<String> args) {
     _usage();
     exit(-1);
   }
-  // custom <schemadot main>
 
   Logger.root.level = Level.OFF;
   Completer completer = new Completer();

@@ -36,39 +36,37 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+library json_schema.test_validation;
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+import 'package:json_schema/json_schema.dart';
+import 'package:json_schema/browser.dart';
+import 'package:logging/logging.dart';
+import 'package:test/test.dart';
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
+final Logger _logger = new Logger('test_validation');
 
-  config.coverage..reportOn = ['lib/'];
+void main([List<String> args]) {
+  configureJsonSchemaForBrowser();
 
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
+  if (args?.isEmpty ?? false) {
+    Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
+    Logger.root.level = Level.OFF;
+  }
 
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
+  ////////////////////////////////////////////////////////////////////////
+  // Uncomment to see logging of exceptions
+  // Logger.root.onRecord.listen((LogRecord r) =>
+  //   print('${r.loggerName} [${r.level}]:\t${r.message}'));
 
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
+  Logger.root.level = Level.OFF;
 
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+  test('Schema self validation', () {
+    // Pull in the official schema, verify description and then ensure
+    // that the schema satisfies the schema for schemas
+    String url = 'http://json-schema.org/draft-04/schema';
+    JsonSchema.createSchemaFromUrl(url).then((schema) {
+      expect(schema.schemaMap['description'], 'Core schema meta-schema');
+      expect(schema.validate(schema.schemaMap), true);
+    });
+  });
 }

@@ -36,7 +36,10 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-part of json_schema.json_schema;
+import 'dart:math';
+
+import 'package:json_schema/src/json_schema/schema_type.dart';
+import 'package:json_schema/json_schema.dart';
 
 /// Initialized with schema, validates instances against it
 class Validator {
@@ -88,7 +91,7 @@ class Validator {
     return false;
   }
 
-  void _numberValidation(Schema schema, num n) {
+  void _numberValidation(JsonSchema schema, num n) {
     var maximum = schema._maximum;
     var minimum = schema._minimum;
     if (maximum != null) {
@@ -122,13 +125,13 @@ class Validator {
       } else {
         double result = n / multipleOf;
         if (result.truncate() != result) {
-          _err("${schema._path}: multipleOf violated ($n % $multipleOf)");
+          _err("${schema.path}: multipleOf violated ($n % $multipleOf)");
         }
       }
     }
   }
 
-  void _typeValidation(Schema schema, dynamic instance) {
+  void _typeValidation(JsonSchema schema, dynamic instance) {
     var typeList = schema._schemaTypeList;
     if (typeList != null && typeList.length > 0) {
       if (!typeList.any((type) => _typeMatch(type, instance))) {
@@ -137,7 +140,7 @@ class Validator {
     }
   }
 
-  void _enumValidation(Schema schema, dynamic instance) {
+  void _enumValidation(JsonSchema schema, dynamic instance) {
     var enumValues = schema._enumValues;
     if (enumValues.length > 0) {
       try {
@@ -148,7 +151,7 @@ class Validator {
     }
   }
 
-  void _stringValidation(Schema schema, String instance) {
+  void _stringValidation(JsonSchema schema, String instance) {
     int actual = instance.length;
     var minLength = schema._minLength;
     var maxLength = schema._maxLength;
@@ -163,7 +166,7 @@ class Validator {
     }
   }
 
-  void _itemsValidation(Schema schema, dynamic instance) {
+  void _itemsValidation(JsonSchema schema, dynamic instance) {
     int actual = instance.length;
 
     var singleSchema = schema._items;
@@ -180,7 +183,7 @@ class Validator {
           assert(items[i] != null);
           _validate(items[i], instance[i]);
         }
-        if (additionalItems is Schema) {
+        if (additionalItems is JsonSchema) {
           for (int i = end; i < actual; i++) {
             _validate(additionalItems, instance[i]);
           }
@@ -213,8 +216,8 @@ class Validator {
     }
   }
 
-  void _validateAllOf(Schema schema, instance) {
-    List<Schema> schemas = schema._allOf;
+  void _validateAllOf(JsonSchema schema, instance) {
+    List<JsonSchema> schemas = schema._allOf;
     int errorsSoFar = _errors.length;
     int i = 0;
     schemas.every((s) {
@@ -229,13 +232,13 @@ class Validator {
     });
   }
 
-  void _validateAnyOf(Schema schema, instance) {
+  void _validateAnyOf(JsonSchema schema, instance) {
     if (!schema._anyOf.any((s) => new Validator(s).validate(instance))) {
       _err("${schema._path}/anyOf: anyOf violated ($instance, ${schema._anyOf})");
     }
   }
 
-  void _validateOneOf(Schema schema, instance) {
+  void _validateOneOf(JsonSchema schema, instance) {
     try {
       schema._oneOf.singleWhere((s) => new Validator(s).validate(instance));
     } on StateError catch (notOneOf) {
@@ -243,13 +246,13 @@ class Validator {
     }
   }
 
-  void _validateNot(Schema schema, instance) {
+  void _validateNot(JsonSchema schema, instance) {
     if (new Validator(schema._notSchema).validate(instance)) {
       _err("${schema._notSchema._path}: not violated");
     }
   }
 
-  void _validateFormat(Schema schema, instance) {
+  void _validateFormat(JsonSchema schema, instance) {
     switch (schema._format) {
       case 'date-time':
         {
@@ -306,12 +309,12 @@ class Validator {
     }
   }
 
-  void _objectPropertyValidation(Schema schema, Map instance) {
+  void _objectPropertyValidation(JsonSchema schema, Map instance) {
     bool propMustValidate = schema._additionalProperties != null && !schema._additionalProperties;
 
     instance.forEach((k, v) {
       bool propCovered = false;
-      Schema propSchema = schema._properties[k];
+      JsonSchema propSchema = schema._properties[k];
       if (propSchema != null) {
         assert(propSchema != null);
         _validate(propSchema, v);
@@ -336,7 +339,7 @@ class Validator {
     });
   }
 
-  void _propertyDependenciesValidation(Schema schema, Map instance) {
+  void _propertyDependenciesValidation(JsonSchema schema, Map instance) {
     schema._propertyDependencies.forEach((k, dependencies) {
       if (instance.containsKey(k)) {
         if (!dependencies.every((prop) => instance.containsKey(prop))) {
@@ -346,7 +349,7 @@ class Validator {
     });
   }
 
-  void _schemaDependenciesValidation(Schema schema, Map instance) {
+  void _schemaDependenciesValidation(JsonSchema schema, Map instance) {
     schema._schemaDependencies.forEach((k, otherSchema) {
       if (instance.containsKey(k)) {
         if (!new Validator(otherSchema).validate(instance)) {
@@ -356,7 +359,7 @@ class Validator {
     });
   }
 
-  void _objectValidation(Schema schema, Map instance) {
+  void _objectValidation(JsonSchema schema, Map instance) {
     int numProps = instance.length;
     int minProps = schema._minProperties;
     int maxProps = schema._maxProperties;
@@ -379,7 +382,7 @@ class Validator {
     if (schema._schemaDependencies != null) _schemaDependenciesValidation(schema, instance);
   }
 
-  void _validate(Schema schema, dynamic instance) {
+  void _validate(JsonSchema schema, dynamic instance) {
     _typeValidation(schema, instance);
     _enumValidation(schema, instance);
     if (instance is List) _itemsValidation(schema, instance);
@@ -401,52 +404,7 @@ class Validator {
 
   // end <class Validator>
 
-  Schema _rootSchema;
+  JsonSchema _rootSchema;
   List<String> _errors = [];
   bool _reportMultipleErrors;
 }
-
-// custom <part validator>
-// end <part validator>
-
-RegExp _emailRe = new RegExp(r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
-    r'@'
-    r'[A-Za-z0-9-]+(\.[A-Za-z0-9]+)*(\.[A-Za-z]{2,})$');
-var _defaultEmailValidator = (String email) => _emailRe.firstMatch(email) != null;
-var _emailValidator = _defaultEmailValidator;
-RegExp _ipv4Re = new RegExp(r'^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-    r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-    r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.'
-    r'(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$');
-RegExp _ipv6Re = new RegExp(r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,6}$)|'
-    r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}$)|'
-    r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}$)|'
-    r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}$)|'
-    r'(^([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}$)|'
-    r'(^([0-9a-f]{1,4}:){1,6}(:[0-9a-f]{1,4}){1,1}$)|'
-    r'(^(([0-9a-f]{1,4}:){1,7}|:):$)|'
-    r'(^:(:[0-9a-f]{1,4}){1,7}$)|'
-    r'(^((([0-9a-f]{1,4}:){6})(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
-    r'(^(([0-9a-f]{1,4}:){5}[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3})$)|'
-    r'(^([0-9a-f]{1,4}:){5}:[0-9a-f]{1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^([0-9a-f]{1,4}:){1,1}(:[0-9a-f]{1,4}){1,4}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,3}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,2}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,1}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^(([0-9a-f]{1,4}:){1,5}|:):(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)|'
-    r'(^:(:[0-9a-f]{1,4}){1,5}:(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$)');
-var _defaultUriValidator = _defaultUriValidatorImpl;
-bool _defaultUriValidatorImpl(String uri) {
-  try {
-    final result = Uri.parse(uri);
-    if (result.path.startsWith('//')) return false;
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-RegExp _hostnameRe = new RegExp(r'^(?=.{1,255}$)'
-    r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
-    r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$');
-var _uriValidator = _defaultUriValidator;

@@ -47,7 +47,7 @@
 ///
 import 'dart:async';
 import 'dart:convert' as convert;
-import 'dart:io';
+// import 'dart:io';
 import 'package:args/args.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';

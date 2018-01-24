@@ -1,65 +1,31 @@
-// Copyright 2013-2018 Workiva Inc.
-//
-// Licensed under the Boost Software License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.boost.org/LICENSE_1_0.txt
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// This software or document includes material copied from or derived
-// from JSON-Schema-Test-Suite (https://github.com/json-schema-org/JSON-Schema-Test-Suite),
-// Copyright (c) 2012 Julian Berman, which is licensed under the following terms:
-//
-//     Copyright (c) 2012 Julian Berman
-//
-//     Permission is hereby granted, free of charge, to any person obtaining a copy
-//     of this software and associated documentation files (the "Software"), to deal
-//     in the Software without restriction, including without limitation the rights
-//     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//     copies of the Software, and to permit persons to whom the Software is
-//     furnished to do so, subject to the following conditions:
-//
-//     The above copyright notice and this permission notice shall be included in
-//     all copies or substantial portions of the Software.
-//
-//     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//     THE SOFTWARE.
+import 'dart:async';
 
-part of json_schema.json_schema;
+import 'package:path/path.dart' as PATH;
 
-/// Constructed with a json schema, either as string or Map. Validation of
-/// the schema itself is done on construction. Any errors in the schema
-/// result in a FormatException being thrown.
-class Schema {
-  Schema._fromMap(this._root, this._schemaMap, this._path) {
-    // custom <Schema._fromMap>
+import 'package:json_schema/src/json_schema/abstract_json_schema.dart';
+import 'package:json_schema/src/json_schema/schema_type.dart';
+
+class JsonSchemaCommon implements AbstractJsonSchema {
+  JsonSchemaCommon();
+
+  JsonSchemaCommon._fromMap(this._root, this._schemaMap, this._path) {
+    // custom <JsonSchema._fromMap>
 
     _initialize();
     _addSchema(path, this);
 
-    // end <Schema._fromMap>
+    // end <JsonSchema._fromMap>
   }
 
-  Schema._fromRootMap(this._schemaMap) {
-    // custom <Schema._fromRootMap>
+  JsonSchemaCommon._fromRootMap(this._schemaMap) {
+    // custom <JsonSchema._fromRootMap>
 
     _initialize();
 
-    // end <Schema._fromRootMap>
+    // end <JsonSchema._fromRootMap>
   }
 
-  Schema get root => _root;
+  AbstractJsonSchema get root => _root;
   Map get schemaMap => _schemaMap;
   String get path => _path;
   num get multipleOf => _multipleOf;
@@ -69,22 +35,22 @@ class Schema {
   int get minLength => _minLength;
   RegExp get pattern => _pattern;
   List get enumValues => _enumValues;
-  List<Schema> get allOf => _allOf;
-  List<Schema> get anyOf => _anyOf;
-  List<Schema> get oneOf => _oneOf;
-  Schema get notSchema => _notSchema;
-  Map<String, Schema> get definitions => _definitions;
+  List<AbstractJsonSchema> get allOf => _allOf;
+  List<AbstractJsonSchema> get anyOf => _anyOf;
+  List<AbstractJsonSchema> get oneOf => _oneOf;
+  AbstractJsonSchema get notSchema => _notSchema;
+  Map<String, AbstractJsonSchema> get definitions => _definitions;
   Uri get id => _id;
   String get ref => _ref;
   String get description => _description;
   String get title => _title;
   List<SchemaType> get schemaTypeList => _schemaTypeList;
 
-  /// To match all items to a schema
-  Schema get items => _items;
+  /// To match all items to a JsonSchema
+  AbstractJsonSchema get items => _items;
 
-  /// To match each item in array to a schema
-  List<Schema> get itemsList => _itemsList;
+  /// To match each item in array to a JsonSchema
+  List<AbstractJsonSchema> get itemsList => _itemsList;
   dynamic get additionalItems => _additionalItems;
   int get maxItems => _maxItems;
   int get minItems => _minItems;
@@ -92,46 +58,27 @@ class Schema {
   List<String> get requiredProperties => _requiredProperties;
   int get maxProperties => _maxProperties;
   int get minProperties => _minProperties;
-  Map<String, Schema> get properties => _properties;
+  Map<String, AbstractJsonSchema> get properties => _properties;
   bool get additionalProperties => _additionalProperties;
-  Schema get additionalPropertiesSchema => _additionalPropertiesSchema;
-  Map<RegExp, Schema> get patternProperties => _patternProperties;
-  Map<String, Schema> get schemaDependencies => _schemaDependencies;
+  AbstractJsonSchema get additionalPropertiesSchema => _additionalPropertiesSchema;
+  Map<RegExp, AbstractJsonSchema> get patternProperties => _patternProperties;
+  Map<String, AbstractJsonSchema> get schemaDependencies => _schemaDependencies;
   Map<String, List<String>> get propertyDependencies => _propertyDependencies;
   dynamic get defaultValue => _defaultValue;
 
-  /// Map of path to schema object
-  Map<String, Schema> get refMap => _refMap;
+  /// Map of path to JsonSchema object
+  Map<String, AbstractJsonSchema> get refMap => _refMap;
 
-  // custom <class Schema>
 
-  static Future<Schema> createSchemaFromUrl(String schemaUrl) {
-    Uri uri = Uri.parse(schemaUrl);
-    if (uri.scheme == 'http') {
-      _logger.info('Getting url $uri');
-      return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
-        request.followRedirects = true;
-        return request.close();
-      }).then((HttpClientResponse response) {
-        return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-          Map map = convert.JSON.decode(schemaText);
-          return createSchema(map);
-        });
-      });
-    } else if (uri.scheme == 'file' || uri.scheme == '') {
-      return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
-          .readAsString()
-          .then((text) => createSchema(convert.JSON.decode(text)));
-    } else {
-      throw new FormatException("Url schemd must be http, file, or empty: $schemaUrl");
-    }
+  Future<AbstractJsonSchema> createSchemaFromUrl(String schemaUrl) {
+    throw new Error('No platform configured!');
   }
 
-  /// Create a schema from a [data]
+  /// Create a JsonSchema from a [data]
   ///  Typically [data] is result of JSON.decode(jsonSchemaString)
-  static Future<Schema> createSchema(Map data) => new Schema._fromRootMap(data)._thisCompleter.future;
+  Future<AbstractJsonSchema> createSchema(Map data) => new AbstractJsonSchema._fromRootMap(data)._thisCompleter.future;
 
-  /// Validate [instance] against this schema
+  /// Validate [instance] against this JsonSchema
   bool validate(dynamic instance) => new Validator(this).validate(instance);
 
   bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
@@ -139,7 +86,7 @@ class Schema {
 
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 
-  /// Given path, follow all references to an end path pointing to schema
+  /// Given path, follow all references to an end path pointing to JsonSchema
   String endPath(String path) {
     _pathsEncountered.clear();
     return _endPath(path);
@@ -148,8 +95,8 @@ class Schema {
   /// Returns paths of all paths
   Set get paths => new Set.from(_schemaRefs.keys)..addAll(_refMap.keys);
 
-  /// Method to find schema from path
-  Schema resolvePath(String path) {
+  /// Method to find JsonSchema from path
+  AbstractJsonSchema resolvePath(String path) {
     while (_schemaRefs.containsKey(path)) {
       path = _schemaRefs[path];
     }
@@ -162,7 +109,7 @@ class Schema {
   FormatException _stringError(String key, dynamic instance) => _error("$key must be string: $instance");
   FormatException _objectError(String key, dynamic instance) => _error("$key must be object: $instance");
   FormatException _arrayError(String key, dynamic instance) => _error("$key must be array: $instance");
-  FormatException _schemaError(String key, dynamic instance) => _error("$key must be valid schema object: $instance");
+  FormatException _schemaError(String key, dynamic instance) => _error("$key must be valid JsonSchema object: $instance");
 
   FormatException _error(String msg) {
     msg = "$_path: $msg";
@@ -185,7 +132,7 @@ class Schema {
     throw _intError(key, value);
   }
 
-  _addSchema(String path, Schema schema) => _refMap[path] = schema;
+  _addSchema(String path, AbstractJsonSchema JsonSchema) => _refMap[path] = JsonSchema;
 
   _getMultipleOf(dynamic value) {
     if (value is! num) throw _numError("multiple", value);
@@ -221,12 +168,12 @@ class Schema {
     _pattern = new RegExp(value);
   }
 
-  _makeSchema(String path, dynamic schema, assigner(Schema rhs)) {
-    if (schema is! Map) throw _schemaError(path, schema);
-    if (_registerSchemaRef(path, schema)) {
+  _makeSchema(String path, dynamic JsonSchema, assigner(AbstractJsonSchema rhs)) {
+    if (JsonSchema is! Map) throw _schemaError(path, JsonSchema);
+    if (_registerSchemaRef(path, JsonSchema)) {
       _schemaAssignments.add(() => assigner(_resolvePath(path)));
     } else {
-      assigner(_createSubSchema(schema, path));
+      assigner(_createSubSchema(JsonSchema, path));
     }
   }
 
@@ -284,7 +231,7 @@ class Schema {
     } else if (value is Map) {
       _makeSchema("$_path/additionalProperties", value, (rhs) => _additionalPropertiesSchema = rhs);
     } else {
-      throw _error("additionalProperties must be a bool or valid schema object: $value");
+      throw _error("additionalProperties must be a bool or valid JsonSchema object: $value");
     }
   }
 
@@ -348,7 +295,7 @@ class Schema {
     if (_schemaTypeList.contains(null)) throw _error("type(s) invalid $value");
   }
 
-  _requireListOfSchema(String key, dynamic value, schemaAdder(Schema schema)) {
+  _requireListOfSchema(String key, dynamic value, schemaAdder(AbstractJsonSchema JsonSchema)) {
     if (value is List) {
       if (value.length == 0) throw _error("$key array must not be empty");
       for (int i = 0; i < value.length; i++) {
@@ -359,9 +306,9 @@ class Schema {
     }
   }
 
-  _getAllOf(dynamic value) => _requireListOfSchema("allOf", value, (schema) => _allOf.add(schema));
-  _getAnyOf(dynamic value) => _requireListOfSchema("anyOf", value, (schema) => _anyOf.add(schema));
-  _getOneOf(dynamic value) => _requireListOfSchema("oneOf", value, (schema) => _oneOf.add(schema));
+  _getAllOf(dynamic value) => _requireListOfSchema("allOf", value, (JsonSchema) => _allOf.add(JsonSchema));
+  _getAnyOf(dynamic value) => _requireListOfSchema("anyOf", value, (JsonSchema) => _anyOf.add(JsonSchema));
+  _getOneOf(dynamic value) => _requireListOfSchema("oneOf", value, (JsonSchema) => _oneOf.add(JsonSchema));
   _getNot(dynamic value) {
     if (value is Map) {
       _makeSchema("$_path/not", value, (rhs) => _notSchema = rhs);
@@ -383,7 +330,7 @@ class Schema {
       _ref = value;
       if (_ref.length == 0) throw _error("\$ref must be non-empty string");
       if (_ref[0] != '#') {
-        var refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
+        var refSchemaFuture = createSchemaFromUrl(_ref).then((JsonSchema) => _addSchema(_ref, JsonSchema));
         _retrievalRequests.add(refSchemaFuture);
       }
     } else {
@@ -393,8 +340,8 @@ class Schema {
 
   _getSchema(dynamic value) {
     if (value is String) {
-      if (value != "http://json-schema.org/draft-04/schema#") {
-        throw _error("Only draft 4 schema supported");
+      if (value != "http://json-JsonSchema.org/draft-04/JsonSchema#") {
+        throw _error("Only draft 4 JsonSchema supported");
       }
     } else {
       throw _stringError(r"$ref", value);
@@ -452,17 +399,17 @@ class Schema {
     "definitions": (s, v) => s._getDefinitions(v),
     "id": (s, v) => s._getId(v),
     "\$ref": (s, v) => s._getRef(v),
-    "\$schema": (s, v) => s._getSchema(v),
+    "\$JsonSchema": (s, v) => s._getSchema(v),
     "title": (s, v) => s._getTitle(v),
     "description": (s, v) => s._getDescription(v),
     "format": (s, v) => s._getFormat(v),
   };
 
   void _validateSchema() {
-    _logger.info("Validating schema $_path");
+    _logger.info("Validating JsonSchema $_path");
 
     if (_registerSchemaRef(_path, _schemaMap)) {
-      _logger.info("Top level schema is ref: $_schemaRefs");
+      _logger.info("Top level JsonSchema is ref: $_schemaRefs");
     }
 
     _schemaMap.forEach((k, v) {
@@ -488,7 +435,7 @@ class Schema {
       _logger.info("Marked $_path complete");
     }
 
-    _logger.info("Completed Validating schema $_path");
+    _logger.info("Completed Validating JsonSchema $_path");
   }
 
   void _initialize() {
@@ -520,13 +467,13 @@ class Schema {
     }
   }
 
-  Schema _resolvePath(String original) {
+  AbstractJsonSchema _resolvePath(String original) {
     String path = endPath(original);
-    Schema result = _refMap[path];
+    AbstractJsonSchema result = _refMap[path];
     if (result == null) {
-      var schema = _freeFormMap[path];
-      if (schema is! Map) throw _schemaError("free-form property $original at $path", schema);
-      return new Schema._fromMap(_root, schema, path);
+      var JsonSchema = _freeFormMap[path];
+      if (JsonSchema is! Map) throw _schemaError("free-form property $original at $path", JsonSchema);
+      return new JsonSchema._fromMap(_root, JsonSchema, path);
     }
     return result;
   }
@@ -549,17 +496,17 @@ class Schema {
 
   static String _normalizePath(String path) => path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
 
-  Schema _createSubSchema(dynamic schemaDefinition, String path) {
+  AbstractJsonSchema _createSubSchema(dynamic schemaDefinition, String path) {
     assert(!_schemaRefs.containsKey(path));
     assert(!_refMap.containsKey(path));
-    return new Schema._fromMap(_root, schemaDefinition, path);
+    return new AbstractJsonSchema._fromMap(_root, schemaDefinition, path);
   }
 
   String toString() => "${_schemaMap}";
 
-  // end <class Schema>
+  // end <class JsonSchema>
 
-  Schema _root;
+  AbstractJsonSchema _root;
   Map _schemaMap = {};
   String _path;
   num _multipleOf;
@@ -571,18 +518,18 @@ class Schema {
   int _minLength;
   RegExp _pattern;
   List _enumValues = [];
-  List<Schema> _allOf = [];
-  List<Schema> _anyOf = [];
-  List<Schema> _oneOf = [];
-  Schema _notSchema;
-  Map<String, Schema> _definitions = {};
+  List<AbstractJsonSchema> _allOf = [];
+  List<AbstractJsonSchema> _anyOf = [];
+  List<AbstractJsonSchema> _oneOf = [];
+  AbstractJsonSchema _notSchema;
+  Map<String, AbstractJsonSchema> _definitions = {};
   Uri _id;
   String _ref;
   String _description;
   String _title;
   List<SchemaType> _schemaTypeList;
-  Schema _items;
-  List<Schema> _itemsList;
+  AbstractJsonSchema _items;
+  List<AbstractJsonSchema> _itemsList;
   dynamic _additionalItems;
   int _maxItems;
   int _minItems;
@@ -590,16 +537,16 @@ class Schema {
   List<String> _requiredProperties;
   int _maxProperties;
   int _minProperties = 0;
-  Map<String, Schema> _properties = {};
+  Map<String, AbstractJsonSchema> _properties = {};
   bool _additionalProperties;
-  Schema _additionalPropertiesSchema;
-  Map<RegExp, Schema> _patternProperties = {};
-  Map<String, Schema> _schemaDependencies = {};
+  AbstractJsonSchema _additionalPropertiesSchema;
+  Map<RegExp, AbstractJsonSchema> _patternProperties = {};
+  Map<String, AbstractJsonSchema> _schemaDependencies = {};
   Map<String, List<String>> _propertyDependencies = {};
   dynamic _defaultValue;
-  Map<String, Schema> _refMap = {};
+  Map<String, AbstractJsonSchema> _refMap = {};
 
-  /// For schemas with $ref maps path of schema to $ref path
+  /// For schemas with $ref maps path of JsonSchema to $ref path
   Map<String, String> _schemaRefs = {};
 
   /// Assignments to call for resolution upon end of parse
@@ -608,7 +555,7 @@ class Schema {
   /// Maps any non-key top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
   Completer _thisCompleter = new Completer();
-  List<Future<Schema>> _retrievalRequests = [];
+  List<Future<AbstractJsonSchema>> _retrievalRequests = [];
 
   /// Set of strings to gaurd against path cycles
   Set<String> _pathsEncountered = new Set();
@@ -616,6 +563,3 @@ class Schema {
   /// Support for optional formats (date-time, uri, email, ipv6, hostname)
   String _format;
 }
-
-// custom <part schema>
-// end <part schema>

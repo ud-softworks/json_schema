@@ -3,6 +3,10 @@ sudo: false
 dart:
   - stable
 with_content_shell: true
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
 script:
   - pub get --packages-dir
   - pub run dependency_validator --ignore dart_style,coverage

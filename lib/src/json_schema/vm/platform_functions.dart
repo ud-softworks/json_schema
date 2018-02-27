@@ -45,7 +45,6 @@ import 'package:json_schema/src/json_schema/json_schema.dart';
 Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) {
   Uri uri = Uri.parse(schemaUrl);
   if (uri.scheme == 'http') {
-    // _logger.info('Getting url $uri'); TODO: re-add logger
     return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
       request.followRedirects = true;
       return request.close();

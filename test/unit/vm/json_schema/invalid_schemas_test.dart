@@ -40,11 +40,13 @@ library json_schema.test_invalid_schemas;
 
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/vm.dart';
+
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+
+import 'package:json_schema/json_schema.dart';
+import 'package:json_schema/vm.dart';
 
 final Logger _logger = new Logger('test_invalid_schemas');
 

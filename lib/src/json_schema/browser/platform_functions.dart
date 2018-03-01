@@ -36,39 +36,18 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+import 'dart:async';
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+import 'package:w_transport/w_transport.dart';
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
-
-  config.coverage..reportOn = ['lib/'];
-
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl) async {
+  Uri uri = Uri.parse(schemaUrl);
+  if (uri.scheme != 'file') {
+    // _logger.info('Getting url $uri'); TODO: re-add logger.
+    Response response = await (new JsonRequest()..uri = uri).get();
+    return JsonSchema.createSchema(response.body.asJson());
+  } else {
+    throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
+  }
 }

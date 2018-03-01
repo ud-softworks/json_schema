@@ -40,32 +40,37 @@ library json_schema.test_invalid_schemas;
 
 import 'dart:convert' as convert;
 import 'dart:io';
-import 'package:json_schema/json_schema.dart';
+
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'package:json_schema/json_schema.dart';
+import 'package:json_schema/vm.dart';
+
 final Logger _logger = new Logger('test_invalid_schemas');
 
 void main([List<String> args]) {
+  configureJsonSchemaForVm();
+
   if (args?.isEmpty ?? false) {
-    Logger.root.onRecord.listen((LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
+    Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }
 
-  Directory testSuiteFolder = new Directory("./test/invalid_schemas");
+  Directory testSuiteFolder = new Directory('./test/invalid_schemas');
 
   testSuiteFolder.listSync().forEach((testEntry) {
     String shortName = path.basename(testEntry.path);
-    group("Invalid schema: ${shortName}", () {
+    group('Invalid schema: ${shortName}', () {
       if (testEntry is File) {
         List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {
-          var schemaData = testObject["schema"];
-          var description = testObject["description"];
+          var schemaData = testObject['schema'];
+          var description = testObject['description'];
           test(description, () {
             var gotException = (e) {
-              _logger.info("Caught expected $e");
+              _logger.info('Caught expected $e');
               if (!(e is FormatException)) {
                 _logger.info('${shortName} wtf it is a ${e.runtimeType}');
               }
@@ -74,7 +79,7 @@ void main([List<String> args]) {
             var ensureInvalid = expectAsync1(gotException);
 
             try {
-              Schema.createSchema(schemaData).then(ensureInvalid);
+              JsonSchema.createSchema(schemaData).then(ensureInvalid);
             } on FormatException catch (e) {
               ensureInvalid(e);
             } catch (e) {

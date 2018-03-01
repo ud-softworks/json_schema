@@ -36,39 +36,39 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+import 'package:json_schema/json_schema.dart';
+import 'package:json_schema/src/json_schema/typedefs.dart';
+import 'package:json_schema/src/json_schema/utils.dart';
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+/// The globally configured json shema class. Any json schema class that is not
+/// explicitly given a [JsonSchema] instance upon construction will
+/// inherit this global one.
+CreateJsonSchemaFromUrl get globalCreateJsonSchemaFromUrl => _globalCreateJsonSchemaFromUrl;
+set globalCreateJsonSchemaFromUrl(CreateJsonSchemaFromUrl createJsonSchemaFromUrl) {
+  if (createJsonSchemaFromUrl == null) {
+    throw new ArgumentError('json_schema: Global createJsonSchemaFromUrl '
+        'implementation must not be null.');
+  }
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
-
-  config.coverage..reportOn = ['lib/'];
-
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+  _globalCreateJsonSchemaFromUrl = createJsonSchemaFromUrl;
 }
+
+CreateJsonSchemaFromUrl _globalCreateJsonSchemaFromUrl;
+
+/// Reset the globally configured json schema class.
+void resetGlobalTransportPlatform() {
+  _globalCreateJsonSchemaFromUrl = null;
+}
+
+/// Default validators for all [JsonSchema]s.
+DefaultValidators get defaultValidators => _defaultValidators ?? new DefaultValidators();
+set defaultValidators(DefaultValidators defaultValidators) {
+  if (defaultValidators == null) {
+    throw new ArgumentError('json_schema: default validators '
+        'implementation must not be null.');
+  }
+
+  _defaultValidators = defaultValidators;
+}
+
+DefaultValidators _defaultValidators;

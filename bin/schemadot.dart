@@ -53,8 +53,6 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
 
-// custom <additional imports>
-// end <additional imports>
 //! The parser for this script
 ArgParser _parser;
 //! The comment and usage associated with this script
@@ -141,19 +139,18 @@ Select log level from:
 final _logger = new Logger('schemadot');
 
 main(List<String> args) {
-  Logger.root.onRecord.listen((LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
+  Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
   Logger.root.level = Level.OFF;
   Map argResults = _parseArgs(args);
   Map options = argResults['options'];
 
   try {
-    if (options["in-uri"] == null) throw new ArgumentError("option: in-uri is required");
+    if (options['in-uri'] == null) throw new ArgumentError('option: in-uri is required');
   } on ArgumentError catch (e) {
     print(e);
     _usage();
     exit(-1);
   }
-  // custom <schemadot main>
 
   Logger.root.level = Level.OFF;
   Completer completer = new Completer();
@@ -174,7 +171,7 @@ main(List<String> args) {
   }
 
   completer.future.then((schemaText) {
-    Future schema = Schema.createSchema(convert.JSON.decode(schemaText));
+    Future schema = JsonSchema.createSchema(convert.JSON.decode(schemaText));
     schema.then((schema) {
       String dot = createDot(schema);
       if (options['out-file'] != null) {
@@ -184,10 +181,4 @@ main(List<String> args) {
       }
     });
   });
-
-  // end <schemadot main>
 }
-
-// custom <schemadot global>
-
-// end <schemadot global>

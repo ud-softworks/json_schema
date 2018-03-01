@@ -36,39 +36,7 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+import 'dart:async';
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
-
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
-
-  config.coverage..reportOn = ['lib/'];
-
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
-}
+typedef Future<JsonSchema> CreateJsonSchemaFromUrl(String schemaUrl);

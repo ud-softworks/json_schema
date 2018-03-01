@@ -36,39 +36,17 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+library json_schema.browser;
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+import 'package:w_transport/browser.dart';
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
+import 'package:json_schema/src/json_schema/global_platform_functions.dart';
+import 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
 
-  config.coverage..reportOn = ['lib/'];
+export 'package:json_schema/src/json_schema/browser/platform_functions.dart' show createSchemaFromUrlBrowser;
 
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+/// Configures json_schema for use in the browser via dart:html.
+void configureJsonSchemaForBrowser() {
+  configureWTransportForBrowser();
+  globalCreateJsonSchemaFromUrl = createSchemaFromUrlBrowser;
 }

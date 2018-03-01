@@ -36,39 +36,72 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+class SchemaType implements Comparable<SchemaType> {
+  static const SchemaType ARRAY = const SchemaType._(0);
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+  static const SchemaType BOOLEAN = const SchemaType._(1);
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
+  static const SchemaType INTEGER = const SchemaType._(2);
 
-  config.coverage..reportOn = ['lib/'];
+  static const SchemaType NUMBER = const SchemaType._(3);
 
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
+  static const SchemaType NULL = const SchemaType._(4);
 
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
+  static const SchemaType OBJECT = const SchemaType._(5);
 
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
+  static const SchemaType STRING = const SchemaType._(6);
 
-  config.test.platforms = ['vm', 'content-shell'];
+  static List<SchemaType> get values => const <SchemaType>[ARRAY, BOOLEAN, INTEGER, NUMBER, NULL, OBJECT, STRING];
 
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
+  final int value;
 
-  await dev(args);
+  int get hashCode => value;
+
+  const SchemaType._(this.value);
+
+  SchemaType copy() => this;
+
+  int compareTo(SchemaType other) => value.compareTo(other.value);
+
+  String toString() {
+    switch (this) {
+      case ARRAY:
+        return 'array';
+      case BOOLEAN:
+        return 'boolean';
+      case INTEGER:
+        return 'integer';
+      case NUMBER:
+        return 'number';
+      case NULL:
+        return 'null';
+      case OBJECT:
+        return 'object';
+      case STRING:
+        return 'string';
+    }
+    return null;
+  }
+
+  static SchemaType fromString(String s) {
+    if (s == null) return null;
+    switch (s) {
+      case 'array':
+        return ARRAY;
+      case 'boolean':
+        return BOOLEAN;
+      case 'integer':
+        return INTEGER;
+      case 'number':
+        return NUMBER;
+      case 'null':
+        return NULL;
+      case 'object':
+        return OBJECT;
+      case 'string':
+        return STRING;
+      default:
+        return null;
+    }
+  }
 }

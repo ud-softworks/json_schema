@@ -36,39 +36,29 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+import 'dart:io';
+import 'dart:async';
+import 'dart:convert' as convert;
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
-
-  config.coverage..reportOn = ['lib/'];
-
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) {
+  Uri uri = Uri.parse(schemaUrl);
+  if (uri.scheme == 'http') {
+    return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
+      request.followRedirects = true;
+      return request.close();
+    }).then((HttpClientResponse response) {
+      return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
+        Map map = convert.JSON.decode(schemaText);
+        return JsonSchema.createSchema(map);
+      });
+    });
+  } else if (uri.scheme == 'file' || uri.scheme == '') {
+    return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
+        .readAsString()
+        .then((text) => JsonSchema.createSchema(convert.JSON.decode(text)));
+  } else {
+    throw new FormatException('Url schemd must be http, file, or empty: $schemaUrl');
+  }
 }

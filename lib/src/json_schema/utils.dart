@@ -36,39 +36,43 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart_dev/dart_dev.dart' show dev, config, TestRunnerConfig, Environment;
+import 'package:json_schema/src/json_schema/constants.dart';
 
-main(List<String> args) async {
-  config.analyze
-    ..entryPoints = const ['bin/', 'lib/', 'test/', 'tool/']
-    ..fatalWarnings = true
-    ..strong = true;
+class JsonSchemaUtils {
+  static bool jsonEqual(a, b) {
+    bool result = true;
+    if (a is Map && b is Map) {
+      if (a.length != b.length) return false;
+      a.keys.forEach((k) {
+        if (!jsonEqual(a[k], b[k])) {
+          result = false;
+          return;
+        }
+      });
+    } else if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (int i = 0; i < a.length; i++) {
+        if (!jsonEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+    } else {
+      return a == b;
+    }
+    return result;
+  }
+}
 
-  config.copyLicense.directories = const ['bin/', 'example/', 'lib/', 'test/', 'tool/'];
+class DefaultValidators {
+  emailValidator(String email) => JsonSchemaValidationRegexes.email.firstMatch(email) != null;
 
-  config.coverage..reportOn = ['lib/'];
-
-  config.format
-    ..lineLength = 120
-    ..paths = const ['bin/', 'dot_samples/', 'example', 'lib/', 'test/', 'tool/'];
-
-  config.format.exclude = const [
-    'test/unit/generated_runner_test.dart',
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  config.genTestRunner.configs = [
-    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
-    new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
-  ];
-
-  config.test.platforms = ['vm', 'content-shell'];
-
-  config.test.unitTests = const [
-    'test/unit/browser/generated_runner_test.dart',
-    'test/unit/vm/generated_runner_test.dart',
-  ];
-
-  await dev(args);
+  uriValidator(String uri) {
+    try {
+      final result = Uri.parse(uri);
+      if (result.path.startsWith('//')) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

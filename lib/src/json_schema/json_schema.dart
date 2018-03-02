@@ -38,7 +38,7 @@
 
 import 'dart:async';
 
-import 'package:path/path.dart' as PATH;
+import 'package:path/path.dart' as path_lib;
 
 import 'package:json_schema/src/json_schema/schema_type.dart';
 import 'package:json_schema/src/json_schema/validator.dart';
@@ -58,6 +58,9 @@ class JsonSchema {
     _initialize();
   }
 
+  // --------------------------------------------------------------------------
+  // Root Schema
+  // --------------------------------------------------------------------------
   JsonSchema get root => _root;
   Map get schemaMap => _schemaMap;
   String get path => _path;
@@ -79,6 +82,11 @@ class JsonSchema {
   String get title => _title;
   List<SchemaType> get schemaTypeList => _schemaTypeList;
 
+
+  // --------------------------------------------------------------------------
+  // Schema Items
+  // --------------------------------------------------------------------------
+
   /// To match all items to a schema
   JsonSchema get items => _items;
 
@@ -88,6 +96,10 @@ class JsonSchema {
   int get maxItems => _maxItems;
   int get minItems => _minItems;
   bool get uniqueItems => _uniqueItems;
+
+  // --------------------------------------------------------------------------
+  // Schema Properties
+  // --------------------------------------------------------------------------
   List<String> get requiredProperties => _requiredProperties;
   int get maxProperties => _maxProperties;
   int get minProperties => _minProperties;
@@ -110,7 +122,7 @@ class JsonSchema {
   }
 
   /// Create a schema from a [data]
-  ///  Typically [data] is result of JSON.decode(jsonSchemaString)
+  /// Typically [data] is result of JSON.decode(jsonSchemaString)
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
 
   /// Validate [instance] against this schema
@@ -167,8 +179,10 @@ class JsonSchema {
     throw _intError(key, value);
   }
 
+  /// Add a ref'd JsonSchema to the map of available Schemas.
   _addSchema(String path, JsonSchema schema) => _refMap[path] = schema;
 
+  
   _getMultipleOf(dynamic value) {
     if (value is! num) throw _numError('multiple', value);
     if (value <= 0) throw _error('multipleOf must be > 0: $value');
@@ -285,7 +299,7 @@ class JsonSchema {
         } else if (v is List) {
           if (v.length == 0) throw _error('property dependencies must be non-empty array');
 
-          Set uniqueDeps = new Set();
+          final Set uniqueDeps = new Set();
           v.forEach((propDep) {
             if (propDep is! String) throw _stringError('propertyDependency', v);
 
@@ -366,7 +380,7 @@ class JsonSchema {
       _ref = value;
       if (_ref.length == 0) throw _error('\$ref must be non-empty string');
       if (_ref[0] != '#') {
-        var refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
+        final refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
         _retrievalRequests.add(refSchemaFuture);
       }
     } else {
@@ -386,7 +400,7 @@ class JsonSchema {
 
   _getId(dynamic value) {
     if (value is String) {
-      String id = _requireString('id', value);
+      final String id = _requireString('id', value);
       try {
         _id = Uri.parse(id);
       } catch (e) {
@@ -451,11 +465,11 @@ class JsonSchema {
     }
 
     _schemaMap.forEach((k, v) {
-      var accessor = _accessMap[k];
+      final accessor = _accessMap[k];
       if (accessor != null) {
         accessor(this, v);
       } else {
-        _freeFormMap[PATH.join(_path, _normalizePath(k))] = v;
+        _freeFormMap[path_lib.join(_path, _normalizePath(k))] = v;
       }
     });
 
@@ -476,6 +490,8 @@ class JsonSchema {
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
 
+
+  /// Function that contains most constructor logic for various constructors.
   void _initialize() {
     if (_root == null) {
       _root = this;
@@ -496,7 +512,7 @@ class JsonSchema {
   String _endPath(String path) {
     if (_pathsEncountered.contains(path)) throw _error('Encountered path cycle ${_pathsEncountered}, adding $path');
 
-    var referredTo = _schemaRefs[path];
+    final referredTo = _schemaRefs[path];
     if (referredTo == null) {
       return path;
     } else {
@@ -506,10 +522,10 @@ class JsonSchema {
   }
 
   JsonSchema _resolvePath(String original) {
-    String path = endPath(original);
-    JsonSchema result = _refMap[path];
+    final String path = endPath(original);
+    final JsonSchema result = _refMap[path];
     if (result == null) {
-      var schema = _freeFormMap[path];
+      final schema = _freeFormMap[path];
       if (schema is! Map) throw _schemaError('free-form property $original at $path', schema);
       return new JsonSchema._fromMap(_root, schema, path);
     }
@@ -518,7 +534,7 @@ class JsonSchema {
 
   bool _registerSchemaRef(String path, dynamic schemaDefinition) {
     if (schemaDefinition is Map) {
-      dynamic ref = schemaDefinition[r'$ref'];
+      final dynamic ref = schemaDefinition[r'$ref'];
       if (ref != null) {
         if (ref is String) {
           // _logger.info('Linking $path to $ref'); TODO: re-add logger
@@ -554,6 +570,7 @@ class JsonSchema {
   int _minLength;
   RegExp _pattern;
   List _enumValues = [];
+  /// 
   List<JsonSchema> _allOf = [];
   List<JsonSchema> _anyOf = [];
   List<JsonSchema> _oneOf = [];
@@ -590,7 +607,11 @@ class JsonSchema {
 
   /// Maps any non-key top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
+
+  /// Completer that fires when the JsonSchema has finished building.
   Completer _thisCompleter = new Completer();
+  
+  /// HTTP(S) requests to fetch ref'd schemas.
   List<Future<JsonSchema>> _retrievalRequests = [];
 
   /// Set of strings to gaurd against path cycles

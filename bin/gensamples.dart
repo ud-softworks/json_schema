@@ -42,13 +42,13 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 
 main() {
-  var sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  var outPath = join(dirname(sourcePath), 'schemaout');
+  final sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
+  final outPath = join(dirname(sourcePath), 'schemaout');
   new Directory(sourcePath).listSync().forEach((jsonFile) {
-    var fname = jsonFile.path;
-    var base = basenameWithoutExtension(fname);
-    var dotFilename = join(outPath, '$base.dot');
-    var pngOut = join(outPath, '$base.png');
+    final fname = jsonFile.path;
+    final base = basenameWithoutExtension(fname);
+    final dotFilename = join(outPath, '$base.dot');
+    final pngOut = join(outPath, '$base.png');
 
     JsonSchema.createSchemaFromUrl(fname).then((schema) {
       new File(dotFilename).writeAsStringSync(createDot(schema));

@@ -51,7 +51,7 @@ final Logger _logger = new Logger('test_validation');
 void main([List<String> args]) {
   configureJsonSchemaForVm();
 
-  if (args?.isEmpty ?? false) {
+  if (args?.isEmpty != true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }
@@ -67,9 +67,9 @@ void main([List<String> args]) {
 
   testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
 
-  var optionals = new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
+  final optionals = new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
 
-  var all = testSuiteFolder.listSync()..addAll(optionals.listSync());
+  final all = testSuiteFolder.listSync()..addAll(optionals.listSync());
 
   all.forEach((testEntry) {
     if (testEntry is File) {
@@ -80,19 +80,19 @@ void main([List<String> args]) {
           'refRemote.json', // seems to require webserver running to vend files
         ].contains(path.basename(testEntry.path))) return;
 
-        List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
+        final List tests = convert.JSON.decode((testEntry).readAsStringSync());
         tests.forEach((testEntry) {
-          var schemaData = testEntry['schema'];
-          var description = testEntry['description'];
-          List validationTests = testEntry['tests'];
+          final schemaData = testEntry['schema'];
+          final description = testEntry['description'];
+          final List validationTests = testEntry['tests'];
 
           validationTests.forEach((validationTest) {
-            String validationDescription = validationTest['description'];
+            final String validationDescription = validationTest['description'];
             test('${description} : ${validationDescription}', () {
-              var instance = validationTest['data'];
+              final instance = validationTest['data'];
               bool validationResult;
-              bool expectedResult = validationTest['valid'];
-              var checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+              final bool expectedResult = validationTest['valid'];
+              final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
               JsonSchema.createSchema(schemaData).then((schema) {
                 validationResult = schema.validate(instance);
                 checkResult();
@@ -107,7 +107,7 @@ void main([List<String> args]) {
   test('Schema self validation', () {
     // Pull in the official schema, verify description and then ensure
     // that the schema satisfies the schema for schemas
-    String url = 'http://json-schema.org/draft-04/schema';
+    final url = 'http://json-schema.org/draft-04/schema';
     JsonSchema.createSchemaFromUrl(url).then((schema) {
       expect(schema.schemaMap['description'], 'Core schema meta-schema');
       expect(schema.validate(schema.schemaMap), true);

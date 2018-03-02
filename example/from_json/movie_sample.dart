@@ -49,7 +49,7 @@ main() {
   //////////////////////////////////////////////////////////////////////
   // Define schema in code
   //////////////////////////////////////////////////////////////////////
-  var movieSchema = {
+  final movieSchema = {
     'title': 'movie data',
     'additionalProperties': false,
     'required': ['movies'],
@@ -74,7 +74,7 @@ main() {
     }
   };
 
-  var movies = {
+  final movies = {
     'movies': {
       'the mission': {'title': 'The Mission', 'year_made': 1986, 'rating': 5},
       'troll 2': {'title': 'Troll 2', 'year_made': 1990, 'rating': 2}
@@ -82,8 +82,8 @@ main() {
   };
 
   JsonSchema.createSchema(movieSchema).then((schema) {
-    var validator = new Validator(schema);
-    bool validates = validator.validate(movies);
+    final validator = new Validator(schema);
+    final bool validates = validator.validate(movies);
     if (!validates) {
       print('Errors: ${validator.errors}');
     } else {

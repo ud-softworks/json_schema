@@ -68,9 +68,8 @@ void main([List<String> args]) {
         tests.forEach((testObject) {
           final schemaData = testObject['schema'];
           final description = testObject['description'];
-          
+
           test(description, () async {
-            
             final catchException = expectAsync1((e) {
               _logger.info('Caught expected $e');
               if (!(e is FormatException)) {

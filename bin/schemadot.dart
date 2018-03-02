@@ -173,7 +173,7 @@ main(List<String> args) {
   completer.future.then((schemaText) {
     final Future schema = JsonSchema.createSchema(convert.JSON.decode(schemaText));
     schema.then((schema) {
-     final String dot = createDot(schema);
+      final String dot = createDot(schema);
       if (options['out-file'] != null) {
         new File(options['out-file']).writeAsStringSync(dot);
       } else {

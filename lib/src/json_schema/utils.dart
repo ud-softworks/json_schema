@@ -61,6 +61,8 @@ class JsonSchemaUtils {
     }
     return result;
   }
+
+  static String normalizePath(String path) => path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
 }
 
 class DefaultValidators {

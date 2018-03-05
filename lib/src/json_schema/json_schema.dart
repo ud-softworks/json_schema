@@ -102,17 +102,13 @@ class JsonSchema {
       _schemaAssignments = _root._schemaAssignments;
     }
 
-    _validateSchema();
+    _validateSchemaAsync();
   }
 
-  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  void _validateSchema() {
-    // _logger.info('Validating schema $_path'); TODO: re-add logger
-
-    if (_registerSchemaRef(_path, _schemaMap)) {
-      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
-    }
-
+  /// Calculate, validate and set all properties defined in the spec. 
+  /// 
+  /// Doesn't validate interdependent properties. See [_validateInterdependentProperties]
+  void _validateAndSetIndividualProperties() {
     // Iterate over all string keys of the root JSON Schema Map. Calculate, validate and
     // set all properties according to spec.
     _schemaMap.forEach((k, v) {
@@ -124,9 +120,9 @@ class JsonSchema {
         _freeFormMap[path_lib.join(_path, JsonSchemaUtils.normalizePath(k))] = v;
       }
     });
+  }
 
-    // Validate interdependent properties:
-
+  void _validateInterdependentProperties() {
     // Check that a minimum is set if both exclusiveMinimum and minimum properties are set.
     if (_exclusiveMinimum != null && _minimum == null)
       throw FormatExceptions.error('exclusiveMinimum requires minimum');
@@ -134,6 +130,24 @@ class JsonSchema {
     // Check that a minimum is set if both exclusiveMaximum and maximum properties are set.
     if (_exclusiveMaximum != null && _maximum == null)
       throw FormatExceptions.error('exclusiveMaximum requires maximum');
+  }
+
+  /// Validate, calculate and set all properties on the [JsonSchema], included properties
+  /// that have some interdependency.
+  void _validateAndSetAllProperties() {
+    _validateAndSetIndividualProperties();
+    _validateInterdependentProperties();
+  }
+
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
+  void _validateSchemaAsync() {
+    // _logger.info('Validating schema $_path'); TODO: re-add logger
+
+    if (_registerSchemaRef(_path, _schemaMap)) {
+      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
+    }
+
+    _validateAndSetAllProperties();
 
     // Check all _schemaAssignments for 
     if (_root == this) {

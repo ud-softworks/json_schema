@@ -138,16 +138,7 @@ class JsonSchema {
     _validateInterdependentProperties();
   }
 
-  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  void _validateSchemaAsync() {
-    // _logger.info('Validating schema $_path'); TODO: re-add logger
-
-    if (_registerSchemaRef(_path, _schemaMap)) {
-      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
-    }
-
-    _validateAndSetAllProperties();
-
+  void _validateAllPathsAsync() {
     // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
@@ -158,6 +149,18 @@ class JsonSchema {
       }
       // _logger.info('Marked $_path complete'); TODO: re-add logger
     }
+  }
+
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
+  void _validateSchemaAsync() {
+    // _logger.info('Validating schema $_path'); TODO: re-add logger
+
+    if (_registerSchemaRef(_path, _schemaMap)) {
+      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
+    }
+
+    _validateAndSetAllProperties();
+    _validateAllPathsAsync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }

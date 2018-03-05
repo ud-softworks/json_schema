@@ -65,15 +65,14 @@ class JsonSchema {
   }
 
   /// Create a schema from a [Map].
-  /// 
-  /// This method is asyncronous to support automatic fetching of [JsonSchema] for items, 
+  ///
+  /// This method is asyncronous to support automatic fetching of [JsonSchema] for items,
   /// properties, and sub-properties of the root schema. If you want to create a [JsonSchema],
   /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
   /// instead.
-  /// 
+  ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
-
 
   static JsonSchema createSchemaWithProvidedRefs(Map data, Map<String, JsonSchema> providedRefs) {
     // TODO
@@ -105,8 +104,8 @@ class JsonSchema {
     _validateSchemaAsync();
   }
 
-  /// Calculate, validate and set all properties defined in the spec. 
-  /// 
+  /// Calculate, validate and set all properties defined in the spec.
+  ///
   /// Doesn't validate interdependent properties. See [_validateInterdependentProperties]
   void _validateAndSetIndividualProperties() {
     // Iterate over all string keys of the root JSON Schema Map. Calculate, validate and
@@ -149,7 +148,7 @@ class JsonSchema {
 
     _validateAndSetAllProperties();
 
-    // Check all _schemaAssignments for 
+    // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
@@ -192,6 +191,7 @@ class JsonSchema {
   List _enumValues = [];
   bool _exclusiveMaximum;
   bool _exclusiveMinimum;
+
   /// Support for optional formats (date-time, uri, email, ipv6, hostname)
   String _format;
   Uri _id;
@@ -247,7 +247,6 @@ class JsonSchema {
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
   Completer _thisCompleter = new Completer();
-
 
   /// Map to allow getters to be accessed by String key.
   static Map<String, SchemaPropertySetter> _accessMap = {
@@ -508,13 +507,13 @@ class JsonSchema {
     TypeValidators.nonEmptyList(key, value);
     for (int i = 0; i < value.length; i++) {
       _makeSchema('$_path/$key/$i', value[i], (rhs) => schemaAdder(rhs));
-    } 
+    }
   }
 
   // --------------------------------------------------------------------------
   // Root Schema Property Setters
   // --------------------------------------------------------------------------
-  
+
   /// Validate, calulcate and set the value of the 'allOf' JSON Schema prop.
   _setAllOf(dynamic value) => _validateListOfSchema('allOf', value, (schema) => _allOf.add(schema));
 
@@ -548,7 +547,7 @@ class JsonSchema {
 
   /// Validate, calulcate and set the value of the 'minimum' JSON Schema prop.
   _setMinimum(dynamic value) => _minimum = TypeValidators.number('minimum', value);
-  
+
   /// Validate, calulcate and set the value of the 'maximum' JSON Schema prop.
   _setMaximum(dynamic value) => _maximum = TypeValidators.number('maximum', value);
 
@@ -579,8 +578,8 @@ class JsonSchema {
     }
   }
 
-  /// Validate the value of the 'schema' JSON Schema prop. 
-  /// 
+  /// Validate the value of the 'schema' JSON Schema prop.
+  ///
   /// This isn't stored because the schema version is always draft 4.
   _setSchema(dynamic value) => TypeValidators.jsonSchemaVersion4(r'$ref', value);
 
@@ -626,9 +625,8 @@ class JsonSchema {
   /// Validate, calulcate and set the value of the 'minItems' JSON Schema prop.
   _setMinItems(dynamic value) => _minItems = TypeValidators.nonNegativeInt('minItems', value);
 
-    /// Validate, calulcate and set the value of the 'uniqueItems' JSON Schema prop.
+  /// Validate, calulcate and set the value of the 'uniqueItems' JSON Schema prop.
   _setUniqueItems(dynamic value) => _uniqueItems = TypeValidators.boolean('uniqueItems', value);
-
 
   // --------------------------------------------------------------------------
   // Schema Sub-Property Related Property Setters
@@ -648,7 +646,7 @@ class JsonSchema {
       throw FormatExceptions.error('additionalProperties must be a bool or valid schema object: $value');
     }
   }
-    
+
   /// Validate, calulcate and set the value of the 'dependencies' JSON Schema prop.
   _setDependencies(dynamic value) => (TypeValidators.object('dependencies', value)).forEach((k, v) {
         if (v is Map) {

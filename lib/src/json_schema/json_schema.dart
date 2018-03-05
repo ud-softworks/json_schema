@@ -47,6 +47,10 @@ import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
 import 'package:json_schema/src/json_schema/type_validators.dart';
 
+typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
+typedef SchemaAssigner(JsonSchema s);
+typedef SchemaAdder(JsonSchema s);
+
 /// Constructed with a json schema, either as string or Map. Validation of
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
@@ -109,8 +113,11 @@ class JsonSchema {
       // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
     }
 
+    // Iterate over all string keys of the root JSON Schema Map. Calculate, validate and
+    // set all properties according to spec.
     _schemaMap.forEach((k, v) {
-      final accessor = _accessMap[k];
+      /// Get the _set<X> method from the [_accessMap] based on the [Map] string key.
+      final SchemaPropertySetter accessor = _accessMap[k];
       if (accessor != null) {
         accessor(this, v);
       } else {
@@ -118,12 +125,17 @@ class JsonSchema {
       }
     });
 
+    // Validate interdependent properties:
+
+    // Check that a minimum is set if both exclusiveMinimum and minimum properties are set.
     if (_exclusiveMinimum != null && _minimum == null)
       throw FormatExceptions.error('exclusiveMinimum requires minimum');
 
+    // Check that a minimum is set if both exclusiveMaximum and maximum properties are set.
     if (_exclusiveMaximum != null && _maximum == null)
       throw FormatExceptions.error('exclusiveMaximum requires maximum');
 
+    // Check all _schemaAssignments for 
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
@@ -137,6 +149,7 @@ class JsonSchema {
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
 
+  /// Given a path, find the ref'd [JsonSchema] from the map.
   JsonSchema _resolvePath(String original) {
     final String path = endPath(original);
     final JsonSchema result = _refMap[path];
@@ -156,7 +169,7 @@ class JsonSchema {
 
   // Root Schema Properties
   JsonSchema _root;
-  Map _schemaMap = {};
+  Map<String, dynamic> _schemaMap = {};
   List<JsonSchema> _allOf = [];
   List<JsonSchema> _anyOf = [];
   dynamic _defaultValue;
@@ -203,7 +216,7 @@ class JsonSchema {
 
   /// Implementation-specific properties:
 
-  /// Maps any non-key top level property to its original value
+  /// Maps any unsupported top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
 
   /// Set of strings to gaurd against path cycles
@@ -223,44 +236,44 @@ class JsonSchema {
 
 
   /// Map to allow getters to be accessed by String key.
-  static Map _accessMap = {
+  static Map<String, SchemaPropertySetter> _accessMap = {
     // Root Schema Properties
-    'allOf': (s, v) => s._setAllOf(v),
-    'anyOf': (s, v) => s._setAnyOf(v),
-    'default': (s, v) => s._setDefault(v),
-    'definitions': (s, v) => s._setDefinitions(v),
-    'description': (s, v) => s._setDescription(v),
-    'enum': (s, v) => s._setEnum(v),
-    'exclusiveMaximum': (s, v) => s._setExclusiveMaximum(v),
-    'exclusiveMinimum': (s, v) => s._setExclusiveMinimum(v),
-    'format': (s, v) => s._setFormat(v),
-    'id': (s, v) => s._setId(v),
-    'maximum': (s, v) => s._setMaximum(v),
-    'minimum': (s, v) => s._setMinimum(v),
-    'maxLength': (s, v) => s._setMaxLength(v),
-    'minLength': (s, v) => s._setMinLength(v),
-    'multipleOf': (s, v) => s._setMultipleOf(v),
-    'not': (s, v) => s._setNot(v),
-    'oneOf': (s, v) => s._setOneOf(v),
-    'pattern': (s, v) => s._setPattern(v),
-    '\$ref': (s, v) => s._setRef(v),
-    '\$schema': (s, v) => s._setSchema(v),
-    'title': (s, v) => s._setTitle(v),
-    'type': (s, v) => s._setType(v),
+    'allOf': (JsonSchema s, dynamic v) => s._setAllOf(v),
+    'anyOf': (JsonSchema s, dynamic v) => s._setAnyOf(v),
+    'default': (JsonSchema s, dynamic v) => s._setDefault(v),
+    'definitions': (JsonSchema s, dynamic v) => s._setDefinitions(v),
+    'description': (JsonSchema s, dynamic v) => s._setDescription(v),
+    'enum': (JsonSchema s, dynamic v) => s._setEnum(v),
+    'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
+    'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
+    'format': (JsonSchema s, dynamic v) => s._setFormat(v),
+    'id': (JsonSchema s, dynamic v) => s._setId(v),
+    'maximum': (JsonSchema s, dynamic v) => s._setMaximum(v),
+    'minimum': (JsonSchema s, dynamic v) => s._setMinimum(v),
+    'maxLength': (JsonSchema s, dynamic v) => s._setMaxLength(v),
+    'minLength': (JsonSchema s, dynamic v) => s._setMinLength(v),
+    'multipleOf': (JsonSchema s, dynamic v) => s._setMultipleOf(v),
+    'not': (JsonSchema s, dynamic v) => s._setNot(v),
+    'oneOf': (JsonSchema s, dynamic v) => s._setOneOf(v),
+    'pattern': (JsonSchema s, dynamic v) => s._setPattern(v),
+    '\$ref': (JsonSchema s, dynamic v) => s._setRef(v),
+    '\$schema': (JsonSchema s, dynamic v) => s._setSchema(v),
+    'title': (JsonSchema s, dynamic v) => s._setTitle(v),
+    'type': (JsonSchema s, dynamic v) => s._setType(v),
     // Schema List Item Related Fields
-    'items': (s, v) => s._setItems(v),
-    'additionalItems': (s, v) => s._setAdditionalItems(v),
-    'maxItems': (s, v) => s._setMaxItems(v),
-    'minItems': (s, v) => s._setMinItems(v),
-    'uniqueItems': (s, v) => s._setUniqueItems(v),
+    'items': (JsonSchema s, dynamic v) => s._setItems(v),
+    'additionalItems': (JsonSchema s, dynamic v) => s._setAdditionalItems(v),
+    'maxItems': (JsonSchema s, dynamic v) => s._setMaxItems(v),
+    'minItems': (JsonSchema s, dynamic v) => s._setMinItems(v),
+    'uniqueItems': (JsonSchema s, dynamic v) => s._setUniqueItems(v),
     // Schema Sub-Property Related Fields
-    'properties': (s, v) => s._setProperties(v),
-    'additionalProperties': (s, v) => s._setAdditionalProperties(v),
-    'dependencies': (s, v) => s._setDependencies(v),
-    'maxProperties': (s, v) => s._setMaxProperties(v),
-    'minProperties': (s, v) => s._setMinProperties(v),
-    'patternProperties': (s, v) => s._setPatternProperties(v),
-    'required': (s, v) => s._setRequired(v),
+    'properties': (JsonSchema s, dynamic v) => s._setProperties(v),
+    'additionalProperties': (JsonSchema s, dynamic v) => s._setAdditionalProperties(v),
+    'dependencies': (JsonSchema s, dynamic v) => s._setDependencies(v),
+    'maxProperties': (JsonSchema s, dynamic v) => s._setMaxProperties(v),
+    'minProperties': (JsonSchema s, dynamic v) => s._setMinProperties(v),
+    'patternProperties': (JsonSchema s, dynamic v) => s._setPatternProperties(v),
+    'required': (JsonSchema s, dynamic v) => s._setRequired(v),
   };
 
   /// Get a nested [JsonSchema] from a path.
@@ -464,7 +477,7 @@ class JsonSchema {
   /// Add a ref'd JsonSchema to the map of available Schemas.
   _addSchema(String path, JsonSchema schema) => _refMap[path] = schema;
 
-  _makeSchema(String path, dynamic schema, assigner(JsonSchema rhs)) {
+  _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
     if (schema is! Map) throw FormatExceptions.schema(path, schema);
     if (_registerSchemaRef(path, schema)) {
       _schemaAssignments.add(() => assigner(_resolvePath(path)));
@@ -477,7 +490,7 @@ class JsonSchema {
   // Internal Property Validators
   // --------------------------------------------------------------------------
 
-  _validateListOfSchema(String key, dynamic value, schemaAdder(JsonSchema schema)) {
+  _validateListOfSchema(String key, dynamic value, SchemaAdder schemaAdder) {
     TypeValidators.nonEmptyList(key, value);
     for (int i = 0; i < value.length; i++) {
       _makeSchema('$_path/$key/$i', value[i], (rhs) => schemaAdder(rhs));

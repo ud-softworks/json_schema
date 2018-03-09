@@ -64,7 +64,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
   // HTTP servers / file systems ignore fragments, so resolve a sub-schema if a fragment was specified.
   // TODO: fix path resolution for ALL paths.
   // if (uri.fragment?.isNotEmpty == true) {
-    // return schema.resolvePath('#${uri.fragment}');
+  // return schema.resolvePath('#${uri.fragment}');
   // }
   return schema;
 }

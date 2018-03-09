@@ -60,7 +60,7 @@ void main([List<String> args]) {
   final additionalRemotesHandler = createStaticHandler('test/additional_remotes');
   io.serve(additionalRemotesHandler, 'localhost', 4321);
 
-  if (args?.isEmpty != true) {
+  if (args?.isEmpty == true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }

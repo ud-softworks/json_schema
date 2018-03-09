@@ -167,8 +167,7 @@ class Validator {
     }
   }
 
-  void _itemsValidation(JsonSchema schema, dynamic instance) {
-    // TODO: throw an error if instance.length doesn't exist.
+  void _itemsValidation(JsonSchema schema, List instance) {
     final int actual = instance.length;
 
     final singleSchema = schema.items;

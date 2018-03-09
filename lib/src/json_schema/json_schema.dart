@@ -66,19 +66,20 @@ class JsonSchema {
 
   /// Create a schema from a [Map].
   ///
-  /// This method is asyncronous to support automatic fetching of [JsonSchema] for items,
-  /// properties, and sub-properties of the root schema. If you want to create a [JsonSchema],
+  /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
+  /// properties, and sub-properties of the root schema. 
+  /// 
+  /// TODO: If you want to create a [JsonSchema],
   /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
 
-  static JsonSchema createSchemaWithProvidedRefs(Map data, Map<String, JsonSchema> providedRefs) {
-    // TODO
-  }
-
   /// Create a schema from a URL.
+  /// 
+  /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
+  /// properties, and sub-properties of the root schema. 
   static Future<JsonSchema> createSchemaFromUrl(String schemaUrl) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
@@ -87,7 +88,7 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  void _initialize() {
+  Future<JsonSchema> _initialize() {
     if (_root == null) {
       _root = this;
       _path = '#';
@@ -100,11 +101,10 @@ class JsonSchema {
       _thisCompleter = _root._thisCompleter;
       _schemaAssignments = _root._schemaAssignments;
     }
-
-    _validateSchemaAsync();
+    return _validateSchemaAsync();
   }
 
-  /// Calculate, validate and set all properties defined in the spec.
+  /// Calculate, validate and set all properties defined in the JSON Schema spec.
   ///
   /// Doesn't validate interdependent properties. See [_validateInterdependentProperties]
   void _validateAndSetIndividualProperties() {
@@ -132,13 +132,13 @@ class JsonSchema {
   }
 
   /// Validate, calculate and set all properties on the [JsonSchema], included properties
-  /// that have some interdependency.
+  /// that have interdependencies.
   void _validateAndSetAllProperties() {
     _validateAndSetIndividualProperties();
     _validateInterdependentProperties();
   }
 
-  void _validateAllPathsAsync() {
+  Future<JsonSchema> _validateAllPathsAsync() {
     // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
@@ -149,10 +149,11 @@ class JsonSchema {
       }
       // _logger.info('Marked $_path complete'); TODO: re-add logger
     }
+    return _thisCompleter.future;
   }
 
   /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  void _validateSchemaAsync() {
+  Future<JsonSchema> _validateSchemaAsync() {
     // _logger.info('Validating schema $_path'); TODO: re-add logger
 
     if (_registerSchemaRef(_path, _schemaMap)) {
@@ -160,7 +161,7 @@ class JsonSchema {
     }
 
     _validateAndSetAllProperties();
-    _validateAllPathsAsync();
+    return _validateAllPathsAsync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }

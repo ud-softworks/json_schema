@@ -27,7 +27,7 @@ class TypeValidators {
     return enumValues;
   }
 
-  /// Validate A dynamic value is a String.
+  /// Validate a dynamic value is a String.
   static String string(String key, dynamic value) {
     if (value is String) return value;
     throw FormatExceptions.string(key, value);

@@ -51,7 +51,7 @@ final Logger _logger = new Logger('test_validation');
 void main([List<String> args]) {
   configureJsonSchemaForVm();
 
-  if (args?.isEmpty != true) {
+  if (args?.isEmpty == true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }

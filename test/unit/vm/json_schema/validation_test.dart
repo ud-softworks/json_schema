@@ -44,12 +44,21 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
 
 final Logger _logger = new Logger('test_validation');
 
 void main([List<String> args]) {
   configureJsonSchemaForVm();
+
+  // Serve remotes for ref tests.
+  final specFileHandler = createStaticHandler('test/JSON-Schema-Test-Suite/remotes');
+  io.serve(specFileHandler, 'localhost', 1234);
+
+  final additionalRemotesHandler = createStaticHandler('test/additional_remotes');
+  io.serve(additionalRemotesHandler, 'localhost', 4321);
 
   if (args?.isEmpty != true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
@@ -111,6 +120,54 @@ void main([List<String> args]) {
     JsonSchema.createSchemaFromUrl(url).then((schema) {
       expect(schema.schemaMap['description'], 'Core schema meta-schema');
       expect(schema.validate(schema.schemaMap), true);
+    });
+  });
+
+  group('Nested \$ref:', () {
+    test('properties', () async {
+      final barSchema = await JsonSchema.createSchema({
+        "properties": {
+          "foo": {"\$ref": "http://localhost:1234/integer.json#"},
+          "bar": {"\$ref": "http://localhost:4321/bar.json#"}
+        },
+        "required": ["foo", "bar"]
+      });
+
+      final isValid = barSchema.validate({
+        "foo": 2,
+        "bar": {"baz": "test"}
+      });
+
+      expect(isValid, isTrue);
+    });
+
+    test('items', () async {
+      final schema = await JsonSchema.createSchema({
+        "items": {"\$ref": "http://localhost:4321/bar.json#"},
+      });
+
+      final isValid = schema.validate([
+        {"baz": "test"}
+      ]);
+
+      expect(isValid, isTrue);
+    });
+
+    test('not / anyOf', () async {
+      final schema = await JsonSchema.createSchema({
+        "items": {
+          "not": {
+            "anyOf": [
+              {"\$ref": "http://localhost:1234/integer.json#"},
+              {"\$ref": "http://localhost:4321/string.json#"},
+            ]
+          }
+        }
+      });
+
+      final isValid = schema.validate([3.4]);
+
+      expect(isValid, isTrue);
     });
   });
 }

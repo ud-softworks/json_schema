@@ -67,8 +67,8 @@ class JsonSchema {
   /// Create a schema from a [Map].
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
-  /// properties, and sub-properties of the root schema. 
-  /// 
+  /// properties, and sub-properties of the root schema.
+  ///
   /// TODO: If you want to create a [JsonSchema],
   /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
   /// instead.
@@ -77,9 +77,9 @@ class JsonSchema {
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
 
   /// Create a schema from a URL.
-  /// 
+  ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
-  /// properties, and sub-properties of the root schema. 
+  /// properties, and sub-properties of the root schema.
   static Future<JsonSchema> createSchemaFromUrl(String schemaUrl) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
@@ -139,7 +139,6 @@ class JsonSchema {
   }
 
   Future<JsonSchema> _validateAllPathsAsync() {
-    // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
@@ -156,7 +155,9 @@ class JsonSchema {
   Future<JsonSchema> _validateSchemaAsync() {
     // _logger.info('Validating schema $_path'); TODO: re-add logger
 
-    if (_registerSchemaRef(_path, _schemaMap)) {
+    _registerSchemaRef(_path, _schemaMap);
+
+    if (_isRemoteRef(_path, _schemaMap)) {
       // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
     }
 
@@ -246,7 +247,7 @@ class JsonSchema {
   /// Assignments to call for resolution upon end of parse.
   List _schemaAssignments = [];
 
-  /// For schemas with $ref maps path of schema to $ref path
+  /// For schemas with $ref maps, path of schema to $ref path
   Map<String, String> _schemaRefs = {};
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
@@ -475,28 +476,46 @@ class JsonSchema {
   // JSON Schema Internal Operations
   // --------------------------------------------------------------------------
 
-  bool _registerSchemaRef(String path, dynamic schemaDefinition) {
-    if (schemaDefinition is Map) {
-      final dynamic ref = schemaDefinition[r'$ref'];
-      if (ref != null) {
-        if (ref is String) {
-          // _logger.info('Linking $path to $ref'); TODO: re-add logger
-          _schemaRefs[path] = ref;
-          return true;
-        } else {
-          throw FormatExceptions.string('\$ref', ref);
-        }
-      }
+  /// Function to determine whether a given [schemaDefinition] is a remote $ref.
+  bool _isRemoteRef(String path, dynamic schemaDefinition) {
+    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    final dynamic ref = schemaDefinitionMap[r'$ref'];
+    if (ref != null) {
+      TypeValidators.nonEmptyString(r'$ref', ref);
+      // If the ref begins with "#" it is a local ref, so we return false.
+      if (ref[0] != '#') return false;
+      return true;
     }
     return false;
+  }
+
+  /// Checks if a [schemaDefinition] has a $ref.
+  /// If it does, it adds the $ref to [_shemaRefs] at the path key and returns true.
+  void _registerSchemaRef(String path, dynamic schemaDefinition) {
+    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    final dynamic ref = schemaDefinitionMap[r'$ref'];
+    if (_isRemoteRef(path, schemaDefinition)) {
+      // _logger.info('Linking $path to $ref'); TODO: re-add logger
+      _schemaRefs[path] = ref;
+    }
   }
 
   /// Add a ref'd JsonSchema to the map of available Schemas.
   _addSchema(String path, JsonSchema schema) => _refMap[path] = schema;
 
+  // Create a [JsonSchema] from a sub-schema of the root.
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
     if (schema is! Map) throw FormatExceptions.schema(path, schema);
-    if (_registerSchemaRef(path, schema)) {
+
+    _registerSchemaRef(path, schema);
+
+    final isRemoteReference = _isRemoteRef(path, schema);
+    final isPathLocal = path[0] == '#';
+
+    /// If this sub-schema is a ref within the root schema,
+    /// add it to the map of local schema assignments.
+    /// Otherwise, call the assigner function and create a new [JsonSchema].
+    if (isRemoteReference && isPathLocal) {
       _schemaAssignments.add(() => assigner(_resolvePath(path)));
     } else {
       assigner(_createSubSchema(schema, path));
@@ -578,7 +597,9 @@ class JsonSchema {
     _ref = TypeValidators.nonEmptyString(r'$ref', value);
     if (_ref[0] != '#') {
       final refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
-      _retrievalRequests.add(refSchemaFuture);
+
+      /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
+      _root._retrievalRequests.add(refSchemaFuture);
     }
   }
 

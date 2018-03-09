@@ -47,11 +47,11 @@ main() {
   //////////////////////////////////////////////////////////////////////
   // Define schema in code
   //////////////////////////////////////////////////////////////////////
-  var mustBeIntegerSchema = {'type': 'integer'};
+  final mustBeIntegerSchema = {'type': 'integer'};
 
-  var n = 3;
-  var decimals = 3.14;
-  var str = 'hi';
+  final n = 3;
+  final decimals = 3.14;
+  final str = 'hi';
 
   JsonSchema.createSchema(mustBeIntegerSchema).then((schema) {
     print('$n => ${schema.validate(n)}');

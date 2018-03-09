@@ -43,14 +43,14 @@ import 'dart:convert' as convert;
 import 'package:json_schema/src/json_schema/json_schema.dart';
 
 Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) {
-  Uri uri = Uri.parse(schemaUrl);
+  final uri = Uri.parse(schemaUrl);
   if (uri.scheme == 'http') {
     return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
       request.followRedirects = true;
       return request.close();
     }).then((HttpClientResponse response) {
       return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-        Map map = convert.JSON.decode(schemaText);
+        final map = convert.JSON.decode(schemaText);
         return JsonSchema.createSchema(map);
       });
     });

@@ -37,6 +37,8 @@
 //     THE SOFTWARE.
 
 class SchemaType implements Comparable<SchemaType> {
+  const SchemaType._(this.value);
+
   static const SchemaType ARRAY = const SchemaType._(0);
 
   static const SchemaType BOOLEAN = const SchemaType._(1);
@@ -55,14 +57,15 @@ class SchemaType implements Comparable<SchemaType> {
 
   final int value;
 
+  @override
   int get hashCode => value;
-
-  const SchemaType._(this.value);
 
   SchemaType copy() => this;
 
+  @override
   int compareTo(SchemaType other) => value.compareTo(other.value);
 
+  @override
   String toString() {
     switch (this) {
       case ARRAY:

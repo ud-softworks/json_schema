@@ -93,8 +93,8 @@ class Validator {
   }
 
   void _numberValidation(JsonSchema schema, num n) {
-    var maximum = schema.maximum;
-    var minimum = schema.minimum;
+    final maximum = schema.maximum;
+    final minimum = schema.minimum;
     if (maximum != null) {
       if (schema.exclusiveMaximum) {
         if (n >= maximum) {
@@ -117,14 +117,14 @@ class Validator {
       }
     }
 
-    var multipleOf = schema.multipleOf;
+    final multipleOf = schema.multipleOf;
     if (multipleOf != null) {
       if (multipleOf is int && n is int) {
         if (0 != n % multipleOf) {
           _err('${schema.path}: multipleOf violated ($n % $multipleOf)');
         }
       } else {
-        double result = n / multipleOf;
+        final double result = n / multipleOf;
         if (result.truncate() != result) {
           _err('${schema.path}: multipleOf violated ($n % $multipleOf)');
         }
@@ -133,7 +133,7 @@ class Validator {
   }
 
   void _typeValidation(JsonSchema schema, dynamic instance) {
-    var typeList = schema.schemaTypeList;
+    final typeList = schema.schemaTypeList;
     if (typeList != null && typeList.length > 0) {
       if (!typeList.any((type) => _typeMatch(type, instance))) {
         _err('${schema.path}: type: wanted ${typeList} got $instance');
@@ -142,7 +142,7 @@ class Validator {
   }
 
   void _enumValidation(JsonSchema schema, dynamic instance) {
-    var enumValues = schema.enumValues;
+    final enumValues = schema.enumValues;
     if (enumValues.length > 0) {
       try {
         enumValues.singleWhere((v) => JsonSchemaUtils.jsonEqual(instance, v));
@@ -153,33 +153,33 @@ class Validator {
   }
 
   void _stringValidation(JsonSchema schema, String instance) {
-    int actual = instance.length;
-    var minLength = schema.minLength;
-    var maxLength = schema.maxLength;
+    final actual = instance.length;
+    final minLength = schema.minLength;
+    final maxLength = schema.maxLength;
     if (maxLength is int && actual > maxLength) {
       _err('${schema.path}: maxLength exceeded ($instance vs $maxLength)');
     } else if (minLength is int && actual < minLength) {
       _err('${schema.path}: minLength violated ($instance vs $minLength)');
     }
-    var pattern = schema.pattern;
+    final pattern = schema.pattern;
     if (pattern != null && !pattern.hasMatch(instance)) {
       _err('${schema.path}: pattern violated ($instance vs $pattern)');
     }
   }
 
-  void _itemsValidation(JsonSchema schema, dynamic instance) {
-    int actual = instance.length;
+  void _itemsValidation(JsonSchema schema, List instance) {
+    final int actual = instance.length;
 
-    var singleSchema = schema.items;
+    final singleSchema = schema.items;
     if (singleSchema != null) {
       instance.forEach((item) => _validate(singleSchema, item));
     } else {
-      var items = schema.itemsList;
-      var additionalItems = schema.additionalItems;
+      final items = schema.itemsList;
+      final additionalItems = schema.additionalItems;
 
       if (items != null) {
-        int expected = items.length;
-        int end = min(expected, actual);
+        final expected = items.length;
+        final end = min(expected, actual);
         for (int i = 0; i < end; i++) {
           assert(items[i] != null);
           _validate(items[i], instance[i]);
@@ -196,8 +196,8 @@ class Validator {
       }
     }
 
-    var maxItems = schema.maxItems;
-    var minItems = schema.minItems;
+    final maxItems = schema.maxItems;
+    final minItems = schema.minItems;
     if (maxItems is int && actual > maxItems) {
       _err('${schema.path}: maxItems exceeded ($actual vs $maxItems)');
     } else if (schema.minItems is int && actual < schema.minItems) {
@@ -205,8 +205,8 @@ class Validator {
     }
 
     if (schema.uniqueItems) {
-      int end = instance.length;
-      int penultimate = end - 1;
+      final end = instance.length;
+      final penultimate = end - 1;
       for (int i = 0; i < penultimate; i++) {
         for (int j = i + 1; j < end; j++) {
           if (JsonSchemaUtils.jsonEqual(instance[i], instance[j])) {
@@ -218,13 +218,13 @@ class Validator {
   }
 
   void _validateAllOf(JsonSchema schema, instance) {
-    List<JsonSchema> schemas = schema.allOf;
-    int errorsSoFar = _errors.length;
+    final List<JsonSchema> schemas = schema.allOf;
+    final errorsSoFar = _errors.length;
     int i = 0;
     schemas.every((s) {
       assert(s != null);
       _validate(s, instance);
-      bool valid = _errors.length == errorsSoFar;
+      final bool valid = _errors.length == errorsSoFar;
       if (!valid) {
         _err('${s.path}/$i: allOf violated ${instance}');
       }
@@ -266,7 +266,7 @@ class Validator {
         break;
       case 'uri':
         {
-          var isValid = defaultValidators.uriValidator ?? (_) => false;
+          final isValid = defaultValidators.uriValidator ?? (_) => false;
 
           if (!isValid(instance)) {
             _err('"uri" format not accepted $instance');
@@ -275,7 +275,7 @@ class Validator {
         break;
       case 'email':
         {
-          var isValid = defaultValidators.emailValidator ?? (_) => false;
+          final isValid = defaultValidators.emailValidator ?? (_) => false;
 
           if (!isValid(instance)) {
             _err('"email" format not accepted $instance');
@@ -311,11 +311,11 @@ class Validator {
   }
 
   void _objectPropertyValidation(JsonSchema schema, Map instance) {
-    bool propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
+    final propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
 
     instance.forEach((k, v) {
       bool propCovered = false;
-      JsonSchema propSchema = schema.properties[k];
+      final JsonSchema propSchema = schema.properties[k];
       if (propSchema != null) {
         assert(propSchema != null);
         _validate(propSchema, v);
@@ -361,9 +361,9 @@ class Validator {
   }
 
   void _objectValidation(JsonSchema schema, Map instance) {
-    int numProps = instance.length;
-    int minProps = schema.minProperties;
-    int maxProps = schema.maxProperties;
+    final numProps = instance.length;
+    final minProps = schema.minProperties;
+    final maxProps = schema.maxProperties;
     if (numProps < minProps) {
       _err('${schema.path}: minProperties violated (${numProps} < ${minProps})');
     } else if (maxProps != null && numProps > maxProps) {

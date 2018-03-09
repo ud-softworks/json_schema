@@ -56,11 +56,11 @@ main() {
     //       ${schema.validate(schema.schemaMap)}''');
     //   }
 
-    var validSchema = {'type': 'integer'};
+    final validSchema = {'type': 'integer'};
     print('''Does schema validate valid schema $validSchema?
   ${schema.validate(validSchema)}''');
 
-    var invalidSchema = {'type': 'nibble'};
+    final invalidSchema = {'type': 'nibble'};
     print('''Does schema validate invalid schema $invalidSchema?
   ${schema.validate(invalidSchema)}''');
   });
@@ -70,7 +70,7 @@ main() {
   //////////////////////////////////////////////////////////////////////
   url = 'grades_schema.json';
   JsonSchema.createSchemaFromUrl(url).then((schema) {
-    var grades = convert.JSON.decode('''
+    final grades = convert.JSON.decode('''
 {
     'semesters': [
         {

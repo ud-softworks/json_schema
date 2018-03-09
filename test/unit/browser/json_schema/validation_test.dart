@@ -48,7 +48,7 @@ final Logger _logger = new Logger('test_validation');
 void main([List<String> args]) {
   configureJsonSchemaForBrowser();
 
-  if (args?.isEmpty ?? false) {
+  if (args?.isEmpty == true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }
@@ -63,7 +63,7 @@ void main([List<String> args]) {
   test('Schema self validation', () {
     // Pull in the official schema, verify description and then ensure
     // that the schema satisfies the schema for schemas
-    String url = 'http://json-schema.org/draft-04/schema';
+    final url = 'http://json-schema.org/draft-04/schema';
     JsonSchema.createSchemaFromUrl(url).then((schema) {
       expect(schema.schemaMap['description'], 'Core schema meta-schema');
       expect(schema.validate(schema.schemaMap), true);

@@ -53,37 +53,36 @@ final Logger _logger = new Logger('test_invalid_schemas');
 void main([List<String> args]) {
   configureJsonSchemaForVm();
 
-  if (args?.isEmpty ?? false) {
+  if (args?.isEmpty == true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
     Logger.root.level = Level.OFF;
   }
 
-  Directory testSuiteFolder = new Directory('./test/invalid_schemas');
+  final Directory testSuiteFolder = new Directory('./test/invalid_schemas');
 
   testSuiteFolder.listSync().forEach((testEntry) {
-    String shortName = path.basename(testEntry.path);
+    final String shortName = path.basename(testEntry.path);
     group('Invalid schema: ${shortName}', () {
       if (testEntry is File) {
-        List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
+        final List tests = convert.JSON.decode((testEntry).readAsStringSync());
         tests.forEach((testObject) {
-          var schemaData = testObject['schema'];
-          var description = testObject['description'];
-          test(description, () {
-            var gotException = (e) {
+          final schemaData = testObject['schema'];
+          final description = testObject['description'];
+
+          test(description, () async {
+            final catchException = expectAsync1((e) {
               _logger.info('Caught expected $e');
               if (!(e is FormatException)) {
-                _logger.info('${shortName} wtf it is a ${e.runtimeType}');
+                _logger.info('${shortName} threw an unexpected error type of ${e.runtimeType}');
               }
               expect(e is FormatException, true);
-            };
-            var ensureInvalid = expectAsync1(gotException);
+            });
 
             try {
-              JsonSchema.createSchema(schemaData).then(ensureInvalid);
-            } on FormatException catch (e) {
-              ensureInvalid(e);
+              await JsonSchema.createSchema(schemaData);
+              fail('Schema is expected to be invalid, but was not.');
             } catch (e) {
-              ensureInvalid(e);
+              catchException(e);
             }
           });
         });

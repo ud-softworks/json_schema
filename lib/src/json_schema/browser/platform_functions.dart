@@ -42,10 +42,10 @@ import 'package:w_transport/w_transport.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
 
 Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl) async {
-  Uri uri = Uri.parse(schemaUrl);
+  final uri = Uri.parse(schemaUrl);
   if (uri.scheme != 'file') {
     // _logger.info('Getting url $uri'); TODO: re-add logger.
-    Response response = await (new JsonRequest()..uri = uri).get();
+    final response = await (new JsonRequest()..uri = uri).get();
     return JsonSchema.createSchema(response.body.asJson());
   } else {
     throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');

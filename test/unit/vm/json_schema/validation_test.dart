@@ -124,7 +124,7 @@ void main([List<String> args]) {
     });
   });
 
-  group('Nested \$refs: in root schemas', () {
+  group('Nested \$refs: in root schema ', () {
     test('properties', () async {
       final barSchema = await JsonSchema.createSchema({
         "properties": {
@@ -175,8 +175,10 @@ void main([List<String> args]) {
       });
 
       final isValid = schema.validate([3.4]);
+      final isInvalid = schema.validate(['test']);
 
       expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
     });
   });
 }

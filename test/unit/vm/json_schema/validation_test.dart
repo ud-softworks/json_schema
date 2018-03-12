@@ -86,7 +86,7 @@ void main([List<String> args]) {
         // TODO: add these back or get replacements
         // Skip these for now - reason shown
         if ([
-          'refRemote.json', // seems to require webserver running to vend files
+          'refRemote.json', // We should upgrade to draft7 before attempting support of this.
         ].contains(path.basename(testEntry.path))) return;
 
         final List tests = convert.JSON.decode((testEntry).readAsStringSync());
@@ -103,6 +103,7 @@ void main([List<String> args]) {
               final bool expectedResult = validationTest['valid'];
               final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
               JsonSchema.createSchema(schemaData).then((schema) {
+                print(schema.refMap);
                 validationResult = schema.validate(instance);
                 checkResult();
               });
@@ -123,34 +124,42 @@ void main([List<String> args]) {
     });
   });
 
-  group('Nested \$ref:', () {
+  group('Nested \$refs: in root schemas', () {
     test('properties', () async {
       final barSchema = await JsonSchema.createSchema({
         "properties": {
           "foo": {"\$ref": "http://localhost:1234/integer.json#"},
-          "bar": {"\$ref": "http://localhost:4321/bar.json#"}
+          "bar": {"\$ref": "http://localhost:4321/string.json#"}
         },
         "required": ["foo", "bar"]
       });
 
       final isValid = barSchema.validate({
         "foo": 2,
-        "bar": {"baz": "test"}
+        "bar": "test"
+      });
+
+      final isInvalid = barSchema.validate({
+        "foo": 2,
+        "bar": 4
       });
 
       expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
     });
 
     test('items', () async {
       final schema = await JsonSchema.createSchema({
-        "items": {"\$ref": "http://localhost:4321/bar.json#"},
+        "items": {
+          "\$ref": "http://localhost:1234/integer.json"
+        }
       });
 
-      final isValid = schema.validate([
-        {"baz": "test"}
-      ]);
+      final isValid = schema.validate([1,2,3,4]);
+      final isInvalid = schema.validate([1, 2, 3, '4']);
 
       expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
     });
 
     test('not / anyOf', () async {

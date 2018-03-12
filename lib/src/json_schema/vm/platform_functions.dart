@@ -41,10 +41,11 @@ import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:json_schema/src/json_schema/json_schema.dart';
+import 'package:json_schema/src/json_schema/utils.dart';
 
 Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
   final uri = Uri.parse(schemaUrl);
-  JsonSchema schema;
+  Map schemaMap;
   if (uri.scheme == 'http') {
     // Setup the HTTP request.
     final httpRequest = await new HttpClient().getUrl(uri);
@@ -53,18 +54,14 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
     final response = await httpRequest.close();
     // Convert the response into a string;
     final schemaText = await response.transform(new convert.Utf8Decoder()).join();
-    final map = convert.JSON.decode(schemaText);
-    schema = await JsonSchema.createSchema(map);
+    schemaMap = convert.JSON.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
     final fileString = await new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl).readAsString();
-    schema = await JsonSchema.createSchema(convert.JSON.decode(fileString));
+    schemaMap = convert.JSON.decode(fileString);
   } else {
-    throw new FormatException('Url schemd must be http, file, or empty: $schemaUrl');
+    throw new FormatException('Url schema must be http, file, or empty: $schemaUrl');
   }
-  // HTTP servers / file systems ignore fragments, so resolve a sub-schema if a fragment was specified.
-  // TODO: fix path resolution for ALL paths.
-  // if (uri.fragment?.isNotEmpty == true) {
-  // return schema.resolvePath('#${uri.fragment}');
-  // }
-  return schema;
+  // HTTP servers / file systems ignore fragments, so resolve a sub-map if a fragment was specified.
+  schemaMap = JsonSchemaUtils.getSubMapFromFragment(schemaMap, uri);
+  return await JsonSchema.createSchema(schemaMap);
 }

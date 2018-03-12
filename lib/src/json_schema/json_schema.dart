@@ -185,55 +185,136 @@ class JsonSchema {
     return new JsonSchema._fromMap(_root, schemaDefinition, path);
   }
 
-  // Root Schema Properties
+  // --------------------------------------------------------------------------
+  // Root Schema Fields
+  // --------------------------------------------------------------------------
+
+  /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema _root;
+
+  /// JSON of the [JsonSchema] as a [Map].
   Map<String, dynamic> _schemaMap = {};
+
+  /// A [List<JsonSchema>] which the value must conform to all of.
   List<JsonSchema> _allOf = [];
+
+  /// A [List<JsonSchema>] which the value must conform to at least one of.
   List<JsonSchema> _anyOf = [];
+
+  /// Default value of the [JsonSchema].
   dynamic _defaultValue;
+
+  /// Included [JsonSchema] definitions.
   Map<String, JsonSchema> _definitions = {};
+
+  /// Description of the [JsonSchema].
   String _description;
+
+  /// Possible values of the [JsonSchema].
   List _enumValues = [];
+
+  /// Whether the maximum of the [JsonSchema] is exclusive.
   bool _exclusiveMaximum;
+
+  /// Whether the minumum of the [JsonSchema] is exclusive.
   bool _exclusiveMinimum;
 
-  /// Support for optional formats (date-time, uri, email, ipv6, hostname)
+  /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.
   String _format;
+
+  /// ID of the [JsonSchema].
   Uri _id;
+
+  /// Maximum value of the [JsonSchema] value.
   num _maximum;
+
+  /// Minimum value of the [JsonSchema] value.
   num _minimum;
+
+  /// Maximum value of the [JsonSchema] value.
   int _maxLength;
+
+  /// Minimum length of the [JsonSchema] value.
   int _minLength;
+
+  /// The number which the value of the [JsonSchema] must be a multiple of.
   num _multipleOf;
+
+  /// A [JsonSchema] which the value must NOT be.
   JsonSchema _notSchema;
+
+  /// A [List<JsonSchema>] which the value must conform to at least one of.
   List<JsonSchema> _oneOf = [];
+
+  /// The regular expression the [JsonSchema] value must conform to.
   RegExp _pattern;
+
+  /// Ref to the URI of the [JsonSchema].
   String _ref;
+
+  /// The path of the [JsonSchema] within the root [JsonSchema].
   String _path;
+
+  /// Title of the [JsonSchema].
   String _title;
+
+  /// List of allowable types for the [JsonSchema].
   List<SchemaType> _schemaTypeList;
 
+  // --------------------------------------------------------------------------
   // Schema List Item Related Fields
+  // --------------------------------------------------------------------------
+
+  /// [JsonSchema] definition used to validate items of this schema.
   JsonSchema _items;
+
+  /// List of [JsonSchema] used to validate items of this schema.
   List<JsonSchema> _itemsList;
-  dynamic _additionalItems;
+
+  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
+  /* union bool | Map */ dynamic _additionalItems;
+
+  /// Maimum number of items allowed.
   int _maxItems;
+
+  /// Maimum number of items allowed.
   int _minItems;
+
+  /// Whether the items in the list must be unique.
   bool _uniqueItems = false;
 
+  // --------------------------------------------------------------------------
   // Schema Sub-Property Related Fields
+  // --------------------------------------------------------------------------
+
+  /// Map of [JsonSchema]s by property key.
   Map<String, JsonSchema> _properties = {};
+
+  /// Whether additional properties, other than those specified, are allowed.
   bool _additionalProperties;
+
+  /// [JsonSchema] that additional properties must conform to.
   JsonSchema _additionalPropertiesSchema;
+
   Map<String, List<String>> _propertyDependencies = {};
+
   Map<String, JsonSchema> _schemaDependencies = {};
+
+  /// The maximum number of properties allowed.
   int _maxProperties;
+
+  /// The minimum number of properties allowed.
   int _minProperties = 0;
+
+  /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
   Map<RegExp, JsonSchema> _patternProperties = {};
+
   Map<String, JsonSchema> _refMap = {};
   List<String> _requiredProperties;
 
-  /// Implementation-specific properties:
+  // --------------------------------------------------------------------------
+  // Implementation Specific Feilds
+  // --------------------------------------------------------------------------
 
   /// Maps any unsupported top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
@@ -295,12 +376,7 @@ class JsonSchema {
   };
 
   /// Get a nested [JsonSchema] from a path.
-  JsonSchema resolvePath(String path) {
-    while (_schemaRefs.containsKey(path)) {
-      path = _schemaRefs[path];
-    }
-    return _refMap[path];
-  }
+  JsonSchema resolvePath(String path) => _resolvePath(path);
 
   @override
   String toString() => '${_schemaMap}';
@@ -378,7 +454,7 @@ class JsonSchema {
   /// Title of the [JsonSchema].
   String get title => _title;
 
-  /// TODO
+  /// List of allowable types for the [JsonSchema].
   List<SchemaType> get schemaTypeList => _schemaTypeList;
 
   // --------------------------------------------------------------------------
@@ -391,7 +467,7 @@ class JsonSchema {
   /// Ordered list of [JsonSchema] which the value of the same index must conform to.
   List<JsonSchema> get itemsList => _itemsList;
 
-  /// Whether additional items are allowed.
+  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
   /* union bool | Map */ dynamic get additionalItems => _additionalItems;
 
   /// The maximum number of items allowed.

@@ -63,6 +63,22 @@ class JsonSchemaUtils {
   }
 
   static String normalizePath(String path) => path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
+
+  static Map getSubMapFromFragment(Map schemaMap, Uri uri) {
+    if (uri.fragment?.isNotEmpty == true) {
+      final List<String> pathSegments = uri.fragment.split('/');
+      for (final segment in pathSegments) {
+        if (segment.isNotEmpty) {
+          if (schemaMap[segment] is Map) {
+            schemaMap = schemaMap[segment];
+          } else {
+            throw new FormatException('Invalid fragment: ${uri.fragment} at ${segment}');
+          }
+        }
+      }
+    }
+    return schemaMap;
+  }
 }
 
 class DefaultValidators {

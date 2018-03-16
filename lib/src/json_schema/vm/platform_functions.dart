@@ -52,7 +52,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
     httpRequest.followRedirects = true;
     // Fetch the response
     final response = await httpRequest.close();
-    // Convert the response into a string;
+    // Convert the response into a string
     final schemaText = await response.transform(new convert.Utf8Decoder()).join();
     schemaMap = convert.JSON.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {

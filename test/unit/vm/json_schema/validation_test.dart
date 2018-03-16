@@ -103,7 +103,6 @@ void main([List<String> args]) {
               final bool expectedResult = validationTest['valid'];
               final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
               JsonSchema.createSchema(schemaData).then((schema) {
-                print(schema.refMap);
                 validationResult = schema.validate(instance);
                 checkResult();
               });

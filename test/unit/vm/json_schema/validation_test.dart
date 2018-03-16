@@ -134,15 +134,9 @@ void main([List<String> args]) {
         "required": ["foo", "bar"]
       });
 
-      final isValid = barSchema.validate({
-        "foo": 2,
-        "bar": "test"
-      });
+      final isValid = barSchema.validate({"foo": 2, "bar": "test"});
 
-      final isInvalid = barSchema.validate({
-        "foo": 2,
-        "bar": 4
-      });
+      final isInvalid = barSchema.validate({"foo": 2, "bar": 4});
 
       expect(isValid, isTrue);
       expect(isInvalid, isFalse);
@@ -150,12 +144,10 @@ void main([List<String> args]) {
 
     test('items', () async {
       final schema = await JsonSchema.createSchema({
-        "items": {
-          "\$ref": "http://localhost:1234/integer.json"
-        }
+        "items": {"\$ref": "http://localhost:1234/integer.json"}
       });
 
-      final isValid = schema.validate([1,2,3,4]);
+      final isValid = schema.validate([1, 2, 3, 4]);
       final isInvalid = schema.validate([1, 2, 3, '4']);
 
       expect(isValid, isTrue);

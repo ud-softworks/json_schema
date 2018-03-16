@@ -384,6 +384,12 @@ class Validator {
   }
 
   void _validate(JsonSchema schema, dynamic instance) {
+    /// If the [JsonSchema] being validated is a ref, pull the ref
+    /// from the [refMap] instead.
+    if (schema.ref != null) {
+      final String path = schema.root.endPath(schema.ref);
+      schema = schema.root.refMap[path];
+    }
     _typeValidation(schema, instance);
     _enumValidation(schema, instance);
     if (instance is List) _itemsValidation(schema, instance);

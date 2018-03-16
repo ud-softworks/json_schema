@@ -44,12 +44,21 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:shelf_static/shelf_static.dart';
 import 'package:test/test.dart';
 
 final Logger _logger = new Logger('test_validation');
 
 void main([List<String> args]) {
   configureJsonSchemaForVm();
+
+  // Serve remotes for ref tests.
+  final specFileHandler = createStaticHandler('test/JSON-Schema-Test-Suite/remotes');
+  io.serve(specFileHandler, 'localhost', 1234);
+
+  final additionalRemotesHandler = createStaticHandler('test/additional_remotes');
+  io.serve(additionalRemotesHandler, 'localhost', 4321);
 
   if (args?.isEmpty == true) {
     Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
@@ -77,7 +86,7 @@ void main([List<String> args]) {
         // TODO: add these back or get replacements
         // Skip these for now - reason shown
         if ([
-          'refRemote.json', // seems to require webserver running to vend files
+          'refRemote.json', // We should upgrade to draft7 before attempting support of this.
         ].contains(path.basename(testEntry.path))) return;
 
         final List tests = convert.JSON.decode((testEntry).readAsStringSync());
@@ -111,6 +120,56 @@ void main([List<String> args]) {
     JsonSchema.createSchemaFromUrl(url).then((schema) {
       expect(schema.schemaMap['description'], 'Core schema meta-schema');
       expect(schema.validate(schema.schemaMap), true);
+    });
+  });
+
+  group('Nested \$refs: in root schema ', () {
+    test('properties', () async {
+      final barSchema = await JsonSchema.createSchema({
+        "properties": {
+          "foo": {"\$ref": "http://localhost:1234/integer.json#"},
+          "bar": {"\$ref": "http://localhost:4321/string.json#"}
+        },
+        "required": ["foo", "bar"]
+      });
+
+      final isValid = barSchema.validate({"foo": 2, "bar": "test"});
+
+      final isInvalid = barSchema.validate({"foo": 2, "bar": 4});
+
+      expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
+    });
+
+    test('items', () async {
+      final schema = await JsonSchema.createSchema({
+        "items": {"\$ref": "http://localhost:1234/integer.json"}
+      });
+
+      final isValid = schema.validate([1, 2, 3, 4]);
+      final isInvalid = schema.validate([1, 2, 3, '4']);
+
+      expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
+    });
+
+    test('not / anyOf', () async {
+      final schema = await JsonSchema.createSchema({
+        "items": {
+          "not": {
+            "anyOf": [
+              {"\$ref": "http://localhost:1234/integer.json#"},
+              {"\$ref": "http://localhost:4321/string.json#"},
+            ]
+          }
+        }
+      });
+
+      final isValid = schema.validate([3.4]);
+      final isInvalid = schema.validate(['test']);
+
+      expect(isValid, isTrue);
+      expect(isInvalid, isFalse);
     });
   });
 }

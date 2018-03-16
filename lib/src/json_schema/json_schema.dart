@@ -67,8 +67,8 @@ class JsonSchema {
   /// Create a schema from a [Map].
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
-  /// properties, and sub-properties of the root schema. 
-  /// 
+  /// properties, and sub-properties of the root schema.
+  ///
   /// TODO: If you want to create a [JsonSchema],
   /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
   /// instead.
@@ -77,9 +77,9 @@ class JsonSchema {
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
 
   /// Create a schema from a URL.
-  /// 
+  ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
-  /// properties, and sub-properties of the root schema. 
+  /// properties, and sub-properties of the root schema.
   static Future<JsonSchema> createSchemaFromUrl(String schemaUrl) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
@@ -139,7 +139,6 @@ class JsonSchema {
   }
 
   Future<JsonSchema> _validateAllPathsAsync() {
-    // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
       if (_retrievalRequests.isNotEmpty) {
@@ -156,7 +155,9 @@ class JsonSchema {
   Future<JsonSchema> _validateSchemaAsync() {
     // _logger.info('Validating schema $_path'); TODO: re-add logger
 
-    if (_registerSchemaRef(_path, _schemaMap)) {
+    _registerSchemaRef(_path, _schemaMap);
+
+    if (_isRemoteRef(_path, _schemaMap)) {
       // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
     }
 
@@ -184,55 +185,136 @@ class JsonSchema {
     return new JsonSchema._fromMap(_root, schemaDefinition, path);
   }
 
-  // Root Schema Properties
+  // --------------------------------------------------------------------------
+  // Root Schema Fields
+  // --------------------------------------------------------------------------
+
+  /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema _root;
+
+  /// JSON of the [JsonSchema] as a [Map].
   Map<String, dynamic> _schemaMap = {};
+
+  /// A [List<JsonSchema>] which the value must conform to all of.
   List<JsonSchema> _allOf = [];
+
+  /// A [List<JsonSchema>] which the value must conform to at least one of.
   List<JsonSchema> _anyOf = [];
+
+  /// Default value of the [JsonSchema].
   dynamic _defaultValue;
+
+  /// Included [JsonSchema] definitions.
   Map<String, JsonSchema> _definitions = {};
+
+  /// Description of the [JsonSchema].
   String _description;
+
+  /// Possible values of the [JsonSchema].
   List _enumValues = [];
+
+  /// Whether the maximum of the [JsonSchema] is exclusive.
   bool _exclusiveMaximum;
+
+  /// Whether the minumum of the [JsonSchema] is exclusive.
   bool _exclusiveMinimum;
 
-  /// Support for optional formats (date-time, uri, email, ipv6, hostname)
+  /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.
   String _format;
+
+  /// ID of the [JsonSchema].
   Uri _id;
+
+  /// Maximum value of the [JsonSchema] value.
   num _maximum;
+
+  /// Minimum value of the [JsonSchema] value.
   num _minimum;
+
+  /// Maximum value of the [JsonSchema] value.
   int _maxLength;
+
+  /// Minimum length of the [JsonSchema] value.
   int _minLength;
+
+  /// The number which the value of the [JsonSchema] must be a multiple of.
   num _multipleOf;
+
+  /// A [JsonSchema] which the value must NOT be.
   JsonSchema _notSchema;
+
+  /// A [List<JsonSchema>] which the value must conform to at least one of.
   List<JsonSchema> _oneOf = [];
+
+  /// The regular expression the [JsonSchema] value must conform to.
   RegExp _pattern;
+
+  /// Ref to the URI of the [JsonSchema].
   String _ref;
+
+  /// The path of the [JsonSchema] within the root [JsonSchema].
   String _path;
+
+  /// Title of the [JsonSchema].
   String _title;
+
+  /// List of allowable types for the [JsonSchema].
   List<SchemaType> _schemaTypeList;
 
+  // --------------------------------------------------------------------------
   // Schema List Item Related Fields
+  // --------------------------------------------------------------------------
+
+  /// [JsonSchema] definition used to validate items of this schema.
   JsonSchema _items;
+
+  /// List of [JsonSchema] used to validate items of this schema.
   List<JsonSchema> _itemsList;
-  dynamic _additionalItems;
+
+  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
+  /* union bool | Map */ dynamic _additionalItems;
+
+  /// Maimum number of items allowed.
   int _maxItems;
+
+  /// Maimum number of items allowed.
   int _minItems;
+
+  /// Whether the items in the list must be unique.
   bool _uniqueItems = false;
 
+  // --------------------------------------------------------------------------
   // Schema Sub-Property Related Fields
+  // --------------------------------------------------------------------------
+
+  /// Map of [JsonSchema]s by property key.
   Map<String, JsonSchema> _properties = {};
+
+  /// Whether additional properties, other than those specified, are allowed.
   bool _additionalProperties;
+
+  /// [JsonSchema] that additional properties must conform to.
   JsonSchema _additionalPropertiesSchema;
+
   Map<String, List<String>> _propertyDependencies = {};
+
   Map<String, JsonSchema> _schemaDependencies = {};
+
+  /// The maximum number of properties allowed.
   int _maxProperties;
+
+  /// The minimum number of properties allowed.
   int _minProperties = 0;
+
+  /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
   Map<RegExp, JsonSchema> _patternProperties = {};
+
   Map<String, JsonSchema> _refMap = {};
   List<String> _requiredProperties;
 
-  /// Implementation-specific properties:
+  // --------------------------------------------------------------------------
+  // Implementation Specific Feilds
+  // --------------------------------------------------------------------------
 
   /// Maps any unsupported top level property to its original value
   Map<String, dynamic> _freeFormMap = {};
@@ -246,7 +328,7 @@ class JsonSchema {
   /// Assignments to call for resolution upon end of parse.
   List _schemaAssignments = [];
 
-  /// For schemas with $ref maps path of schema to $ref path
+  /// For schemas with $ref maps, path of schema to $ref path
   Map<String, String> _schemaRefs = {};
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
@@ -294,12 +376,7 @@ class JsonSchema {
   };
 
   /// Get a nested [JsonSchema] from a path.
-  JsonSchema resolvePath(String path) {
-    while (_schemaRefs.containsKey(path)) {
-      path = _schemaRefs[path];
-    }
-    return _refMap[path];
-  }
+  JsonSchema resolvePath(String path) => _resolvePath(path);
 
   @override
   String toString() => '${_schemaMap}';
@@ -377,7 +454,7 @@ class JsonSchema {
   /// Title of the [JsonSchema].
   String get title => _title;
 
-  /// TODO
+  /// List of allowable types for the [JsonSchema].
   List<SchemaType> get schemaTypeList => _schemaTypeList;
 
   // --------------------------------------------------------------------------
@@ -390,7 +467,7 @@ class JsonSchema {
   /// Ordered list of [JsonSchema] which the value of the same index must conform to.
   List<JsonSchema> get itemsList => _itemsList;
 
-  /// Whether additional items are allowed.
+  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
   /* union bool | Map */ dynamic get additionalItems => _additionalItems;
 
   /// The maximum number of items allowed.
@@ -475,28 +552,46 @@ class JsonSchema {
   // JSON Schema Internal Operations
   // --------------------------------------------------------------------------
 
-  bool _registerSchemaRef(String path, dynamic schemaDefinition) {
-    if (schemaDefinition is Map) {
-      final dynamic ref = schemaDefinition[r'$ref'];
-      if (ref != null) {
-        if (ref is String) {
-          // _logger.info('Linking $path to $ref'); TODO: re-add logger
-          _schemaRefs[path] = ref;
-          return true;
-        } else {
-          throw FormatExceptions.string('\$ref', ref);
-        }
-      }
+  /// Function to determine whether a given [schemaDefinition] is a remote $ref.
+  bool _isRemoteRef(String path, dynamic schemaDefinition) {
+    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    final dynamic ref = schemaDefinitionMap[r'$ref'];
+    if (ref != null) {
+      TypeValidators.nonEmptyString(r'$ref', ref);
+      // If the ref begins with "#" it is a local ref, so we return false.
+      if (ref[0] != '#') return false;
+      return true;
     }
     return false;
+  }
+
+  /// Checks if a [schemaDefinition] has a $ref.
+  /// If it does, it adds the $ref to [_shemaRefs] at the path key and returns true.
+  void _registerSchemaRef(String path, dynamic schemaDefinition) {
+    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    final dynamic ref = schemaDefinitionMap[r'$ref'];
+    if (_isRemoteRef(path, schemaDefinition)) {
+      // _logger.info('Linking $path to $ref'); TODO: re-add logger
+      _schemaRefs[path] = ref;
+    }
   }
 
   /// Add a ref'd JsonSchema to the map of available Schemas.
   _addSchema(String path, JsonSchema schema) => _refMap[path] = schema;
 
+  // Create a [JsonSchema] from a sub-schema of the root.
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
     if (schema is! Map) throw FormatExceptions.schema(path, schema);
-    if (_registerSchemaRef(path, schema)) {
+
+    _registerSchemaRef(path, schema);
+
+    final isRemoteReference = _isRemoteRef(path, schema);
+    final isPathLocal = path[0] == '#';
+
+    /// If this sub-schema is a ref within the root schema,
+    /// add it to the map of local schema assignments.
+    /// Otherwise, call the assigner function and create a new [JsonSchema].
+    if (isRemoteReference && isPathLocal) {
       _schemaAssignments.add(() => assigner(_resolvePath(path)));
     } else {
       assigner(_createSubSchema(schema, path));
@@ -578,7 +673,9 @@ class JsonSchema {
     _ref = TypeValidators.nonEmptyString(r'$ref', value);
     if (_ref[0] != '#') {
       final refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
-      _retrievalRequests.add(refSchemaFuture);
+
+      /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
+      _root._retrievalRequests.add(refSchemaFuture);
     }
   }
 

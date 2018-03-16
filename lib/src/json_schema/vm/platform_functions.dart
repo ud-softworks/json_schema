@@ -41,24 +41,27 @@ import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:json_schema/src/json_schema/json_schema.dart';
+import 'package:json_schema/src/json_schema/utils.dart';
 
-Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) {
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
   final uri = Uri.parse(schemaUrl);
+  Map schemaMap;
   if (uri.scheme == 'http') {
-    return new HttpClient().getUrl(uri).then((HttpClientRequest request) {
-      request.followRedirects = true;
-      return request.close();
-    }).then((HttpClientResponse response) {
-      return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-        final map = convert.JSON.decode(schemaText);
-        return JsonSchema.createSchema(map);
-      });
-    });
+    // Setup the HTTP request.
+    final httpRequest = await new HttpClient().getUrl(uri);
+    httpRequest.followRedirects = true;
+    // Fetch the response
+    final response = await httpRequest.close();
+    // Convert the response into a string
+    final schemaText = await response.transform(new convert.Utf8Decoder()).join();
+    schemaMap = convert.JSON.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
-    return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
-        .readAsString()
-        .then((text) => JsonSchema.createSchema(convert.JSON.decode(text)));
+    final fileString = await new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl).readAsString();
+    schemaMap = convert.JSON.decode(fileString);
   } else {
-    throw new FormatException('Url schemd must be http, file, or empty: $schemaUrl');
+    throw new FormatException('Url schema must be http, file, or empty: $schemaUrl');
   }
+  // HTTP servers / file systems ignore fragments, so resolve a sub-map if a fragment was specified.
+  schemaMap = JsonSchemaUtils.getSubMapFromFragment(schemaMap, uri);
+  return await JsonSchema.createSchema(schemaMap);
 }

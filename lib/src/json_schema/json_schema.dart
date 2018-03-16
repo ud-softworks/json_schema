@@ -56,11 +56,14 @@ typedef SchemaAdder(JsonSchema s);
 /// result in a FormatException being thrown.
 class JsonSchema {
   JsonSchema._fromMap(this._root, this._schemaMap, this._path) {
+    this._isSync = _root._isSync;
     _initialize();
     _addSchema(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap) {
+  JsonSchema._fromRootMap(this._schemaMap, {Map<String, Map> providedRefs, bool isSync = false}) {
+    this._isSync = isSync;
+    this._providedRefMap = providedRefs ?? {};
     _initialize();
   }
 
@@ -75,6 +78,19 @@ class JsonSchema {
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
+
+  /// Create a schema from a [Map].
+  ///
+  /// This method is syncronous, and supports reading all ref'd schema from a 
+  /// [Map<String, JsonSchema>] for items, properties, and sub-properties of the root 
+  /// schema. If you want to create a [JsonSchema] without having to fetch ref'd schemas up
+  /// front, and use [createSchemaWithProvidedRefs] instead.
+  ///
+  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String], and 
+  /// the values on [providedRefs] are generated with more calls to [createSchemaWithProvidedRefs].
+  static JsonSchema createSchemaWithProvidedRefs(Map data, Map<String, JsonSchema> providedRefs) {
+    return new JsonSchema._fromRootMap(data, isSync: true);
+  }
 
   /// Create a schema from a URL.
   ///
@@ -101,7 +117,12 @@ class JsonSchema {
       _thisCompleter = _root._thisCompleter;
       _schemaAssignments = _root._schemaAssignments;
     }
-    return _validateSchemaAsync();
+
+    if (_isSync) {
+
+    } else {
+      _validateSchemaAsync();
+    }
   }
 
   /// Calculate, validate and set all properties defined in the JSON Schema spec.
@@ -138,9 +159,13 @@ class JsonSchema {
     _validateInterdependentProperties();
   }
 
-  Future<JsonSchema> _validateAllPathsAsync() {
+  /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
+  Future<JsonSchema> _resolveAllPathsAsync() {
+    // Check all _schemaAssignments for
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
+      print('RETRIEVAL REQUESTS!');
+      print(_retrievalRequests);
       if (_retrievalRequests.isNotEmpty) {
         Future.wait(_retrievalRequests).then((_) => _thisCompleter.complete(_resolvePath('#')));
       } else {
@@ -149,6 +174,14 @@ class JsonSchema {
       // _logger.info('Marked $_path complete'); TODO: re-add logger
     }
     return _thisCompleter.future;
+  }
+
+  /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
+  JsonSchema _resolveAllPathsSync() {
+    if (_root == this) {
+      return _root._resolvePath('#');
+    }
+    return null;
   }
 
   /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
@@ -162,15 +195,32 @@ class JsonSchema {
     }
 
     _validateAndSetAllProperties();
-    return _validateAllPathsAsync();
+    return _resolveAllPathsAsync();
+
+    // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
+  }
+
+  JsonSchema _validateSchemaSync() {
+    // _logger.info('Validating schema $_path'); TODO: re-add logger
+
+    if (_isRemoteRef(_path, _schemaMap)) {
+      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
+    }
+
+    _validateAndSetAllProperties();
+    return _resolveAllPathsSync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
 
   /// Given a path, find the ref'd [JsonSchema] from the map.
   JsonSchema _resolvePath(String original) {
+    print('RESOLVE PATH');
     final String path = endPath(original);
     final JsonSchema result = _refMap[path];
+    print(original);
+    print(path);
+    print(result);
     if (result == null) {
       final schema = _freeFormMap[path];
       if (schema is! Map) throw FormatExceptions.schema('free-form property $original at $path', schema);
@@ -333,6 +383,9 @@ class JsonSchema {
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
   Completer _thisCompleter = new Completer();
+
+  bool _isSync = false;
+  Map<String, JsonSchema> _providedRefMap = {};
 
   /// Map to allow getters to be accessed by String key.
   static Map<String, SchemaPropertySetter> _accessMap = {
@@ -670,6 +723,8 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'ref' JSON Schema prop.
   _setRef(dynamic value) {
+    print('SET REF');
+    print(value);
     _ref = TypeValidators.nonEmptyString(r'$ref', value);
     if (_ref[0] != '#') {
       final refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));

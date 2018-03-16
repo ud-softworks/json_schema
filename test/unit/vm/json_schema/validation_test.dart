@@ -113,7 +113,7 @@ void main([List<String> args]) {
     }
   });
 
-  test('Schema self validation', () {
+  test('Schema self validation', () async {
     // Pull in the official schema, verify description and then ensure
     // that the schema satisfies the schema for schemas
     final url = 'http://json-schema.org/draft-04/schema';

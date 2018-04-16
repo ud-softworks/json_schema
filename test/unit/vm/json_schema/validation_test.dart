@@ -72,9 +72,9 @@ void main([List<String> args]) {
 
   Logger.root.level = Level.OFF;
 
-  Directory testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas');
+  Directory testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6/invalidSchemas');
 
-  testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
+  testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6'); 
 
   final optionals = new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
 

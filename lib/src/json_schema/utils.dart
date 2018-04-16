@@ -87,7 +87,10 @@ class DefaultValidators {
   uriValidator(String uri) {
     try {
       final result = Uri.parse(uri);
-      if (result.path.startsWith('//')) return false;
+      // If a URI has no scheme, it is invalid.
+      if (result.path.startsWith('//') || result.scheme.isEmpty) return false;
+      // If a URI contains spaces, it is invalid.
+      if (uri.contains(' ')) return false;
       return true;
     } catch (e) {
       return false;

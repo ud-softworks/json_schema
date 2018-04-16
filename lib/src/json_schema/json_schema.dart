@@ -404,10 +404,10 @@ class JsonSchema {
   List get enumValues => _enumValues;
 
   /// Whether the maximum of the [JsonSchema] is exclusive.
-  bool get exclusiveMaximum => _exclusiveMaximum == null || _exclusiveMaximum;
+  bool get exclusiveMaximum => _exclusiveMaximum ?? false;
 
   /// Whether the maximum of the [JsonSchema] is exclusive.
-  bool get exclusiveMinimum => _exclusiveMinimum == null || _exclusiveMinimum;
+  bool get exclusiveMinimum => _exclusiveMinimum ?? false;
 
   /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.
   String get format => _format;

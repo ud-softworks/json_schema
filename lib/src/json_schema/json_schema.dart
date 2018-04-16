@@ -303,6 +303,9 @@ class JsonSchema {
   /// Whether additional items are allowed or the [JsonSchema] they should conform to.
   /* union bool | Map */ dynamic _additionalItems;
 
+  /// [JsonSchema] definition that at least one item must match to be valid.
+  JsonSchema _contains;
+
   /// Maimum number of items allowed.
   int _maxItems;
 
@@ -369,6 +372,7 @@ class JsonSchema {
     'allOf': (JsonSchema s, dynamic v) => s._setAllOf(v),
     'anyOf': (JsonSchema s, dynamic v) => s._setAnyOf(v),
     'const': (JsonSchema s, dynamic v) => s._setConst(v),
+    'contains': (JsonSchema s, dynamic v) => s._setContains(v),
     'default': (JsonSchema s, dynamic v) => s._setDefault(v),
     'definitions': (JsonSchema s, dynamic v) => s._setDefinitions(v),
     'description': (JsonSchema s, dynamic v) => s._setDescription(v),
@@ -530,6 +534,9 @@ class JsonSchema {
 
   /// [JsonSchema] that additional properties must conform to.
   JsonSchema get additionalPropertiesSchema => _additionalPropertiesSchema;
+
+  /// [JsonSchema] definition that at least one item must match to be valid.
+  JsonSchema get contains => _contains;
 
   /// The maximum number of properties allowed.
   int get maxProperties => _maxProperties;
@@ -771,6 +778,9 @@ class JsonSchema {
       throw FormatExceptions.error('additionalItems must be boolean or object: $value');
     }
   }
+
+  /// Validate, calculate and set the value of the 'contains' JSON Schema prop.
+  _setContains(dynamic value) => _makeSchema('$_path/contains', value, (rhs) => _contains = rhs);
 
   /// Validate, calculate and set the value of the 'maxItems' JSON Schema prop.
   _setMaxItems(dynamic value) => _maxItems = TypeValidators.nonNegativeInt('maxItems', value);

@@ -221,6 +221,12 @@ class Validator {
         }
       }
     }
+
+    if (schema.contains != null) {
+      if (!instance.any((item) => new Validator(schema.contains).validate(item))) {
+        _err('${schema.path}: contains violated: $instance');
+      }
+    }
   }
 
   void _validateAllOf(JsonSchema schema, instance) {

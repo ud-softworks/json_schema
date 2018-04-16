@@ -141,6 +141,12 @@ class Validator {
     }
   }
 
+  void _constValidation(JsonSchema schema, dynamic instance) {
+    if (schema.constIsSet && !JsonSchemaUtils.jsonEqual(instance, schema.constValue)) {
+      _err('${schema.path}: const violated ${instance}');
+    }
+  }
+
   void _enumValidation(JsonSchema schema, dynamic instance) {
     final enumValues = schema.enumValues;
     if (enumValues.length > 0) {
@@ -399,6 +405,7 @@ class Validator {
       schema = schema.root.refMap[path];
     }
     _typeValidation(schema, instance);
+    _constValidation(schema, instance);
     _enumValidation(schema, instance);
     if (instance is List) _itemsValidation(schema, instance);
     if (instance is String) _stringValidation(schema, instance);

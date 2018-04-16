@@ -224,6 +224,12 @@ class JsonSchema {
   /// A [List<JsonSchema>] which the value must conform to at least one of.
   List<JsonSchema> _anyOf = [];
 
+  /// Whether or not const is set, we need this since const can be null and valid.
+  bool _constIsSet = false;
+
+  /// A value which the [JsonSchema] instance must exactly conform to.
+  dynamic _constValue;
+
   /// Default value of the [JsonSchema].
   dynamic _defaultValue;
 
@@ -362,6 +368,7 @@ class JsonSchema {
     // Root Schema Properties
     'allOf': (JsonSchema s, dynamic v) => s._setAllOf(v),
     'anyOf': (JsonSchema s, dynamic v) => s._setAnyOf(v),
+    'const': (JsonSchema s, dynamic v) => s._setConst(v),
     'default': (JsonSchema s, dynamic v) => s._setDefault(v),
     'definitions': (JsonSchema s, dynamic v) => s._setDefinitions(v),
     'description': (JsonSchema s, dynamic v) => s._setDescription(v),
@@ -416,6 +423,12 @@ class JsonSchema {
 
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool get schemaBool => _schemaBool;
+
+  /// Whether or not const is set, we need this since const can be null and valid.
+  bool get constIsSet => _constIsSet;
+
+  /// Const value of the [JsonSchema].
+  dynamic get constValue => _constValue;
 
   /// Default value of the [JsonSchema].
   dynamic get defaultValue => _defaultValue;
@@ -651,6 +664,12 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'anyOf' JSON Schema prop.
   _setAnyOf(dynamic value) => _validateListOfSchema('anyOf', value, (schema) => _anyOf.add(schema));
+
+  /// Validate, calculate and set the value of the 'const' JSON Schema prop.
+  _setConst(dynamic value) {
+    _constIsSet = true;
+    _constValue = value; // Any value is valid for const, even null.
+  }
 
   /// Validate, calculate and set the value of the 'defaultValue' JSON Schema prop.
   _setDefault(dynamic value) => _defaultValue = value;

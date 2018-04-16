@@ -69,6 +69,10 @@ class JsonSchema {
     _initialize();
   }
 
+  JsonSchema._fromRootBool(this._schemaBool) {
+    _initialize();
+  }
+
   /// Create a schema from a [Map].
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
@@ -79,7 +83,14 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(Map data) => new JsonSchema._fromRootMap(data)._thisCompleter.future;
+  static Future<JsonSchema> createSchema(dynamic data) {
+    if (data is Map) {
+      return new JsonSchema._fromRootMap(data)._thisCompleter.future;
+    } else if (data is bool) {
+      return new JsonSchema._fromRootBool(data)._thisCompleter.future;
+    }
+    throw new ArgumentError('Data provided to createSchema is not valid: Must be a Map or bool.');
+  }
 
   /// Create a schema from a URL.
   ///

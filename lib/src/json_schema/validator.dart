@@ -384,6 +384,14 @@ class Validator {
   }
 
   void _validate(JsonSchema schema, dynamic instance) {
+    /// If the [JsonSchema] is a bool, always return this value
+    if (schema.schemaBool != null) {
+      if (schema.schemaBool == false) {
+        _err('${schema.path}: schema is a boolean == false, this schema will never validate. Instance: $instance');
+      }
+      return;
+    }
+
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.
     if (schema.ref != null) {

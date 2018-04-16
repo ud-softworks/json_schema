@@ -74,7 +74,7 @@ void main([List<String> args]) {
 
   Directory testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6/invalidSchemas');
 
-  testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6'); 
+  testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6');
 
   final optionals = new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
 

@@ -60,6 +60,11 @@ class JsonSchema {
     _addSchema(path, this);
   }
 
+  JsonSchema._fromBool(this._root, this._schemaBool, this._path) {
+    _initialize();
+    _addSchema(path, this);
+  }
+
   JsonSchema._fromRootMap(this._schemaMap) {
     _initialize();
   }
@@ -182,7 +187,11 @@ class JsonSchema {
   JsonSchema _createSubSchema(dynamic schemaDefinition, String path) {
     assert(!_schemaRefs.containsKey(path));
     assert(!_refMap.containsKey(path));
-    return new JsonSchema._fromMap(_root, schemaDefinition, path);
+    if (schemaDefinition is bool) {
+      return new JsonSchema._fromBool(_root, schemaDefinition, path);
+    } else {
+      return new JsonSchema._fromMap(_root, schemaDefinition, path);
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -192,8 +201,11 @@ class JsonSchema {
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema _root;
 
-  /// JSON of the [JsonSchema] as a [Map].
+  /// JSON of the [JsonSchema] as a [Map]. Only this value or [_schemaBool] should be set, not both.
   Map<String, dynamic> _schemaMap = {};
+
+  /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
+  bool _schemaBool;
 
   /// A [List<JsonSchema>] which the value must conform to all of.
   List<JsonSchema> _allOf = [];
@@ -388,8 +400,11 @@ class JsonSchema {
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema get root => _root;
 
-  /// JSON of the [JsonSchema] as a [Map].
+  /// JSON of the [JsonSchema] as a [Map]. Only this value or [_schemaBool] should be set, not both.
   Map get schemaMap => _schemaMap;
+
+  /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
+  bool get schemaBool => _schemaBool;
 
   /// Default value of the [JsonSchema].
   dynamic get defaultValue => _defaultValue;
@@ -554,7 +569,14 @@ class JsonSchema {
 
   /// Function to determine whether a given [schemaDefinition] is a remote $ref.
   bool _isRemoteRef(String path, dynamic schemaDefinition) {
-    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    Map schemaDefinitionMap;
+    try {
+      schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+    } catch (e) {
+      // If the schema definition isn't an object, return early, since it can't be a ref.
+      return false;
+    }
+
     final dynamic ref = schemaDefinitionMap[r'$ref'];
     if (ref != null) {
       TypeValidators.nonEmptyString(r'$ref', ref);
@@ -568,9 +590,9 @@ class JsonSchema {
   /// Checks if a [schemaDefinition] has a $ref.
   /// If it does, it adds the $ref to [_shemaRefs] at the path key and returns true.
   void _registerSchemaRef(String path, dynamic schemaDefinition) {
-    final Map schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
-    final dynamic ref = schemaDefinitionMap[r'$ref'];
     if (_isRemoteRef(path, schemaDefinition)) {
+      final schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
+      final ref = schemaDefinitionMap[r'$ref'];
       // _logger.info('Linking $path to $ref'); TODO: re-add logger
       _schemaRefs[path] = ref;
     }
@@ -581,7 +603,7 @@ class JsonSchema {
 
   // Create a [JsonSchema] from a sub-schema of the root.
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
-    if (schema is! Map) throw FormatExceptions.schema(path, schema);
+    if (schema is! Map && schema is! bool) throw FormatExceptions.schema(path, schema);
 
     _registerSchemaRef(path, schema);
 

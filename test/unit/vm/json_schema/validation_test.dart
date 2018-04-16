@@ -99,8 +99,6 @@ void main([List<String> args]) {
             final String validationDescription = validationTest['description'];
             final String testName = '${description} : ${validationDescription}';
 
-            print(testName);
-
             // Individual test cases to skip - reason listed in comments
             if ([
               'Recursive references between schemas : valid tree', // We don't yet support recursive refs.

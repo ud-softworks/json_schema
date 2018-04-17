@@ -327,6 +327,11 @@ class Validator {
     final propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
 
     instance.forEach((k, v) {
+      // Validate property names against the provided schema, if any;
+      if (schema.propertyNamesSchema != null) {
+        _validate(schema.propertyNamesSchema, k);
+      }
+
       bool propCovered = false;
       final JsonSchema propSchema = schema.properties[k];
       if (propSchema != null) {
@@ -374,6 +379,7 @@ class Validator {
   }
 
   void _objectValidation(JsonSchema schema, Map instance) {
+    // Min / Max Props
     final numProps = instance.length;
     final minProps = schema.minProperties;
     final maxProps = schema.maxProperties;
@@ -382,6 +388,8 @@ class Validator {
     } else if (maxProps != null && numProps > maxProps) {
       _err('${schema.path}: maxProperties violated (${numProps} > ${maxProps})');
     }
+
+    // Required Properties
     if (schema.requiredProperties != null) {
       schema.requiredProperties.forEach((prop) {
         if (!instance.containsKey(prop)) {
@@ -389,6 +397,7 @@ class Validator {
         }
       });
     }
+
     _objectPropertyValidation(schema, instance);
 
     if (schema.propertyDependencies != null) _propertyDependenciesValidation(schema, instance);

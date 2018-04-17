@@ -360,6 +360,9 @@ class JsonSchema {
   /// Map of [JsonSchema]s by property key.
   Map<String, JsonSchema> _properties = {};
 
+  /// [JsonSchema] that property names must conform to.
+  JsonSchema _propertyNamesSchema;
+
   /// Whether additional properties, other than those specified, are allowed.
   bool _additionalProperties;
 
@@ -380,6 +383,8 @@ class JsonSchema {
   Map<RegExp, JsonSchema> _patternProperties = {};
 
   Map<String, JsonSchema> _refMap = {};
+
+  /// List if properties that are required for the [JsonSchema] instance to be valid.
   List<String> _requiredProperties;
 
   // --------------------------------------------------------------------------
@@ -445,6 +450,7 @@ class JsonSchema {
   static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()
     ..addAll(_baseAccessMap)
     ..addAll({
+      // Add properties that are changed incompatibly later.
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
       'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
       'id': (JsonSchema s, dynamic v) => s._setId(v),
@@ -453,9 +459,12 @@ class JsonSchema {
   static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()
     ..addAll(_baseAccessMap)
     ..addAll({
+      // Note: see http://json-schema.org/draft-06/json-schema-release-notes.html
+
       // Added in draft6
       'const': (JsonSchema s, dynamic v) => s._setConst(v),
       'contains': (JsonSchema s, dynamic v) => s._setContains(v),
+      'propertyNames': (JsonSchema s, dynamic v) => s._setPropertyNames(v),
       // changed (imcompatible) in draft6
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
       'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimumV6(v),
@@ -618,6 +627,9 @@ class JsonSchema {
   /// Map of [JsonSchema]s for properties, by [String] key.
   Map<String, JsonSchema> get properties => _properties;
 
+  /// [JsonSchema] that property names must conform to.
+  JsonSchema get propertyNamesSchema => _propertyNamesSchema;
+
   /// Whether additional properties, other than those specified, are allowed.
   bool get additionalProperties => _additionalProperties;
 
@@ -723,6 +735,7 @@ class JsonSchema {
 
   // Create a [JsonSchema] from a sub-schema of the root.
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
+    if (schema is bool && schemaVersion != JsonSchemaVersions.draft6) throw FormatExceptions.schema(path, schema);
     if (schema is! Map && schema is! bool) throw FormatExceptions.schema(path, schema);
 
     _registerSchemaRef(path, schema);
@@ -827,6 +840,15 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'pattern' JSON Schema prop.
   _setPattern(dynamic value) => _pattern = new RegExp(TypeValidators.string('pattern', value));
+
+  /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
+  _setPropertyNames(dynamic value) {
+    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+      _makeSchema('$_path/propertyNames', value, (rhs) => _propertyNamesSchema = rhs);
+    } else {
+      throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
+    }
+  }
 
   /// Validate, calculate and set the value of the 'ref' JSON Schema prop.
   _setRef(dynamic value) {

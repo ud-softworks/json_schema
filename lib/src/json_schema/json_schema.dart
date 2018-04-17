@@ -90,12 +90,13 @@ class JsonSchema {
 
     if (data is Map) {
       return new JsonSchema._fromRootMap(data, schemaVersion)._thisCompleter.future;
-    
-    // Boolean schemas are only supported in draft 6 and later.
+
+      // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion)._thisCompleter.future;
     }
-    throw new ArgumentError('Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+    throw new ArgumentError(
+        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from a URL.
@@ -220,12 +221,13 @@ class JsonSchema {
 
     if (schemaDefinition is Map) {
       return new JsonSchema._fromMap(_root, schemaDefinition, path);
-    
-    // Boolean schemas are only supported in draft 6 and later.
+
+      // Boolean schemas are only supported in draft 6 and later.
     } else if (schemaDefinition is bool && schemaVersion == JsonSchemaVersions.draft6) {
       return new JsonSchema._fromBool(_root, schemaDefinition, path);
     }
-    throw new ArgumentError('Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
+    throw new ArgumentError(
+        'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
   // --------------------------------------------------------------------------
@@ -428,21 +430,25 @@ class JsonSchema {
     'maxProperties': (JsonSchema s, dynamic v) => s._setMaxProperties(v),
     'minProperties': (JsonSchema s, dynamic v) => s._setMinProperties(v),
     'patternProperties': (JsonSchema s, dynamic v) => s._setPatternProperties(v),
-    'required': (JsonSchema s, dynamic v) => s._setRequired(v), 
+    'required': (JsonSchema s, dynamic v) => s._setRequired(v),
   };
 
   /// Map to allow getters to be accessed by String key.
-  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap)..addAll({
-    'id': (JsonSchema s, dynamic v) => s._setId(v),
-  });
+  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()
+    ..addAll(_baseAccessMap)
+    ..addAll({
+      'id': (JsonSchema s, dynamic v) => s._setId(v),
+    });
 
-  static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap)..addAll({
-    // Added in draft6
-    'const': (JsonSchema s, dynamic v) => s._setConst(v),
-    'contains': (JsonSchema s, dynamic v) => s._setContains(v),
-    // changed (imcompatible) in draft6
-    '\$id': (JsonSchema s, dynamic v) => s._setId(v),
-  });
+  static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()
+    ..addAll(_baseAccessMap)
+    ..addAll({
+      // Added in draft6
+      'const': (JsonSchema s, dynamic v) => s._setConst(v),
+      'contains': (JsonSchema s, dynamic v) => s._setContains(v),
+      // changed (imcompatible) in draft6
+      '\$id': (JsonSchema s, dynamic v) => s._setId(v),
+    });
 
   /// Get a nested [JsonSchema] from a path.
   JsonSchema resolvePath(String path) => _resolvePath(path);
@@ -464,7 +470,7 @@ class JsonSchema {
   bool get schemaBool => _schemaBool;
 
   /// JSON Schema version used.
-  /// 
+  ///
   /// Note: Only one version can be used for a nested [JsonScehema] object.
   /// Default: [JsonSchemaVersions.draft6]
   String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
@@ -780,7 +786,7 @@ class JsonSchema {
   }
 
   /// Dertermine which schema version to use.
-  /// 
+  ///
   /// Note: Uses the user specified version first, then the version set on the schema JSON, then the default.
   static _getSchemaVersion(String userSchemaVersion, dynamic schema) {
     if (userSchemaVersion != null) {

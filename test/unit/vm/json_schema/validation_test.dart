@@ -122,7 +122,6 @@ void main([List<String> args]) {
     }
   });
 
-  
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {
       test('version: $version', () {
@@ -136,7 +135,6 @@ void main([List<String> args]) {
       });
     }
   });
-
 
   group('Nested \$refs: in root schema ', () {
     test('properties', () async {

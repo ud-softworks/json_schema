@@ -70,11 +70,11 @@ class JsonSchemaValidationRegexes {
 }
 
 class JsonSchemaVersions {
-    static const String draft4 = 'http://json-schema.org/draft-04/schema#';
-    static const String draft6 = 'http://json-schema.org/draft-06/schema#';
+  static const String draft4 = 'http://json-schema.org/draft-04/schema#';
+  static const String draft6 = 'http://json-schema.org/draft-06/schema#';
 
-    static List<String> allVersions = const [
-        draft4,
-        draft6,
-    ];
+  static List<String> allVersions = const [
+    draft4,
+    draft6,
+  ];
 }

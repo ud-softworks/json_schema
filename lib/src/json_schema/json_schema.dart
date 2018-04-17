@@ -460,7 +460,6 @@ class JsonSchema {
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
       'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimumV6(v),
       '\$id': (JsonSchema s, dynamic v) => s._setId(v),
-      
     });
 
   /// Get a nested [JsonSchema] from a path.
@@ -507,12 +506,12 @@ class JsonSchema {
   List get enumValues => _enumValues;
 
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
-  num get exclusiveMaximum { 
+  num get exclusiveMaximum {
     // If we're on draft6, the property contains the value, return it.
     if (schemaVersion == JsonSchemaVersions.draft6) {
       return _exclusiveMaximumV6;
 
-    // If we're on draft4, the property is a bool, so return the max instead.  
+      // If we're on draft4, the property is a bool, so return the max instead.
     } else {
       if (hasExclusiveMaximum) {
         return _maximum;
@@ -525,12 +524,12 @@ class JsonSchema {
   bool get hasExclusiveMaximum => _exclusiveMaximum ?? _exclusiveMaximumV6 != null;
 
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
-  num get exclusiveMinimum { 
+  num get exclusiveMinimum {
     // If we're on draft6, the property contains the value, return it.
     if (schemaVersion == JsonSchemaVersions.draft6) {
       return _exclusiveMinimumV6;
 
-    // If we're on draft4, the property is a bool, so return the max instead.  
+      // If we're on draft4, the property is a bool, so return the max instead.
     } else {
       if (hasExclusiveMinimum) {
         return _minimum;

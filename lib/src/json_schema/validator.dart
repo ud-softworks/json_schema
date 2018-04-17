@@ -107,7 +107,7 @@ class Validator {
         _err('${schema.path}: maximum exceeded ($n > $maximum)');
       }
     }
-    
+
     if (exclusiveMinimum != null) {
       if (n <= exclusiveMinimum) {
         _err('${schema.path}: exclusiveMinimum violated ($n <= $exclusiveMinimum)');

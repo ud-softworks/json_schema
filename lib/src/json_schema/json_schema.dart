@@ -40,12 +40,13 @@ import 'dart:async';
 
 import 'package:path/path.dart' as path_lib;
 
-import 'package:json_schema/src/json_schema/schema_type.dart';
-import 'package:json_schema/src/json_schema/validator.dart';
-import 'package:json_schema/src/json_schema/global_platform_functions.dart';
-import 'package:json_schema/src/json_schema/utils.dart';
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
+import 'package:json_schema/src/json_schema/global_platform_functions.dart';
+import 'package:json_schema/src/json_schema/schema_type.dart';
 import 'package:json_schema/src/json_schema/type_validators.dart';
+import 'package:json_schema/src/json_schema/utils.dart';
+import 'package:json_schema/src/json_schema/validator.dart';
 
 typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
 typedef SchemaAssigner(JsonSchema s);
@@ -83,13 +84,24 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data) {
+  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion}) {
+    /// Set the Schema version before doing anything else, since almost everything depends on it.
+    /// 
+    /// Use the user specified version first, then the version set on the schema JSON, then the default.
+    final version = schemaVersion ?? _getSchemaVersion(data) ?? JsonSchemaVersions.draft6;
+
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data)._thisCompleter.future;
-    } else if (data is bool) {
-      return new JsonSchema._fromRootBool(data)._thisCompleter.future;
+      final createdSchema = new JsonSchema._fromRootMap(data);
+      createdSchema._setSchemaVersion(version);
+      return createdSchema._thisCompleter.future;
+    
+    // Boolean schemas are only supported in draft 6 and later.
+    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+      final createdSchema = new JsonSchema._fromRootBool(data);
+      createdSchema._setSchemaVersion(version);
+      return createdSchema._thisCompleter.future;
     }
-    throw new ArgumentError('Data provided to createSchema is not valid: Must be a Map or bool.');
+    throw new ArgumentError('Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from a URL.
@@ -111,6 +123,7 @@ class JsonSchema {
       _addSchema('#', this);
       _thisCompleter = new Completer();
     } else {
+      _schemaVersion = _root.schemaVersion;
       _schemaRefs = _root._schemaRefs;
       _refMap = _root._refMap;
       _freeFormMap = _root._freeFormMap;
@@ -124,11 +137,19 @@ class JsonSchema {
   ///
   /// Doesn't validate interdependent properties. See [_validateInterdependentProperties]
   void _validateAndSetIndividualProperties() {
+    var accessMap;
+    // Set the access map based on features used in the currently set version.
+    if (_root.schemaVersion == JsonSchemaVersions.draft4) {
+      accessMap = _accessMapV4;
+    } else {
+      accessMap = _accessMapV6;
+    }
+
     // Iterate over all string keys of the root JSON Schema Map. Calculate, validate and
     // set all properties according to spec.
     _schemaMap.forEach((k, v) {
-      /// Get the _set<X> method from the [_accessMap] based on the [Map] string key.
-      final SchemaPropertySetter accessor = _accessMap[k];
+      /// Get the _set<X> method from the [accessMap] based on the [Map] string key.
+      final SchemaPropertySetter accessor = accessMap[k];
       if (accessor != null) {
         accessor(this, v);
       } else {
@@ -198,11 +219,15 @@ class JsonSchema {
   JsonSchema _createSubSchema(dynamic schemaDefinition, String path) {
     assert(!_schemaRefs.containsKey(path));
     assert(!_refMap.containsKey(path));
-    if (schemaDefinition is bool) {
-      return new JsonSchema._fromBool(_root, schemaDefinition, path);
-    } else {
+
+    if (schemaDefinition is Map) {
       return new JsonSchema._fromMap(_root, schemaDefinition, path);
+    
+    // Boolean schemas are only supported in draft 6 and later.
+    } else if (schemaDefinition is bool && schemaVersion == JsonSchemaVersions.draft6) {
+      return new JsonSchema._fromBool(_root, schemaDefinition, path);
     }
+    throw new ArgumentError('Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
   }
 
   // --------------------------------------------------------------------------
@@ -217,6 +242,9 @@ class JsonSchema {
 
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool _schemaBool;
+
+  /// JSON Schema version string.
+  String _schemaVersion;
 
   /// A [List<JsonSchema>] which the value must conform to all of.
   List<JsonSchema> _allOf = [];
@@ -366,13 +394,11 @@ class JsonSchema {
   /// Completer that fires when [this] [JsonSchema] has finished building.
   Completer _thisCompleter = new Completer();
 
-  /// Map to allow getters to be accessed by String key.
-  static Map<String, SchemaPropertySetter> _accessMap = {
+  /// Shared keywords across all versions of JSON Schema.
+  static Map<String, SchemaPropertySetter> _baseAccessMap = {
     // Root Schema Properties
     'allOf': (JsonSchema s, dynamic v) => s._setAllOf(v),
     'anyOf': (JsonSchema s, dynamic v) => s._setAnyOf(v),
-    'const': (JsonSchema s, dynamic v) => s._setConst(v),
-    'contains': (JsonSchema s, dynamic v) => s._setContains(v),
     'default': (JsonSchema s, dynamic v) => s._setDefault(v),
     'definitions': (JsonSchema s, dynamic v) => s._setDefinitions(v),
     'description': (JsonSchema s, dynamic v) => s._setDescription(v),
@@ -390,7 +416,6 @@ class JsonSchema {
     'oneOf': (JsonSchema s, dynamic v) => s._setOneOf(v),
     'pattern': (JsonSchema s, dynamic v) => s._setPattern(v),
     '\$ref': (JsonSchema s, dynamic v) => s._setRef(v),
-    '\$schema': (JsonSchema s, dynamic v) => s._setSchema(v),
     'title': (JsonSchema s, dynamic v) => s._setTitle(v),
     'type': (JsonSchema s, dynamic v) => s._setType(v),
     // Schema List Item Related Fields
@@ -406,8 +431,16 @@ class JsonSchema {
     'maxProperties': (JsonSchema s, dynamic v) => s._setMaxProperties(v),
     'minProperties': (JsonSchema s, dynamic v) => s._setMinProperties(v),
     'patternProperties': (JsonSchema s, dynamic v) => s._setPatternProperties(v),
-    'required': (JsonSchema s, dynamic v) => s._setRequired(v),
+    'required': (JsonSchema s, dynamic v) => s._setRequired(v), 
   };
+
+  /// Map to allow getters to be accessed by String key.
+  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap);
+
+  static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap)..addAll({
+    'const': (JsonSchema s, dynamic v) => s._setConst(v),
+    'contains': (JsonSchema s, dynamic v) => s._setContains(v)
+  });
 
   /// Get a nested [JsonSchema] from a path.
   JsonSchema resolvePath(String path) => _resolvePath(path);
@@ -427,6 +460,12 @@ class JsonSchema {
 
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool get schemaBool => _schemaBool;
+
+  /// JSON Schema version used.
+  /// 
+  /// Note: Only one version can be used for a nested [JsonScehema] object.
+  /// Default: [JsonSchemaVersions.draft6]
+  String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
 
   /// Whether or not const is set, we need this since const can be null and valid.
   bool get constIsSet => _constIsSet;
@@ -738,10 +777,15 @@ class JsonSchema {
     }
   }
 
-  /// Validate the value of the 'schema' JSON Schema prop.
-  ///
-  /// This isn't stored because the schema version is always draft 4.
-  _setSchema(dynamic value) => TypeValidators.jsonSchemaVersion4(r'$ref', value);
+  static _getSchemaVersion(dynamic schema) {
+    if (schema is Map && schema[r'$schema'] is String) {
+      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', schema[r'$schema']);
+    }
+    return null;
+  }
+
+  /// Validate, calculate and set the value of the 'schema' JSON Schema prop.
+  _setSchemaVersion(dynamic value) => _schemaVersion = TypeValidators.jsonSchemaVersion4Or6(r'$schema', value);
 
   /// Validate, calculate and set the value of the 'title' JSON Schema prop.
   _setTitle(dynamic value) => _title = TypeValidators.string('title', value);

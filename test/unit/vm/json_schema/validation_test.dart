@@ -42,6 +42,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf_io.dart' as io;
@@ -121,15 +122,21 @@ void main([List<String> args]) {
     }
   });
 
-  test('Schema self validation', () {
-    // Pull in the official schema, verify description and then ensure
-    // that the schema satisfies the schema for schemas
-    final url = 'http://json-schema.org/draft-04/schema';
-    JsonSchema.createSchemaFromUrl(url).then((schema) {
-      expect(schema.schemaMap['description'], 'Core schema meta-schema');
-      expect(schema.validate(schema.schemaMap), true);
-    });
+  
+  group('Schema self validation', () {
+    for (final version in JsonSchemaVersions.allVersions) {
+      test('version: $version', () {
+        // Pull in the official schema, verify description and then ensure
+        // that the schema satisfies the schema for schemas
+        final url = version;
+        JsonSchema.createSchemaFromUrl(url).then((schema) {
+          expect(schema.schemaMap['description'], 'Core schema meta-schema');
+          expect(schema.validate(schema.schemaMap), true);
+        });
+      });
+    }
   });
+
 
   group('Nested \$refs: in root schema ', () {
     test('properties', () async {

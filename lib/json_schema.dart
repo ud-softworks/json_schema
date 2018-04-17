@@ -37,5 +37,6 @@
 //     THE SOFTWARE.
 
 export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
-export 'package:json_schema/src/json_schema/validator.dart' show Validator;
+export 'package:json_schema/src/json_schema/constants.dart' show JsonSchemaVersions;
 export 'package:json_schema/src/json_schema/schema_type.dart' show SchemaType;
+export 'package:json_schema/src/json_schema/validator.dart' show Validator;

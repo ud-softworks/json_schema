@@ -79,7 +79,7 @@ class Validator {
       case SchemaType.STRING:
         return instance is String;
       case SchemaType.INTEGER:
-        return instance is int;
+        return instance is int || instance is num && instance.remainder(1) == 0;
       case SchemaType.NUMBER:
         return instance is num;
       case SchemaType.ARRAY:

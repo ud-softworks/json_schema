@@ -432,11 +432,16 @@ class JsonSchema {
   };
 
   /// Map to allow getters to be accessed by String key.
-  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap);
+  static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap)..addAll({
+    'id': (JsonSchema s, dynamic v) => s._setId(v),
+  });
 
   static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()..addAll(_baseAccessMap)..addAll({
+    // Added in draft6
     'const': (JsonSchema s, dynamic v) => s._setConst(v),
-    'contains': (JsonSchema s, dynamic v) => s._setContains(v)
+    'contains': (JsonSchema s, dynamic v) => s._setContains(v),
+    // changed (imcompatible) in draft6
+    '\$id': (JsonSchema s, dynamic v) => s._setId(v),
   });
 
   /// Get a nested [JsonSchema] from a path.

@@ -171,7 +171,11 @@ class JsonSchema {
   /// that have interdependencies.
   void _validateAndSetAllProperties() {
     _validateAndSetIndividualProperties();
-    _validateInterdependentProperties();
+
+    // Interdependent properties were removed in draft6
+    if (schemaVersion == JsonSchemaVersions.draft4) {
+      _validateInterdependentProperties();
+    }
   }
 
   Future<JsonSchema> _validateAllPathsAsync() {
@@ -273,8 +277,14 @@ class JsonSchema {
   /// Whether the maximum of the [JsonSchema] is exclusive.
   bool _exclusiveMaximum;
 
+  /// Whether the maximum of the [JsonSchema] is exclusive.
+  num _exclusiveMaximumV6;
+
   /// Whether the minumum of the [JsonSchema] is exclusive.
   bool _exclusiveMinimum;
+
+  /// Whether the minumum of the [JsonSchema] is exclusive.
+  num _exclusiveMinimumV6;
 
   /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.
   String _format;
@@ -403,8 +413,6 @@ class JsonSchema {
     'definitions': (JsonSchema s, dynamic v) => s._setDefinitions(v),
     'description': (JsonSchema s, dynamic v) => s._setDescription(v),
     'enum': (JsonSchema s, dynamic v) => s._setEnum(v),
-    'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
-    'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
     'format': (JsonSchema s, dynamic v) => s._setFormat(v),
     'maximum': (JsonSchema s, dynamic v) => s._setMaximum(v),
     'minimum': (JsonSchema s, dynamic v) => s._setMinimum(v),
@@ -437,6 +445,8 @@ class JsonSchema {
   static Map<String, SchemaPropertySetter> _accessMapV4 = new Map<String, SchemaPropertySetter>()
     ..addAll(_baseAccessMap)
     ..addAll({
+      'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
+      'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
       'id': (JsonSchema s, dynamic v) => s._setId(v),
     });
 
@@ -447,7 +457,10 @@ class JsonSchema {
       'const': (JsonSchema s, dynamic v) => s._setConst(v),
       'contains': (JsonSchema s, dynamic v) => s._setContains(v),
       // changed (imcompatible) in draft6
+      'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
+      'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimumV6(v),
       '\$id': (JsonSchema s, dynamic v) => s._setId(v),
+      
     });
 
   /// Get a nested [JsonSchema] from a path.
@@ -493,11 +506,41 @@ class JsonSchema {
   /// Possible values of the [JsonSchema].
   List get enumValues => _enumValues;
 
-  /// Whether the maximum of the [JsonSchema] is exclusive.
-  bool get exclusiveMaximum => _exclusiveMaximum ?? false;
+  /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
+  num get exclusiveMaximum { 
+    // If we're on draft6, the property contains the value, return it.
+    if (schemaVersion == JsonSchemaVersions.draft6) {
+      return _exclusiveMaximumV6;
+
+    // If we're on draft4, the property is a bool, so return the max instead.  
+    } else {
+      if (hasExclusiveMaximum) {
+        return _maximum;
+      }
+    }
+    return null;
+  }
 
   /// Whether the maximum of the [JsonSchema] is exclusive.
-  bool get exclusiveMinimum => _exclusiveMinimum ?? false;
+  bool get hasExclusiveMaximum => _exclusiveMaximum ?? _exclusiveMaximumV6 != null;
+
+  /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
+  num get exclusiveMinimum { 
+    // If we're on draft6, the property contains the value, return it.
+    if (schemaVersion == JsonSchemaVersions.draft6) {
+      return _exclusiveMinimumV6;
+
+    // If we're on draft4, the property is a bool, so return the max instead.  
+    } else {
+      if (hasExclusiveMinimum) {
+        return _minimum;
+      }
+    }
+    return null;
+  }
+
+  /// Whether the maximum of the [JsonSchema] is exclusive.
+  bool get hasExclusiveMinimum => _exclusiveMinimum ?? _exclusiveMinimumV6 != null;
 
   /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.
   String get format => _format;
@@ -741,8 +784,14 @@ class JsonSchema {
   /// Validate, calculate and set the value of the 'exclusiveMaximum' JSON Schema prop.
   _setExclusiveMaximum(dynamic value) => _exclusiveMaximum = TypeValidators.boolean('exclusiveMaximum', value);
 
+  /// Validate, calculate and set the value of the 'exclusiveMaximum' JSON Schema prop.
+  _setExclusiveMaximumV6(dynamic value) => _exclusiveMaximumV6 = TypeValidators.number('exclusiveMaximum', value);
+
   /// Validate, calculate and set the value of the 'exclusiveMinimum' JSON Schema prop.
   _setExclusiveMinimum(dynamic value) => _exclusiveMinimum = TypeValidators.boolean('exclusiveMinimum', value);
+
+  /// Validate, calculate and set the value of the 'exclusiveMinimum' JSON Schema prop.
+  _setExclusiveMinimumV6(dynamic value) => _exclusiveMinimumV6 = TypeValidators.number('exclusiveMinimum', value);
 
   /// Validate, calculate and set the value of the 'format' JSON Schema prop.
   _setFormat(dynamic value) => _format = TypeValidators.string('format', value);
@@ -796,9 +845,6 @@ class JsonSchema {
     }
     return JsonSchemaVersions.draft6;
   }
-
-  /// Validate, calculate and set the value of the 'schema' JSON Schema prop.
-  _setSchemaVersion(dynamic value) => _schemaVersion = TypeValidators.jsonSchemaVersion4Or6(r'$schema', value);
 
   /// Validate, calculate and set the value of the 'title' JSON Schema prop.
   _setTitle(dynamic value) => _title = TypeValidators.string('title', value);

@@ -95,25 +95,26 @@ class Validator {
   void _numberValidation(JsonSchema schema, num n) {
     final maximum = schema.maximum;
     final minimum = schema.minimum;
-    if (maximum != null) {
-      if (schema.exclusiveMaximum) {
-        if (n >= maximum) {
-          _err('${schema.path}: maximum exceeded ($n >= $maximum)');
-        }
-      } else {
-        if (n > maximum) {
-          _err('${schema.path}: maximum exceeded ($n > $maximum)');
-        }
+    final exclusiveMaximum = schema.exclusiveMaximum;
+    final exclusiveMinimum = schema.exclusiveMinimum;
+
+    if (exclusiveMaximum != null) {
+      if (n >= exclusiveMaximum) {
+        _err('${schema.path}: exclusiveMaximum exceeded ($n >= $exclusiveMaximum)');
+      }
+    } else if (maximum != null) {
+      if (n > maximum) {
+        _err('${schema.path}: maximum exceeded ($n > $maximum)');
+      }
+    }
+    
+    if (exclusiveMinimum != null) {
+      if (n <= exclusiveMinimum) {
+        _err('${schema.path}: exclusiveMinimum violated ($n <= $exclusiveMinimum)');
       }
     } else if (minimum != null) {
-      if (schema.exclusiveMinimum) {
-        if (n <= minimum) {
-          _err('${schema.path}: minimum violated ($n <= $minimum)');
-        }
-      } else {
-        if (n < minimum) {
-          _err('${schema.path}: minimum violated ($n < $minimum)');
-        }
+      if (n < minimum) {
+        _err('${schema.path}: minimum violated ($n < $minimum)');
       }
     }
 

@@ -143,7 +143,7 @@ class Validator {
   }
 
   void _constValidation(JsonSchema schema, dynamic instance) {
-    if (schema.constIsSet && !JsonSchemaUtils.jsonEqual(instance, schema.constValue)) {
+    if (schema.hasConst && !JsonSchemaUtils.jsonEqual(instance, schema.constValue)) {
       _err('${schema.path}: const violated ${instance}');
     }
   }

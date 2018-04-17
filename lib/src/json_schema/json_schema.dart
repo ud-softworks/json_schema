@@ -257,7 +257,7 @@ class JsonSchema {
   List<JsonSchema> _anyOf = [];
 
   /// Whether or not const is set, we need this since const can be null and valid.
-  bool _constIsSet = false;
+  bool _hasConst = false;
 
   /// A value which the [JsonSchema] instance must exactly conform to.
   dynamic _constValue;
@@ -498,7 +498,7 @@ class JsonSchema {
   String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
 
   /// Whether or not const is set, we need this since const can be null and valid.
-  bool get constIsSet => _constIsSet;
+  bool get hasConst => _hasConst;
 
   /// Const value of the [JsonSchema].
   dynamic get constValue => _constValue;
@@ -777,7 +777,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'const' JSON Schema prop.
   _setConst(dynamic value) {
-    _constIsSet = true;
+    _hasConst = true;
     _constValue = value; // Any value is valid for const, even null.
   }
 

@@ -66,12 +66,12 @@ class JsonSchema {
     _addSchema(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap) {
-    _initialize();
+  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion) {
+    _initialize(schemaVersion);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool) {
-    _initialize();
+  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion) {
+    _initialize(schemaVersion);
   }
 
   /// Create a schema from a [Map].
@@ -86,20 +86,14 @@ class JsonSchema {
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
-    /// 
-    /// Use the user specified version first, then the version set on the schema JSON, then the default.
-    final version = schemaVersion ?? _getSchemaVersion(data) ?? JsonSchemaVersions.draft6;
+    final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      final createdSchema = new JsonSchema._fromRootMap(data);
-      createdSchema._setSchemaVersion(version);
-      return createdSchema._thisCompleter.future;
+      return new JsonSchema._fromRootMap(data, schemaVersion)._thisCompleter.future;
     
     // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      final createdSchema = new JsonSchema._fromRootBool(data);
-      createdSchema._setSchemaVersion(version);
-      return createdSchema._thisCompleter.future;
+      return new JsonSchema._fromRootBool(data, schemaVersion)._thisCompleter.future;
     }
     throw new ArgumentError('Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
   }
@@ -116,9 +110,13 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  Future<JsonSchema> _initialize() {
+  Future<JsonSchema> _initialize([String schemaVersion]) {
     if (_root == null) {
+      /// Set the Schema version before doing anything else, since almost everything depends on it.
+      final version = _getSchemaVersion(schemaVersion, this._schemaMap);
+
       _root = this;
+      _schemaVersion = version;
       _path = '#';
       _addSchema('#', this);
       _thisCompleter = new Completer();
@@ -406,7 +404,6 @@ class JsonSchema {
     'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
     'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
     'format': (JsonSchema s, dynamic v) => s._setFormat(v),
-    'id': (JsonSchema s, dynamic v) => s._setId(v),
     'maximum': (JsonSchema s, dynamic v) => s._setMaximum(v),
     'minimum': (JsonSchema s, dynamic v) => s._setMinimum(v),
     'maxLength': (JsonSchema s, dynamic v) => s._setMaxLength(v),
@@ -777,11 +774,16 @@ class JsonSchema {
     }
   }
 
-  static _getSchemaVersion(dynamic schema) {
-    if (schema is Map && schema[r'$schema'] is String) {
+  /// Dertermine which schema version to use.
+  /// 
+  /// Note: Uses the user specified version first, then the version set on the schema JSON, then the default.
+  static _getSchemaVersion(String userSchemaVersion, dynamic schema) {
+    if (userSchemaVersion != null) {
+      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', userSchemaVersion);
+    } else if (schema is Map && schema[r'$schema'] is String) {
       return TypeValidators.jsonSchemaVersion4Or6(r'$schema', schema[r'$schema']);
     }
-    return null;
+    return JsonSchemaVersions.draft6;
   }
 
   /// Validate, calculate and set the value of the 'schema' JSON Schema prop.

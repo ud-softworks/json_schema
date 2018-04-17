@@ -62,7 +62,7 @@ void main([List<String> args]) {
 
   testSuiteFolder.listSync().forEach((testEntry) {
     final String shortName = path.basename(testEntry.path);
-    group('Invalid schema: ${shortName}', () {
+    group('Invalid schema (draft4): ${shortName}', () {
       if (testEntry is File) {
         final List tests = convert.JSON.decode((testEntry).readAsStringSync());
         tests.forEach((testObject) {

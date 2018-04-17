@@ -814,7 +814,13 @@ class JsonSchema {
   _setMultipleOf(dynamic value) => _multipleOf = TypeValidators.nonNegativeNum('multiple', value);
 
   /// Validate, calculate and set the value of the 'not' JSON Schema prop.
-  _setNot(dynamic value) => _makeSchema('$_path/not', TypeValidators.object('not', value), (rhs) => _notSchema = rhs);
+  _setNot(dynamic value) {
+    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+      _makeSchema('$_path/not', value, (rhs) => _notSchema = rhs);
+    } else {
+      throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
+    }
+  }
 
   /// Validate, calculate and set the value of the 'oneOf' JSON Schema prop.
   _setOneOf(dynamic value) => _validateListOfSchema('oneOf', value, (schema) => _oneOf.add(schema));
@@ -866,7 +872,7 @@ class JsonSchema {
         _makeSchema('$_path/items/${index++}', value[i], (rhs) => _itemsList[i] = rhs);
       }
     } else {
-      throw FormatExceptions.error('items must be object or array: $value');
+      throw FormatExceptions.error('items must be object or array (or boolean in draft6 and later): $value');
     }
   }
 
@@ -932,7 +938,8 @@ class JsonSchema {
             uniqueDeps.add(propDep);
           });
         } else {
-          throw FormatExceptions.error('dependency values must be object or array: $v');
+          throw FormatExceptions
+              .error('dependency values must be object or array (or boolean in draft6 and later): $v');
         }
       });
 

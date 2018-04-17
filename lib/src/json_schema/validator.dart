@@ -286,6 +286,28 @@ class Validator {
           }
         }
         break;
+      case 'uri-reference':
+        {
+          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+            _err('${schema.format} not supported as format before draft6');
+          final isValid = defaultValidators.uriReferenceValidator ?? (_) => false;
+
+          if (!isValid(instance)) {
+            _err('"uri-reference" format not accepted $instance');
+          }
+        }
+        break;
+      case 'uri-template':
+        {
+          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+            _err('${schema.format} not supported as format before draft6');
+          final isValid = defaultValidators.uriTemplateValidator ?? (_) => false;
+
+          if (!isValid(instance)) {
+            _err('"uri-template" format not accepted $instance');
+          }
+        }
+        break;
       case 'email':
         {
           final isValid = defaultValidators.emailValidator ?? (_) => false;

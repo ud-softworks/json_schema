@@ -443,7 +443,6 @@ class JsonSchema {
     'maxProperties': (JsonSchema s, dynamic v) => s._setMaxProperties(v),
     'minProperties': (JsonSchema s, dynamic v) => s._setMinProperties(v),
     'patternProperties': (JsonSchema s, dynamic v) => s._setPatternProperties(v),
-    'required': (JsonSchema s, dynamic v) => s._setRequired(v),
   };
 
   /// Map to allow getters to be accessed by String key.
@@ -454,6 +453,7 @@ class JsonSchema {
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximum(v),
       'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimum(v),
       'id': (JsonSchema s, dynamic v) => s._setId(v),
+      'required': (JsonSchema s, dynamic v) => s._setRequired(v),
     });
 
   static Map<String, SchemaPropertySetter> _accessMapV6 = new Map<String, SchemaPropertySetter>()
@@ -469,6 +469,7 @@ class JsonSchema {
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
       'exclusiveMinimum': (JsonSchema s, dynamic v) => s._setExclusiveMinimumV6(v),
       '\$id': (JsonSchema s, dynamic v) => s._setId(v),
+      'required': (JsonSchema s, dynamic v) => s._setRequiredV6(v),
     });
 
   /// Get a nested [JsonSchema] from a path.
@@ -977,4 +978,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
   _setRequired(dynamic value) => _requiredProperties = TypeValidators.nonEmptyList('required', value);
+
+  /// Validate, calculate and set the value of the 'required' JSON Schema prop.
+  _setRequiredV6(dynamic value) => _requiredProperties = TypeValidators.list('required', value);
 }

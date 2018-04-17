@@ -857,7 +857,7 @@ class JsonSchema {
 
   /// Validate, calculate and set items of the 'pattern' JSON Schema prop that are also [JsonSchema]s.
   _setItems(dynamic value) {
-    if (value is Map) {
+    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
       _makeSchema('$_path/items', value, (rhs) => _items = rhs);
     } else if (value is List) {
       int index = 0;

@@ -338,6 +338,15 @@ class Validator {
           }
         }
         break;
+      case 'json-pointer':
+        {
+          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+            _err('${schema.format} not supported as format before draft6');
+          if (JsonSchemaValidationRegexes.jsonPointer.firstMatch(instance) == null) {
+            _err('json-pointer" format not accepted $instance');
+          }
+        }
+        break;
       default:
         {
           _err('${schema.format} not supported as format');

@@ -918,7 +918,10 @@ class JsonSchema {
         if (v is Map) {
           _makeSchema('$_path/dependencies/$k', v, (rhs) => _schemaDependencies[k] = rhs);
         } else if (v is List) {
-          if (v.length == 0) throw FormatExceptions.error('property dependencies must be non-empty array');
+          // Dependencies must have contents in draft4, but can be empty in draft6 and later
+          if (schemaVersion == JsonSchemaVersions.draft4) {
+            if (v.length == 0) throw FormatExceptions.error('property dependencies must be non-empty array');
+          }
 
           final Set uniqueDeps = new Set();
           v.forEach((propDep) {

@@ -72,14 +72,15 @@ class Validator {
     return _errors.length == 0;
   }
 
-  static bool _typeMatch(SchemaType type, dynamic instance) {
+  static bool _typeMatch(SchemaType type, JsonSchema schema, dynamic instance) {
     switch (type) {
       case SchemaType.OBJECT:
         return instance is Map;
       case SchemaType.STRING:
         return instance is String;
       case SchemaType.INTEGER:
-        return instance is int || instance is num && instance.remainder(1) == 0;
+        return instance is int ||
+            (schema.schemaVersion == JsonSchemaVersions.draft6 && instance is num && instance.remainder(1) == 0);
       case SchemaType.NUMBER:
         return instance is num;
       case SchemaType.ARRAY:
@@ -136,7 +137,7 @@ class Validator {
   void _typeValidation(JsonSchema schema, dynamic instance) {
     final typeList = schema.schemaTypeList;
     if (typeList != null && typeList.length > 0) {
-      if (!typeList.any((type) => _typeMatch(type, instance))) {
+      if (!typeList.any((type) => _typeMatch(type, schema, instance))) {
         _err('${schema.path}: type: wanted ${typeList} got $instance');
       }
     }

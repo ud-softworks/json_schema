@@ -82,7 +82,7 @@ void main([List<String> args]) {
 
   // Draft 6 Tests
   final Directory testSuiteFolderV6 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6');
-  final Directory optionalsV6 = new Directory(path.joinAll([testSuiteFolderV4.path, 'optional']));
+  final Directory optionalsV6 = new Directory(path.joinAll([testSuiteFolderV6.path, 'optional']));
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =

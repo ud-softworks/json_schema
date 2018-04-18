@@ -36,6 +36,8 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+import 'package:uri_template/uri_template.dart' show UriTemplate;
+
 import 'package:json_schema/src/json_schema/constants.dart';
 
 class JsonSchemaUtils {
@@ -91,6 +93,30 @@ class DefaultValidators {
       if (result.path.startsWith('//') || result.scheme.isEmpty) return false;
       // If a URI contains spaces, it is invalid.
       if (uri.contains(' ')) return false;
+      // If a URI contains backslashes, it is invalid
+      if (uri.contains('\\')) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  uriReferenceValidator(String uriReference) {
+    try {
+      Uri.parse(uriReference);
+      // If a URI contains spaces, it is invalid.
+      if (uriReference.contains(' ')) return false;
+      // If a URI contains backslashes, it is invalid.
+      if (uriReference.contains('\\')) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  uriTemplateValidator(String uriTemplate) {
+    try {
+      new UriTemplate(uriTemplate);
       return true;
     } catch (e) {
       return false;

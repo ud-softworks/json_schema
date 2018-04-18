@@ -42,6 +42,7 @@ import 'dart:convert' as convert;
 import 'dart:io';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf_io.dart' as io;
@@ -72,63 +73,84 @@ void main([List<String> args]) {
 
   Logger.root.level = Level.OFF;
 
-  Directory testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4/invalidSchemas');
+  // Draft 4 Tests
+  final Directory testSuiteFolderV4 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
+  final Directory optionalsV4 = new Directory(path.joinAll([testSuiteFolderV4.path, 'optional']));
+  final allDraft4 = testSuiteFolderV4.listSync()..addAll(optionalsV4.listSync());
 
-  testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
+  // Draft 6 Tests
+  final Directory testSuiteFolderV6 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6');
+  final Directory optionalsV6 = new Directory(path.joinAll([testSuiteFolderV6.path, 'optional']));
+  final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
-  final optionals = new Directory(path.joinAll([testSuiteFolder.path, 'optional']));
+  final runAllTestsForDraftX =
+      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests) {
+    String shortSchemaVersion = schemaVersion;
+    if (schemaVersion == JsonSchemaVersions.draft4) {
+      shortSchemaVersion = 'draft4';
+    } else if (schemaVersion == JsonSchemaVersions.draft6) {
+      shortSchemaVersion = 'draft6';
+    }
 
-  final all = testSuiteFolder.listSync()..addAll(optionals.listSync());
+    allTests.forEach((testEntry) {
+      if (testEntry is File) {
+        group('Validations ($shortSchemaVersion) ${path.basename(testEntry.path)}', () {
+          // Skip these for now - reason shown.
+          if (skipFiles.contains(path.basename(testEntry.path))) return;
 
-  all.forEach((testEntry) {
-    if (testEntry is File) {
-      group('Validations ${path.basename(testEntry.path)}', () {
-        // TODO: add these back or get replacements
-        // Skip these for now - reason shown
-        if ([
-          'refRemote.json', // We should upgrade to draft7 before attempting support of this.
-        ].contains(path.basename(testEntry.path))) return;
+          final List tests = convert.JSON.decode((testEntry).readAsStringSync());
+          tests.forEach((testEntry) {
+            final schemaData = testEntry['schema'];
+            final description = testEntry['description'];
+            final List validationTests = testEntry['tests'];
 
-        final List tests = convert.JSON.decode((testEntry).readAsStringSync());
-        tests.forEach((testEntry) {
-          final schemaData = testEntry['schema'];
-          final description = testEntry['description'];
-          final List validationTests = testEntry['tests'];
+            validationTests.forEach((validationTest) {
+              final String validationDescription = validationTest['description'];
+              final String testName = '${description} : ${validationDescription}';
 
-          validationTests.forEach((validationTest) {
-            final String validationDescription = validationTest['description'];
-            final String testName = '${description} : ${validationDescription}';
+              // Individual test cases to skip - reason listed in comments.
+              if (skipTests.contains(testName)) return;
 
-            // Individual test cases to skip - reason listed in comments.
-            if ([
-              'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
-              'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
-            ].contains(testName)) return;
-
-            test(testName, () {
-              final instance = validationTest['data'];
-              bool validationResult;
-              final bool expectedResult = validationTest['valid'];
-              final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-              JsonSchema.createSchema(schemaData).then((schema) {
-                validationResult = schema.validate(instance);
-                checkResult();
+              test(testName, () {
+                final instance = validationTest['data'];
+                bool validationResult;
+                final bool expectedResult = validationTest['valid'];
+                final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+                JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion).then((schema) {
+                  validationResult = schema.validate(instance);
+                  checkResult();
+                });
               });
             });
           });
         });
+      }
+    });
+  };
+
+  final List<String> commonSkippedFiles = const [
+    'refRemote.json', // We don't support this yet. Many libs don't
+  ];
+
+  final List<String> commonSkippedTests = const [
+    'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
+    'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
+  ];
+
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+
+  group('Schema self validation', () {
+    for (final version in JsonSchemaVersions.allVersions) {
+      test('version: $version', () {
+        // Pull in the official schema, verify description and then ensure
+        // that the schema satisfies the schema for schemas.
+        final url = version;
+        JsonSchema.createSchemaFromUrl(url).then(expectAsync1((schema) {
+          expect(schema.validate(schema.schemaMap), isTrue);
+        }));
       });
     }
-  });
-
-  test('Schema self validation', () {
-    // Pull in the official schema, verify description and then ensure
-    // that the schema satisfies the schema for schemas
-    final url = 'http://json-schema.org/draft-04/schema';
-    JsonSchema.createSchemaFromUrl(url).then((schema) {
-      expect(schema.schemaMap['description'], 'Core schema meta-schema');
-      expect(schema.validate(schema.schemaMap), true);
-    });
   });
 
   group('Nested \$refs: in root schema ', () {

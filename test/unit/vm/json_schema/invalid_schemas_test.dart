@@ -58,11 +58,11 @@ void main([List<String> args]) {
     Logger.root.level = Level.OFF;
   }
 
-  final Directory testSuiteFolder = new Directory('./test/invalid_schemas');
+  final Directory testSuiteFolder = new Directory('./test/invalid_schemas/draft4');
 
   testSuiteFolder.listSync().forEach((testEntry) {
     final String shortName = path.basename(testEntry.path);
-    group('Invalid schema: ${shortName}', () {
+    group('Invalid schema (draft4): ${shortName}', () {
       if (testEntry is File) {
         final List tests = convert.JSON.decode((testEntry).readAsStringSync());
         tests.forEach((testObject) {
@@ -79,7 +79,7 @@ void main([List<String> args]) {
             });
 
             try {
-              await JsonSchema.createSchema(schemaData);
+              await JsonSchema.createSchema(schemaData, schemaVersion: JsonSchemaVersions.draft4);
               fail('Schema is expected to be invalid, but was not.');
             } catch (e) {
               catchException(e);

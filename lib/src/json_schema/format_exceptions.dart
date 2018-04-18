@@ -18,5 +18,5 @@ class FormatExceptions {
   static FormatException list(String key, dynamic instance, [String path]) =>
       error('$key must be array: $instance', path);
   static FormatException schema(String key, dynamic instance, [String path]) =>
-      error('$key must be valid schema object: $instance', path);
+      error('$key must be valid schema object or boolean: $instance', path);
 }

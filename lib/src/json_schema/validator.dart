@@ -153,7 +153,7 @@ class Validator {
   }
 
   void _stringValidation(JsonSchema schema, String instance) {
-    final actual = instance.length;
+    final actual = instance.runes.length;
     final minLength = schema.minLength;
     final maxLength = schema.maxLength;
     if (maxLength is int && actual > maxLength) {

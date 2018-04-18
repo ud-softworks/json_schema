@@ -97,7 +97,15 @@ void main([List<String> args]) {
 
           validationTests.forEach((validationTest) {
             final String validationDescription = validationTest['description'];
-            test('${description} : ${validationDescription}', () {
+            final String testName = '${description} : ${validationDescription}';
+
+            // Individual test cases to skip - reason listed in comments.
+            if ([
+              'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
+              'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
+            ].contains(testName)) return;
+
+            test(testName, () {
               final instance = validationTest['data'];
               bool validationResult;
               final bool expectedResult = validationTest['valid'];

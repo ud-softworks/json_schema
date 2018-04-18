@@ -548,7 +548,7 @@ class JsonSchema {
     return null;
   }
 
-  /// Whether the maximum of the [JsonSchema] is exclusive.
+  /// Whether the minimum of the [JsonSchema] is exclusive.
   bool get hasExclusiveMinimum => _exclusiveMinimum ?? _exclusiveMinimumV6 != null;
 
   /// Pre-defined format (i.e. date-time, email, etc) of the [JsonSchema] value.

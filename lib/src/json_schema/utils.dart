@@ -106,7 +106,7 @@ class DefaultValidators {
       Uri.parse(uriReference);
       // If a URI contains spaces, it is invalid.
       if (uriReference.contains(' ')) return false;
-      // If a URI contains backslashes, it is invalid
+      // If a URI contains backslashes, it is invalid.
       if (uriReference.contains('\\')) return false;
       return true;
     } catch (e) {

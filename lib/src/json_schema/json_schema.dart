@@ -172,7 +172,7 @@ class JsonSchema {
   void _validateAndSetAllProperties() {
     _validateAndSetIndividualProperties();
 
-    // Interdependent properties were removed in draft6
+    // Interdependent properties were removed in draft6.
     if (schemaVersion == JsonSchemaVersions.draft4) {
       _validateInterdependentProperties();
     }
@@ -539,7 +539,7 @@ class JsonSchema {
     if (schemaVersion == JsonSchemaVersions.draft6) {
       return _exclusiveMinimumV6;
 
-      // If we're on draft4, the property is a bool, so return the max instead.
+      // If we're on draft4, the property is a bool, so return the min instead.
     } else {
       if (hasExclusiveMinimum) {
         return _minimum;

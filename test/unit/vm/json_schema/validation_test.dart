@@ -73,8 +73,6 @@ void main([List<String> args]) {
 
   Logger.root.level = Level.OFF;
 
-  // Directory testSuiteFolder = new Directory('./test/JSON-Schema-Test-Suite/tests/draft6/invalidSchemas');
-
   // Draft 4 Tests
   final Directory testSuiteFolderV4 = new Directory('./test/JSON-Schema-Test-Suite/tests/draft4');
   final Directory optionalsV4 = new Directory(path.joinAll([testSuiteFolderV4.path, 'optional']));
@@ -97,7 +95,7 @@ void main([List<String> args]) {
     allTests.forEach((testEntry) {
       if (testEntry is File) {
         group('Validations ($shortSchemaVersion) ${path.basename(testEntry.path)}', () {
-          // Skip these for now - reason shown
+          // Skip these for now - reason shown.
           if (skipFiles.contains(path.basename(testEntry.path))) return;
 
           final List tests = convert.JSON.decode((testEntry).readAsStringSync());
@@ -146,7 +144,7 @@ void main([List<String> args]) {
     for (final version in JsonSchemaVersions.allVersions) {
       test('version: $version', () {
         // Pull in the official schema, verify description and then ensure
-        // that the schema satisfies the schema for schemas
+        // that the schema satisfies the schema for schemas.
         final url = version;
         JsonSchema.createSchemaFromUrl(url).then(expectAsync1((schema) {
           expect(schema.validate(schema.schemaMap), isTrue);

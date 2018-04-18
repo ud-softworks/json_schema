@@ -359,7 +359,7 @@ class Validator {
     final propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
 
     instance.forEach((k, v) {
-      // Validate property names against the provided schema, if any;
+      // Validate property names against the provided schema, if any.
       if (schema.propertyNamesSchema != null) {
         _validate(schema.propertyNamesSchema, k);
       }
@@ -438,7 +438,7 @@ class Validator {
   }
 
   void _validate(JsonSchema schema, dynamic instance) {
-    /// If the [JsonSchema] is a bool, always return this value
+    /// If the [JsonSchema] is a bool, always return this value.
     if (schema.schemaBool != null) {
       if (schema.schemaBool == false) {
         _err('${schema.path}: schema is a boolean == false, this schema will never validate. Instance: $instance');

@@ -43,7 +43,7 @@ import 'dart:convert' as convert;
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 
-Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion}) async {
   final uri = Uri.parse(schemaUrl);
   Map schemaMap;
   if (uri.scheme == 'http') {
@@ -63,5 +63,5 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
   }
   // HTTP servers / file systems ignore fragments, so resolve a sub-map if a fragment was specified.
   schemaMap = JsonSchemaUtils.getSubMapFromFragment(schemaMap, uri);
-  return await JsonSchema.createSchema(schemaMap);
+  return await JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion);
 }

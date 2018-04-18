@@ -148,10 +148,9 @@ void main([List<String> args]) {
         // Pull in the official schema, verify description and then ensure
         // that the schema satisfies the schema for schemas
         final url = version;
-        JsonSchema.createSchemaFromUrl(url).then((schema) {
-          expect(schema.schemaMap['description'], 'Core schema meta-schema');
-          expect(schema.validate(schema.schemaMap), true);
-        });
+        JsonSchema.createSchemaFromUrl(url).then(expectAsync1((schema) {
+          expect(schema.validate(schema.schemaMap), isTrue);
+        }));
       });
     }
   });

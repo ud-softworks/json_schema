@@ -103,11 +103,11 @@ class JsonSchema {
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
-  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl) {
+  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {String schemaVersion}) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
     }
-    return globalCreateJsonSchemaFromUrl(schemaUrl);
+    return globalCreateJsonSchemaFromUrl(schemaUrl, schemaVersion: schemaVersion);
   }
 
   /// Construct and validate a JsonSchema.

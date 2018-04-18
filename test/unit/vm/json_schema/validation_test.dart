@@ -110,7 +110,7 @@ void main([List<String> args]) {
               final String validationDescription = validationTest['description'];
               final String testName = '${description} : ${validationDescription}';
 
-              // Individual test cases to skip - reason listed in comments
+              // Individual test cases to skip - reason listed in comments.
               if (skipTests.contains(testName)) return;
 
               test(testName, () {

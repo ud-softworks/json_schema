@@ -47,6 +47,7 @@ import 'package:json_schema/src/json_schema/schema_type.dart';
 import 'package:json_schema/src/json_schema/type_validators.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/validator.dart';
+import 'package:json_schema/src/json_schema/typedefs.dart';
 
 typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
 typedef SchemaAssigner(JsonSchema s);
@@ -66,12 +67,12 @@ class JsonSchema {
     _addSchema(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion) {
-    _initialize(schemaVersion);
+  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {RefProvider refProvider}) {
+    _initialize(schemaVersion: schemaVersion, refProvider: refProvider);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion) {
-    _initialize(schemaVersion);
+  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {RefProvider refProvider}) {
+    _initialize(schemaVersion: schemaVersion, refProvider: refProvider);
   }
 
   /// Create a schema from a [Map].
@@ -84,7 +85,7 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion}) {
+  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion, RefProvider refProvider}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -111,7 +112,7 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  Future<JsonSchema> _initialize([String schemaVersion]) {
+  Future<JsonSchema> _initialize({String schemaVersion, RefProvider refProvider}) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
       final version = _getSchemaVersion(schemaVersion, this._schemaMap);
@@ -120,6 +121,7 @@ class JsonSchema {
       _schemaVersion = version;
       _path = '#';
       _addSchema('#', this);
+      _refProvider = refProvider;
       _thisCompleter = new Completer();
     } else {
       _schemaVersion = _root.schemaVersion;
@@ -127,6 +129,7 @@ class JsonSchema {
       _refMap = _root._refMap;
       _freeFormMap = _root._freeFormMap;
       _thisCompleter = _root._thisCompleter;
+      _refProvider = _root._refProvider;
       _schemaAssignments = _root._schemaAssignments;
     }
     return _validateSchemaAsync();
@@ -246,6 +249,9 @@ class JsonSchema {
 
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool _schemaBool;
+
+  /// Custom $ref provider to fetch schemas from a remote resource.
+  RefProvider _refProvider;
 
   /// JSON Schema version string.
   String _schemaVersion;
@@ -855,7 +861,11 @@ class JsonSchema {
   _setRef(dynamic value) {
     _ref = TypeValidators.nonEmptyString(r'$ref', value);
     if (_ref[0] != '#') {
-      final refSchemaFuture = createSchemaFromUrl(_ref).then((schema) => _addSchema(_ref, schema));
+      final addSchemaFunction = (schema) => _addSchema(_ref, schema);
+      final Future<JsonSchema> refSchemaFuture = _root._refProvider != null
+          ? _refProvider(_ref)
+              .then((schemaMap) => createSchema(schemaMap, refProvider: _root._refProvider).then(addSchemaFunction))
+          : createSchemaFromUrl(_ref).then(addSchemaFunction);
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
       _root._retrievalRequests.add(refSchemaFuture);

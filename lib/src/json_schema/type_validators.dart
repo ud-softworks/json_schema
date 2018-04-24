@@ -97,7 +97,7 @@ class TypeValidators {
     try {
       return Uri.parse(id);
     } catch (e) {
-      throw FormatExceptions.error('id must be a valid URI: $value ($e)');
+      throw FormatExceptions.error('$key must be a valid URI: $value ($e)');
     }
   }
 }

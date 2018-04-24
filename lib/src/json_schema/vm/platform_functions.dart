@@ -54,6 +54,9 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion
     // Fetch the response
     final response = await httpRequest.close();
     // Convert the response into a string
+    if (response.statusCode == HttpStatus.NOT_FOUND) {
+      throw new ArgumentError('Schema at URL: $schemaUrl can\'t be found.');
+    }
     final schemaText = await response.transform(new convert.Utf8Decoder()).join();
     schemaMap = convert.JSON.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
@@ -64,5 +67,5 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion
   }
   // HTTP servers / file systems ignore fragments, so resolve a sub-map if a fragment was specified.
   schemaMap = JsonSchemaUtils.getSubMapFromFragment(schemaMap, uri);
-  return await JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion, refProvider: refProvider);
+  return await JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: uri);
 }

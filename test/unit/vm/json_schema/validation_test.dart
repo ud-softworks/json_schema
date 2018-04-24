@@ -133,8 +133,8 @@ void main([List<String> args]) {
   ];
 
   final List<String> commonSkippedTests = const [
-    'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
-    'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
+    // 'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
+    // 'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
   ];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);

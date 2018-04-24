@@ -43,14 +43,14 @@ import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/typedefs.dart';
 
-Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion, RefProvider refProvider}) async {
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion, RefProvider refProvider, dynamic constructor, JsonSchema root}) async {
   final uri = Uri.parse(schemaUrl);
   if (uri.scheme != 'file') {
     // _logger.info('Getting url $uri'); TODO: re-add logger.
     final response = await (new JsonRequest()..uri = uri).get();
     // HTTP servers ignore fragments, so resolve a sub-map if a fragment was specified.
     final Map schemaMap = JsonSchemaUtils.getSubMapFromFragment(response.body.asJson(), uri);
-    return JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion, refProvider: refProvider);
+    return constructor != null ? constructor() /* TODO: define a typedef here*/ : JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: uri);
   } else {
     throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
   }

@@ -449,7 +449,7 @@ class Validator {
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.
     if (schema.ref != null) {
-      final String path = schema.root.endPath(schema.ref);
+      final String path = schema.root.endPath(schema.ref.toString());
       schema = schema.root.refMap[path];
     }
     _typeValidation(schema, instance);

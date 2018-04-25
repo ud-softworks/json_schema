@@ -26,7 +26,6 @@ RUN chmod 600 /root/.ssh/id_rsa
 RUN echo "Starting the script sections" && \
                 eval "$(ssh-agent -s)" && \ 
                 ssh-add /root/.ssh/id_rsa && \
-                make deps && \
 		pub get && \
 		git config remote.origin.url "git@github.com:Workiva/semver-audit-dart.git" && \
 		git clone ssh://git@github.com/workiva/semver-audit-dart.git --branch 1.4.0 && \

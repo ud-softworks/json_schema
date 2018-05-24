@@ -76,11 +76,11 @@ class JsonSchema {
   }
 
   JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {RefProvider refProvider, Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, refProvider: refProvider);
+    _initialize(schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: fetchedFromUri);
   }
 
   JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {RefProvider refProvider, Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, refProvider: refProvider);
+    _initialize(schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: fetchedFromUri);
   }
 
   /// Create a schema from a [Map].
@@ -98,11 +98,11 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion)._thisCompleter.future;
+      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri)._thisCompleter.future;
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion)._thisCompleter.future;
+      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri)._thisCompleter.future;
     }
     throw new ArgumentError(
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
@@ -566,7 +566,9 @@ class JsonSchema {
   Uri get uriBase => _idBase ?? _fetchedFromUriBase;
 
   /// [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
-  Uri get uri => _id ?? _fetchedFromUri;
+  Uri get uri => ((_id ?? _fetchedFromUri)?.removeFragment());
+
+  String get uriFragment => ((_id ?? _fetchedFromUri)?.fragment);
 
   /// Whether or not const is set, we need this since const can be null and valid.
   bool get hasConst => _hasConst;
@@ -958,6 +960,7 @@ class JsonSchema {
   _setRef(dynamic value) {
     _ref = TypeValidators.uri(r'$ref', value);
     print('ORIGINAL REF: $_ref');
+    final Uri originalRef = Uri.parse(_ref.toString());
 
     // TODO: add a more advanced check to find out if the $ref is local.
     // Does it have a fragment? Append the base and check if it exists in the _refMap
@@ -983,7 +986,11 @@ class JsonSchema {
     print('FRAGMENT: ${_ref.fragment}');
     print('REVISED REF: ${_ref}');
     if (_ref.scheme.isNotEmpty) { // TODO: should we do something if the ref is a fragment?
-      final addSchemaFunction = (schema) => _addSchemaToRefMap(_ref.toString(), schema);
+      final addSchemaFunction = (schema) {
+         _addSchemaToRefMap(_ref.toString(), schema);
+         return _addSchemaToRefMap(originalRef.toString(), schema);
+      };
+   
       final RetrievalOperation refSchemaOperation = _root._refProvider != null
           ? () => _refProvider(_ref.toString())
               .then((schemaMap) => createSchema(schemaMap, refProvider: _root._refProvider).then(addSchemaFunction))

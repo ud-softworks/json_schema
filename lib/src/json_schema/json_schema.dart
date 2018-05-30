@@ -961,7 +961,7 @@ class JsonSchema {
 
     try {
       _idBase = JsonSchemaUtils.getBaseFromFullUri(_id);
-    } catch (e, trace) {
+    } catch (e) {
       // ID base can't be set for schemes other than HTTP(S).
       // This is expected behavior.
     }

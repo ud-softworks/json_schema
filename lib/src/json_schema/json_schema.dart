@@ -552,9 +552,6 @@ class JsonSchema {
   /// The parent [JsonSchema] for this [JsonSchema].
   JsonSchema get parent => _parent;
 
-  /// The parent [JsonSchema] for this [JsonSchema].
-  JsonSchema get _parentOrRoot => parent ?? root;
-
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
   List<JsonSchema> get parents {
     final parents = [];

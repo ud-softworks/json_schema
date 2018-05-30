@@ -65,12 +65,14 @@ class RetreivalRequest {
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
 class JsonSchema {
-  JsonSchema._fromMap(this._root, this._schemaMap, this._path) {
+  JsonSchema._fromMap(this._root, this._schemaMap, this._path, {JsonSchema parent}) {
+    this._parent = parent;
     _initialize();
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromBool(this._root, this._schemaBool, this._path) {
+  JsonSchema._fromBool(this._root, this._schemaBool, this._path, {JsonSchema parent}) {
+    this._parent = parent;
     _initialize();
     _addSchemaToRefMap(path, this);
   }
@@ -129,7 +131,7 @@ class JsonSchema {
       _schemaVersion = version;
       _fetchedFromUri = fetchedFromUri;
       try {
-        _fetchedFromUriBase = Uri.parse(_fetchedFromUri.origin);
+        _fetchedFromUriBase =  JsonSchemaUtils.getBaseFromFullUri(_fetchedFromUri);
       } catch (e) {
         // ID base can't be set for schemes other than HTTP(S).
         // This is expected behavior.
@@ -271,11 +273,11 @@ class JsonSchema {
     assert(!_refMap.containsKey(path));
 
     if (schemaDefinition is Map) {
-      return new JsonSchema._fromMap(_root, schemaDefinition, path);
+      return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (schemaDefinition is bool && schemaVersion == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromBool(_root, schemaDefinition, path);
+      return new JsonSchema._fromBool(_root, schemaDefinition, path, parent: this);
     }
     throw new ArgumentError(
         'Data provided to createSubSchema is not valid: Must be a Map (or bool in draft6 or later). | ${schemaDefinition}');
@@ -287,6 +289,9 @@ class JsonSchema {
 
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema _root;
+
+  /// The parent [JsonSchema] for this [JsonSchema].
+  JsonSchema _parent;
 
   /// JSON of the [JsonSchema] as a [Map]. Only this value or [_schemaBool] should be set, not both.
   Map<String, dynamic> _schemaMap = {};
@@ -544,6 +549,28 @@ class JsonSchema {
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema get root => _root;
 
+  /// The parent [JsonSchema] for this [JsonSchema].
+  JsonSchema get parent => _parent;
+
+  /// The parent [JsonSchema] for this [JsonSchema].
+  JsonSchema get _parentOrRoot => parent ?? root;
+
+  /// Get the anchestry of the current schema, up to the root [JsonSchema].
+  List<JsonSchema> get parents {
+    final parents = [];
+
+    var circularRefEscapeHatch = 0;
+    var nextParent = this.parent;
+    while (nextParent != null && circularRefEscapeHatch < 100) {
+      circularRefEscapeHatch += 1;
+      parents.add(nextParent);
+
+      nextParent = nextParent.parent;
+    }
+
+    return parents;
+  }
+
   /// JSON of the [JsonSchema] as a [Map]. Only this value or [_schemaBool] should be set, not both.
   Map get schemaMap => _schemaMap;
 
@@ -565,8 +592,30 @@ class JsonSchema {
   /// Base [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get uriBase => _idBase ?? _fetchedFromUriBase;
 
+  /// ID from the first ancestor with an ID
+  Uri get inheritedUriBase {
+    for (final parent in parents) {
+      if (parent.uriBase != null) {
+        return parent.uriBase;
+      }
+    }
+
+    return root.uriBase;
+  }
+
   /// [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get uri => ((_id ?? _fetchedFromUri)?.removeFragment());
+
+  /// ID from the first ancestor with an ID
+  Uri get inheritedUri {
+    for (final parent in parents) {
+      if (parent.uri != null) {
+        return parent.uri;
+      }
+    }
+
+    return root.uri;
+  }
 
   String get uriFragment => ((_id ?? _fetchedFromUri)?.fragment);
 
@@ -630,8 +679,16 @@ class JsonSchema {
   /// ID of the [JsonSchema].
   Uri get id => _id;
 
-  /// Base path of the $id. This is only available for HTTP(S) URIs.
-  Uri get idOrigin => _idBase;
+  /// ID from the first ancestor with an ID
+  Uri get inheritedId {
+    for (final parent in parents) {
+      if (parent.id != null) {
+        return parent.id;
+      }
+    }
+
+    return root.id;
+  }
 
   /// Maximum value of the [JsonSchema] value.
   num get maximum => _maximum;
@@ -895,19 +952,19 @@ class JsonSchema {
     /// If the current schema $id has no scheme.
     if (_id.scheme.isEmpty) {
       /// If the $id has a path and the root has a base, append it to the base.
-      if (_root.uriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
+      if (inheritedUriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
         final path = _id.path.startsWith('/') ? _id.path : '/${_id.path}';
-        _id = Uri.parse('${_root.uriBase.toString()}$path');
+        _id = Uri.parse('${inheritedUriBase.toString()}$path');
 
       // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_id.fragment != null && _id.fragment.isNotEmpty) {
-        _id = Uri.parse('${_root._id ?? ''}#${_id.fragment}');
+        _id = Uri.parse('${inheritedId ?? ''}#${_id.fragment}');
       }
     }
 
     try {
-      _idBase = Uri.parse(_id.origin);
-    } catch (e) {
+      _idBase = JsonSchemaUtils.getBaseFromFullUri(_id);
+    } catch (e, trace) {
       // ID base can't be set for schemes other than HTTP(S).
       // This is expected behavior.
     }
@@ -968,18 +1025,17 @@ class JsonSchema {
     if (_ref.scheme.isEmpty) {
       print('SCHEME IS EMPTY');
       /// If the $id has a path and the root has a base, append it to the base.
-      if (_root.uriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
-        print('URI BASE');
+      if (inheritedUriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
         final path = _ref.path.startsWith('/') ? _ref.path : '/${_ref.path}';
-        print('${_root.uriBase.toString()}$path');
-        _ref = Uri.parse('${_root.uriBase.toString()}$path');
+        var template = '${inheritedUriBase.toString()}$path';
+        if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
+          template += '#${_ref.fragment}';
+        }
+        _ref = Uri.parse(template);
 
       // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
-        print('URI');
-        print(_root.uri);
-        print(_schemaMap);
-        _ref = Uri.parse('${_root.uri ?? ''}#${_ref.fragment}');
+        _ref = Uri.parse('${inheritedUri ?? ''}#${_ref.fragment}');
       }
     }
 

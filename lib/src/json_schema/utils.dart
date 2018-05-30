@@ -81,6 +81,16 @@ class JsonSchemaUtils {
     }
     return schemaMap;
   }
+
+  static Uri getBaseFromFullUri(Uri uri) {
+      List<String> segments = [];
+      if (uri.pathSegments.isNotEmpty /* && uri.pathSegments.last.endsWith('.json')*/) {
+        segments = []..addAll(uri.pathSegments);
+        segments.removeLast();
+        return new Uri(scheme: uri.scheme, host: uri.host, port: uri.port, pathSegments: segments);
+      }
+      return uri;
+  }
 }
 
 class DefaultValidators {

@@ -128,11 +128,9 @@ void main([List<String> args]) {
     });
   };
 
-  final List<String> commonSkippedFiles = const [
-  ];
+  final List<String> commonSkippedFiles = const [];
 
-  final List<String> commonSkippedTests = const [
-  ];
+  final List<String> commonSkippedTests = const [];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);

@@ -39,6 +39,7 @@
 import 'package:uri_template/uri_template.dart' show UriTemplate;
 
 import 'package:json_schema/src/json_schema/constants.dart';
+import 'package:json_schema/src/json_schema/json_schema.dart';
 
 class JsonSchemaUtils {
   static bool jsonEqual(a, b) {
@@ -66,30 +67,21 @@ class JsonSchemaUtils {
 
   static String normalizePath(String path) => path.replaceAll('~', '~0').replaceAll('/', '~1').replaceAll('%', '%25');
 
-  static Map getSubMapFromFragment(Map schemaMap, Uri uri) {
+  static JsonSchema getSubMapFromFragment(JsonSchema schema, Uri uri) {
     if (uri.fragment?.isNotEmpty == true) {
-      final List<String> pathSegments = uri.fragment.split('/');
-      for (final segment in pathSegments) {
-        if (segment.isNotEmpty) {
-          if (schemaMap[segment] is Map) {
-            schemaMap = schemaMap[segment];
-          } else {
-            throw new FormatException('Invalid fragment: ${uri.fragment} at ${segment}');
-          }
-        }
-      }
+      schema = schema.resolvePath('#${uri.fragment}');
     }
-    return schemaMap;
+    return schema;
   }
 
   static Uri getBaseFromFullUri(Uri uri) {
-      List<String> segments = [];
-      if (uri.pathSegments.isNotEmpty /* && uri.pathSegments.last.endsWith('.json')*/) {
-        segments = []..addAll(uri.pathSegments);
-        segments.removeLast();
-        return new Uri(scheme: uri.scheme, host: uri.host, port: uri.port, pathSegments: segments);
-      }
-      return uri;
+    List<String> segments = [];
+    if (uri.pathSegments.isNotEmpty /* && uri.pathSegments.last.endsWith('.json')*/) {
+      segments = []..addAll(uri.pathSegments);
+      segments.removeLast();
+      return new Uri(scheme: uri.scheme, host: uri.host, port: uri.port, pathSegments: segments);
+    }
+    return uri;
   }
 }
 

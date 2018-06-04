@@ -55,7 +55,6 @@ typedef SchemaAssigner(JsonSchema s);
 typedef SchemaAdder(JsonSchema s);
 typedef Future<JsonSchema> RetrievalOperation();
 
-
 class RetreivalRequest {
   Uri schemaUri;
   RetrievalOperation retrievalOperation;
@@ -95,7 +94,12 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion, RefProvider refProvider, bool isSync: false, Map<String, dynamic> providedRefs, Uri fetchedFromUri}) {
+  static Future<JsonSchema> createSchema(dynamic data,
+      {String schemaVersion,
+      RefProvider refProvider,
+      bool isSync: false,
+      Map<String, dynamic> providedRefs,
+      Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -131,7 +135,7 @@ class JsonSchema {
       _schemaVersion = version;
       _fetchedFromUri = fetchedFromUri;
       try {
-        _fetchedFromUriBase =  JsonSchemaUtils.getBaseFromFullUri(_fetchedFromUri);
+        _fetchedFromUriBase = JsonSchemaUtils.getBaseFromFullUri(_fetchedFromUri);
       } catch (e) {
         // ID base can't be set for schemes other than HTTP(S).
         // This is expected behavior.
@@ -172,6 +176,9 @@ class JsonSchema {
       if (accessor != null) {
         accessor(this, v);
       } else {
+        // Attempt to create a schema out of the property and register the ref, but don't error if it's not a valid schema.
+        _makeSchema('$_path/$k', v, (rhs) => _refMap[k] = rhs, mustBeValid: false);
+        // Add the prop to the free form map just in case.
         _freeFormMap[path_lib.join(_path, JsonSchemaUtils.normalizePath(k))] = v;
       }
     });
@@ -209,7 +216,7 @@ class JsonSchema {
         try {
           localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
         } catch (e) {
-          // DO NOTHING: if we couldn't resolve the path locally, 
+          // DO NOTHING: if we couldn't resolve the path locally,
           // it just means we need to make a request after all
         }
         if (localSchema != null) {
@@ -218,14 +225,14 @@ class JsonSchema {
       }
       requestsToRemove.forEach((request) => _retrievalRequests.remove(request));
 
-
       if (_retrievalRequests.isNotEmpty) {
         _retrievalRequests.forEach((r) {
           print('RETRIEVAL REQUEST:');
           print(r.schemaUri.toString());
         });
-        Future.wait(_retrievalRequests.map((r) => r.retrievalOperation())).then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
-
+        Future
+            .wait(_retrievalRequests.map((r) => r.retrievalOperation()))
+            .then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
       } else {
         _thisCompleter.complete(_getSchemaFromPath('#'));
       }
@@ -254,7 +261,7 @@ class JsonSchema {
   JsonSchema _getSchemaFromPath(String original) {
     final String path = endPath(original);
     final JsonSchema result = _refMap[path];
-  
+
     print('_getSchemaFromPath($path)');
     refMap.keys.forEach(print);
     print('refMap: ${refMap}');
@@ -354,7 +361,7 @@ class JsonSchema {
   Uri _id;
 
   /// Base URI of the ID. All sub-schemas are resolved against this
-  Uri _idBase; 
+  Uri _idBase;
 
   /// Maximum value of the [JsonSchema] value.
   num _maximum;
@@ -867,9 +874,17 @@ class JsonSchema {
   _addSchemaToRefMap(String path, JsonSchema schema) => _refMap[path] = schema;
 
   // Create a [JsonSchema] from a sub-schema of the root.
-  _makeSchema(String path, dynamic schema, SchemaAssigner assigner) {
-    if (schema is bool && schemaVersion != JsonSchemaVersions.draft6) throw FormatExceptions.schema(path, schema);
-    if (schema is! Map && schema is! bool) throw FormatExceptions.schema(path, schema);
+  _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
+    var throwError;
+
+    if (schema is bool && schemaVersion != JsonSchemaVersions.draft6)
+      throwError = () => throw FormatExceptions.schema(path, schema);
+    if (schema is! Map && schema is! bool) throwError = () => throw FormatExceptions.schema(path, schema);
+
+    if (throwError != null) {
+      if (mustBeValid) throwError();
+      return;
+    }
 
     _registerSchemaRef(path, schema);
 
@@ -953,7 +968,7 @@ class JsonSchema {
         final path = _id.path.startsWith('/') ? _id.path : '/${_id.path}';
         _id = Uri.parse('${inheritedUriBase.toString()}$path');
 
-      // If the $id has a fragment, append it to the base, or use it alone.
+        // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_id.fragment != null && _id.fragment.isNotEmpty) {
         _id = Uri.parse('${inheritedId ?? ''}#${_id.fragment}');
       }
@@ -1021,6 +1036,7 @@ class JsonSchema {
     // Does it have a path? Append the base and check if it exists in the _refMap
     if (_ref.scheme.isEmpty) {
       print('SCHEME IS EMPTY');
+
       /// If the $id has a path and the root has a base, append it to the base.
       if (inheritedUriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
         final path = _ref.path.startsWith('/') ? _ref.path : '/${_ref.path}';
@@ -1030,7 +1046,7 @@ class JsonSchema {
         }
         _ref = Uri.parse(template);
 
-      // If the $id has a fragment, append it to the base, or use it alone.
+        // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
         _ref = Uri.parse('${inheritedUri ?? ''}#${_ref.fragment}');
       }
@@ -1038,19 +1054,22 @@ class JsonSchema {
 
     print('FRAGMENT: ${_ref.fragment}');
     print('REVISED REF: ${_ref}');
-    if (_ref.scheme.isNotEmpty) { // TODO: should we do something if the ref is a fragment?
+    if (_ref.scheme.isNotEmpty) {
+      // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (schema) {
-         _addSchemaToRefMap(_ref.toString(), schema);
-         return _addSchemaToRefMap(originalRef.toString(), schema);
+        _addSchemaToRefMap(_ref.toString(), schema);
+        return _addSchemaToRefMap(originalRef.toString(), schema);
       };
-   
+
       final RetrievalOperation refSchemaOperation = _root._refProvider != null
           ? () => _refProvider(_ref.toString())
               .then((schemaMap) => createSchema(schemaMap, refProvider: _root._refProvider).then(addSchemaFunction))
           : () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
-      _root._retrievalRequests.add(new RetreivalRequest()..schemaUri = _ref..retrievalOperation = refSchemaOperation);
+      _root._retrievalRequests.add(new RetreivalRequest()
+        ..schemaUri = _ref
+        ..retrievalOperation = refSchemaOperation);
     }
   }
 

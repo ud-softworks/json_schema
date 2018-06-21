@@ -548,20 +548,17 @@ class JsonSchema {
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema get root => _root;
 
-  /// The parent [JsonSchema] for this [JsonSchema].
-  JsonSchema get parent => _parent;
-
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
   List<JsonSchema> get _parents {
     final parents = [];
 
     var circularRefEscapeHatch = 0;
-    var nextParent = this.parent;
+    var nextParent = this._parent;
     while (nextParent != null && circularRefEscapeHatch < 100) {
       circularRefEscapeHatch += 1;
       parents.add(nextParent);
 
-      nextParent = nextParent.parent;
+      nextParent = nextParent._parent;
     }
 
     return parents;

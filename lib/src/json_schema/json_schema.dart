@@ -226,10 +226,6 @@ class JsonSchema {
       requestsToRemove.forEach((request) => _retrievalRequests.remove(request));
 
       if (_retrievalRequests.isNotEmpty) {
-        _retrievalRequests.forEach((r) {
-          print('RETRIEVAL REQUEST:');
-          print(r.schemaUri.toString());
-        });
         Future
             .wait(_retrievalRequests.map((r) => r.retrievalOperation()))
             .then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
@@ -262,10 +258,6 @@ class JsonSchema {
     final String path = endPath(original);
     final JsonSchema result = _refMap[path];
 
-    print('_getSchemaFromPath($path)');
-    refMap.keys.forEach(print);
-    print('refMap: ${refMap}');
-    print('_freeFormMap: ${_freeFormMap}');
     if (result == null) {
       final schema = _freeFormMap[path];
       if (schema is! Map) throw FormatExceptions.schema('free-form property $original at $path', schema);
@@ -597,8 +589,8 @@ class JsonSchema {
   Uri get uriBase => _idBase ?? _fetchedFromUriBase;
 
   /// ID from the first ancestor with an ID
-  Uri get inheritedUriBase {
-    for (final parent in parents) {
+  Uri get _inheritedUriBase {
+    for (final parent in _parents) {
       if (parent.uriBase != null) {
         return parent.uriBase;
       }
@@ -611,8 +603,8 @@ class JsonSchema {
   Uri get uri => ((_id ?? _fetchedFromUri)?.removeFragment());
 
   /// ID from the first ancestor with an ID
-  Uri get inheritedUri {
-    for (final parent in parents) {
+  Uri get _inheritedUri {
+    for (final parent in _parents) {
       if (parent.uri != null) {
         return parent.uri;
       }
@@ -806,7 +798,6 @@ class JsonSchema {
   String endPath(String path) {
     _pathsEncountered.clear();
     final finalPath = _endPath(path);
-    print('endPath($path) --> $finalPath');
     return finalPath;
   }
 
@@ -1028,15 +1019,12 @@ class JsonSchema {
   /// Validate, calculate and set the value of the '$ref' JSON Schema prop.
   _setRef(dynamic value) {
     _ref = TypeValidators.uri(r'$ref', value);
-    print('ORIGINAL REF: $_ref');
     final Uri originalRef = Uri.parse(_ref.toString());
 
     // TODO: add a more advanced check to find out if the $ref is local.
     // Does it have a fragment? Append the base and check if it exists in the _refMap
     // Does it have a path? Append the base and check if it exists in the _refMap
     if (_ref.scheme.isEmpty) {
-      print('SCHEME IS EMPTY');
-
       /// If the $id has a path and the root has a base, append it to the base.
       if (_inheritedUriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
         final path = _ref.path.startsWith('/') ? _ref.path : '/${_ref.path}';
@@ -1048,12 +1036,10 @@ class JsonSchema {
 
         // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
-        _ref = Uri.parse('${inheritedUri ?? ''}#${_ref.fragment}');
+        _ref = Uri.parse('${_inheritedUri ?? ''}#${_ref.fragment}');
       }
     }
 
-    print('FRAGMENT: ${_ref.fragment}');
-    print('REVISED REF: ${_ref}');
     if (_ref.scheme.isNotEmpty) {
       // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (schema) {

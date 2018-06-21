@@ -579,41 +579,33 @@ class JsonSchema {
   /// Default: [JsonSchemaVersions.draft6]
   String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
 
-  /// Remote [Uri] the [JsonSchema] was fetched from, if any.
-  Uri get fetchedFromUri => _fetchedFromUri;
-
-  /// Base of the remote [Uri] the [JsonSchema] was fetched from, if any.
-  Uri get fetchedFromUriBase => _fetchedFromUriBase;
-
   /// Base [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
-  Uri get uriBase => _idBase ?? _fetchedFromUriBase;
+  Uri get _uriBase => _idBase ?? _fetchedFromUriBase;
 
   /// ID from the first ancestor with an ID
   Uri get _inheritedUriBase {
     for (final parent in _parents) {
-      if (parent.uriBase != null) {
-        return parent.uriBase;
+      if (parent._uriBase != null) {
+        return parent._uriBase;
       }
     }
 
-    return root.uriBase;
+    return root._uriBase;
   }
 
   /// [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
-  Uri get uri => ((_id ?? _fetchedFromUri)?.removeFragment());
+  Uri get _uri => ((_id ?? _fetchedFromUri)?.removeFragment());
 
   /// ID from the first ancestor with an ID
   Uri get _inheritedUri {
     for (final parent in _parents) {
-      if (parent.uri != null) {
-        return parent.uri;
+      if (parent._uri != null) {
+        return parent._uri;
       }
     }
 
-    return root.uri;
+    return root._uri;
   }
-
-  String get uriFragment => ((_id ?? _fetchedFromUri)?.fragment);
 
   /// Whether or not const is set, we need this since const can be null and valid.
   bool get hasConst => _hasConst;

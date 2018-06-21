@@ -55,7 +55,7 @@ typedef SchemaAssigner(JsonSchema s);
 typedef SchemaAdder(JsonSchema s);
 typedef Future<JsonSchema> RetrievalOperation();
 
-class RetreivalRequest {
+class RetrievalRequest {
   Uri schemaUri;
   RetrievalOperation retrievalOperation;
 }
@@ -89,7 +89,7 @@ class JsonSchema {
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
   ///
-  /// TODO: If you want to create a [JsonSchema] syncronously,
+  /// TODO: If you want to create a [JsonSchema] synchronously,
   /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
   /// instead.
   ///
@@ -210,7 +210,7 @@ class JsonSchema {
       _schemaAssignments.forEach((assignment) => assignment());
 
       // filter out requests that can be resolved locally.
-      final List<RetreivalRequest> requestsToRemove = [];
+      final List<RetrievalRequest> requestsToRemove = [];
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
         try {
@@ -469,7 +469,7 @@ class JsonSchema {
   Set<String> _pathsEncountered = new Set();
 
   /// HTTP(S) requests to fetch ref'd schemas.
-  List<RetreivalRequest> _retrievalRequests = [];
+  List<RetrievalRequest> _retrievalRequests = [];
 
   /// Assignments to call for resolution upon end of parse.
   List _schemaAssignments = [];
@@ -560,7 +560,7 @@ class JsonSchema {
   JsonSchema get parent => _parent;
 
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
-  List<JsonSchema> get parents {
+  List<JsonSchema> get _parents {
     final parents = [];
 
     var circularRefEscapeHatch = 0;
@@ -684,8 +684,8 @@ class JsonSchema {
   Uri get id => _id;
 
   /// ID from the first ancestor with an ID
-  Uri get inheritedId {
-    for (final parent in parents) {
+  Uri get _inheritedId {
+    for (final parent in _parents) {
       if (parent.id != null) {
         return parent.id;
       }
@@ -964,13 +964,13 @@ class JsonSchema {
     /// If the current schema $id has no scheme.
     if (_id.scheme.isEmpty) {
       /// If the $id has a path and the root has a base, append it to the base.
-      if (inheritedUriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
+      if (_inheritedUriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
         final path = _id.path.startsWith('/') ? _id.path : '/${_id.path}';
-        _id = Uri.parse('${inheritedUriBase.toString()}$path');
+        _id = Uri.parse('${_inheritedUriBase.toString()}$path');
 
         // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_id.fragment != null && _id.fragment.isNotEmpty) {
-        _id = Uri.parse('${inheritedId ?? ''}#${_id.fragment}');
+        _id = Uri.parse('${_inheritedId ?? ''}#${_id.fragment}');
       }
     }
 
@@ -1038,9 +1038,9 @@ class JsonSchema {
       print('SCHEME IS EMPTY');
 
       /// If the $id has a path and the root has a base, append it to the base.
-      if (inheritedUriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
+      if (_inheritedUriBase != null && _ref.path != null && _ref.path != '/' && _ref.path.isNotEmpty) {
         final path = _ref.path.startsWith('/') ? _ref.path : '/${_ref.path}';
-        var template = '${inheritedUriBase.toString()}$path';
+        var template = '${_inheritedUriBase.toString()}$path';
         if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
           template += '#${_ref.fragment}';
         }
@@ -1067,7 +1067,7 @@ class JsonSchema {
           : () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
-      _root._retrievalRequests.add(new RetreivalRequest()
+      _root._retrievalRequests.add(new RetrievalRequest()
         ..schemaUri = _ref
         ..retrievalOperation = refSchemaOperation);
     }

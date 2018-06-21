@@ -67,4 +67,16 @@ class JsonSchemaValidationRegexes {
   static RegExp hostname = new RegExp(r'^(?=.{1,255}$)'
       r'[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?'
       r'(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$');
+
+  static RegExp jsonPointer = new RegExp(r'^(?:\/(?:[^~/]|~0|~1)*)*$');
+}
+
+class JsonSchemaVersions {
+  static const String draft4 = 'http://json-schema.org/draft-04/schema#';
+  static const String draft6 = 'http://json-schema.org/draft-06/schema#';
+
+  static List<String> allVersions = const [
+    draft4,
+    draft6,
+  ];
 }

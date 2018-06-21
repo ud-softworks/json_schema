@@ -41,15 +41,22 @@ import 'dart:async';
 import 'package:w_transport/w_transport.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
+import 'package:json_schema/src/json_schema/typedefs.dart';
 
-Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl) async {
-  final uri = Uri.parse(schemaUrl);
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion}) async {
+  final uriWithFrag = Uri.parse(schemaUrl);
+  var uri = uriWithFrag.removeFragment();
+  if (schemaUrl.endsWith('#')) {
+    uri = uriWithFrag;
+  }
   if (uri.scheme != 'file') {
     // _logger.info('Getting url $uri'); TODO: re-add logger.
     final response = await (new JsonRequest()..uri = uri).get();
     // HTTP servers ignore fragments, so resolve a sub-map if a fragment was specified.
-    final Map schemaMap = JsonSchemaUtils.getSubMapFromFragment(response.body.asJson(), uri);
-    return JsonSchema.createSchema(schemaMap);
+    final parentSchema =
+        await JsonSchema.createSchema(response.body.asJson(), schemaVersion: schemaVersion, fetchedFromUri: uri);
+    final schema = JsonSchemaUtils.getSubMapFromFragment(parentSchema, uriWithFrag);
+    return schema ?? parentSchema;
   } else {
     throw new FormatException('Url schema must be http: $schemaUrl. To use a local file, use dart:io');
   }

@@ -43,8 +43,12 @@ import 'dart:convert' as convert;
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 
-Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
-  final uri = Uri.parse(schemaUrl);
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion}) async {
+  final uriWithFrag = Uri.parse(schemaUrl);
+  var uri = uriWithFrag.removeFragment();
+  if (schemaUrl.endsWith('#')) {
+    uri = uriWithFrag;
+  }
   Map schemaMap;
   if (uri.scheme == 'http') {
     // Setup the HTTP request.
@@ -53,6 +57,9 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
     // Fetch the response
     final response = await httpRequest.close();
     // Convert the response into a string
+    if (response.statusCode == HttpStatus.NOT_FOUND) {
+      throw new ArgumentError('Schema at URL: $schemaUrl can\'t be found.');
+    }
     final schemaText = await response.transform(new convert.Utf8Decoder()).join();
     schemaMap = convert.JSON.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
@@ -62,6 +69,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl) async {
     throw new FormatException('Url schema must be http, file, or empty: $schemaUrl');
   }
   // HTTP servers / file systems ignore fragments, so resolve a sub-map if a fragment was specified.
-  schemaMap = JsonSchemaUtils.getSubMapFromFragment(schemaMap, uri);
-  return await JsonSchema.createSchema(schemaMap);
+  final parentSchema = await JsonSchema.createSchema(schemaMap, schemaVersion: schemaVersion, fetchedFromUri: uri);
+  final schema = JsonSchemaUtils.getSubMapFromFragment(parentSchema, uriWithFrag);
+  return schema ?? parentSchema;
 }

@@ -1,3 +1,4 @@
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/format_exceptions.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/schema_type.dart';
@@ -83,10 +84,12 @@ class TypeValidators {
     throw FormatExceptions.object(key, value);
   }
 
-  static String jsonSchemaVersion4(String key, dynamic value) {
+  static String jsonSchemaVersion4Or6(String key, dynamic value) {
     string(key, value);
-    if (value == 'http://json-schema.org/draft-04/schema#') return value;
-    throw FormatExceptions.error('Only draft 4 schema supported');
+    if (JsonSchemaVersions.allVersions.contains(value)) {
+      return value;
+    }
+    throw FormatExceptions.error('Only draft 4 and draft 6 schemas supported');
   }
 
   static Uri uri(String key, dynamic value) {
@@ -94,7 +97,7 @@ class TypeValidators {
     try {
       return Uri.parse(id);
     } catch (e) {
-      throw FormatExceptions.error('id must be a valid URI: $value ($e)');
+      throw FormatExceptions.error('$key must be a valid URI: $value ($e)');
     }
   }
 }

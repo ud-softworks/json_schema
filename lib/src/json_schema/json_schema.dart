@@ -94,8 +94,7 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data,
-      {String schemaVersion, bool isSync: false, Map<String, dynamic> providedRefs, Uri fetchedFromUri}) {
+  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 

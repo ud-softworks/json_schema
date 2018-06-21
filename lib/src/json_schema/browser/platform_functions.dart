@@ -43,7 +43,7 @@ import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/typedefs.dart';
 
-Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion, JsonSchema root}) async {
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion}) async {
   final uriWithFrag = Uri.parse(schemaUrl);
   var uri = uriWithFrag.removeFragment();
   if (schemaUrl.endsWith('#')) {

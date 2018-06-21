@@ -76,12 +76,12 @@ class JsonSchema {
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {RefProvider refProvider, Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: fetchedFromUri);
+  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {Uri fetchedFromUri}) {
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {RefProvider refProvider, Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, refProvider: refProvider, fetchedFromUri: fetchedFromUri);
+  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {Uri fetchedFromUri}) {
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
   }
 
   /// Create a schema from a [Map].
@@ -95,11 +95,7 @@ class JsonSchema {
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchema(dynamic data,
-      {String schemaVersion,
-      RefProvider refProvider,
-      bool isSync: false,
-      Map<String, dynamic> providedRefs,
-      Uri fetchedFromUri}) {
+      {String schemaVersion, bool isSync: false, Map<String, dynamic> providedRefs, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -126,7 +122,7 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  Future<JsonSchema> _initialize({String schemaVersion, RefProvider refProvider, Uri fetchedFromUri}) {
+  Future<JsonSchema> _initialize({String schemaVersion, Uri fetchedFromUri}) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
       final version = _getSchemaVersion(schemaVersion, this._schemaMap);
@@ -142,7 +138,6 @@ class JsonSchema {
       }
       _path = '#';
       _addSchemaToRefMap('#', this);
-      _refProvider = refProvider;
       _thisCompleter = new Completer();
     } else {
       _schemaVersion = _root.schemaVersion;
@@ -150,7 +145,6 @@ class JsonSchema {
       _refMap = _root._refMap;
       _freeFormMap = _root._freeFormMap;
       _thisCompleter = _root._thisCompleter;
-      _refProvider = _root._refProvider;
       _schemaAssignments = _root._schemaAssignments;
     }
     return _validateSchemaAsync();
@@ -297,9 +291,6 @@ class JsonSchema {
 
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool _schemaBool;
-
-  /// Custom $ref provider to fetch schemas from a remote resource.
-  RefProvider _refProvider;
 
   /// JSON Schema version string.
   String _schemaVersion;
@@ -1036,10 +1027,7 @@ class JsonSchema {
         return _addSchemaToRefMap(originalRef.toString(), schema);
       };
 
-      final RetrievalOperation refSchemaOperation = _root._refProvider != null
-          ? () => _refProvider(_ref.toString())
-              .then((schemaMap) => createSchema(schemaMap, refProvider: _root._refProvider).then(addSchemaFunction))
-          : () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
+      final RetrievalOperation refSchemaOperation = () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
       _root._retrievalRequests.add(new RetrievalRequest()

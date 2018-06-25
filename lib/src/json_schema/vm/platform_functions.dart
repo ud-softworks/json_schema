@@ -45,10 +45,7 @@ import 'package:json_schema/src/json_schema/utils.dart';
 
 Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion}) async {
   final uriWithFrag = Uri.parse(schemaUrl);
-  var uri = uriWithFrag.removeFragment();
-  if (schemaUrl.endsWith('#')) {
-    uri = uriWithFrag;
-  }
+  final uri = schemaUrl.endsWith('#') ? uriWithFrag : uriWithFrag.removeFragment();
   Map schemaMap;
   if (uri.scheme == 'http') {
     // Setup the HTTP request.

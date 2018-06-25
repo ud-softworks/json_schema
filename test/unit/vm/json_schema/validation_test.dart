@@ -84,7 +84,7 @@ void main([List<String> args]) {
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
-      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests) {
+      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests, {bool isSync = false}) {
     String shortSchemaVersion = schemaVersion;
     if (schemaVersion == JsonSchemaVersions.draft4) {
       shortSchemaVersion = 'draft4';
@@ -115,11 +115,17 @@ void main([List<String> args]) {
                 final instance = validationTest['data'];
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
-                final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion).then((schema) {
+                if (isSync) {
+                  final schema = JsonSchema.createSchemaSync(schemaData, schemaVersion: schemaVersion);
                   validationResult = schema.validate(instance);
-                  checkResult();
-                });
+                  expect(validationResult, expectedResult);
+                } else {
+                  final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+                  JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion).then((schema) {
+                    validationResult = schema.validate(instance);
+                    checkResult();
+                  });
+                }
               });
             });
           });
@@ -132,8 +138,20 @@ void main([List<String> args]) {
 
   final List<String> commonSkippedTests = const [];
 
+  final List<String> syncSkippedFiles = const [
+    'refRemote.json',
+  ];
+
+  final List<String> syncSkippedTests = const [
+    'valid definition : valid definition schema',
+    'remote ref, containing refs itself : remote ref valid',
+    r'$ref to boolean schema false : any value is invalid',
+  ];
+
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests, isSync: true);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests, isSync: true);
 
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {

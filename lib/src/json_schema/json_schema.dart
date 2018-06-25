@@ -96,7 +96,7 @@ class JsonSchema {
   /// instead.
   ///
   /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
+  static Future<JsonSchema> createSchemaAsync(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -120,7 +120,7 @@ class JsonSchema {
   ///
   /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String], and
   /// the values on [providedRefs] are generated with more calls to [createSchemaWithProvidedRefs].
-  static JsonSchema createSchemaSync(dynamic data,
+  static JsonSchema createSchema(dynamic data,
       {String schemaVersion, Uri fetchedFromUri, Map<String, dynamic> providedRefs}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
@@ -246,7 +246,7 @@ class JsonSchema {
         // check if the ref is actually a standard schema definition, resolve it locally.
         if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
           final definitionRef = retrievalRequest.schemaUri.toString();
-          localSchema = JsonSchema.createSchemaSync(getJsonSchemaDefinitionByRef(definitionRef));
+          localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(definitionRef));
           _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
         } else {
           // attempt to get the schema from the existing schema cache.

@@ -53,7 +53,7 @@ main() {
   final decimals = 3.14;
   final str = 'hi';
 
-  JsonSchema.createSchema(mustBeIntegerSchema).then((schema) {
+  JsonSchema.createSchemaAsync(mustBeIntegerSchema).then((schema) {
     print('$n => ${schema.validate(n)}');
     print('$decimals => ${schema.validate(decimals)}');
     print('$str => ${schema.validate(str)}');

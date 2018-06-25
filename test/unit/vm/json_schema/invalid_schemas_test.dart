@@ -79,7 +79,7 @@ void main([List<String> args]) {
             });
 
             try {
-              await JsonSchema.createSchema(schemaData, schemaVersion: JsonSchemaVersions.draft4);
+              await JsonSchema.createSchemaAsync(schemaData, schemaVersion: JsonSchemaVersions.draft4);
               fail('Schema is expected to be invalid, but was not.');
             } catch (e) {
               catchException(e);

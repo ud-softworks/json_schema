@@ -117,12 +117,12 @@ void main([List<String> args]) {
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
                 if (isSync) {
-                  final schema = JsonSchema.createSchemaSync(schemaData, schemaVersion: schemaVersion);
+                  final schema = JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion);
                   validationResult = schema.validate(instance);
                   expect(validationResult, expectedResult);
                 } else {
                   final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                  JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion).then((schema) {
+                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion).then((schema) {
                     validationResult = schema.validate(instance);
                     checkResult();
                   });
@@ -167,7 +167,7 @@ void main([List<String> args]) {
 
   group('Nested \$refs in root schema', () {
     test('properties', () async {
-      final barSchema = await JsonSchema.createSchema({
+      final barSchema = await JsonSchema.createSchemaAsync({
         "properties": {
           "foo": {"\$ref": "http://localhost:1234/integer.json#"},
           "bar": {"\$ref": "http://localhost:4321/string.json#"}
@@ -184,7 +184,7 @@ void main([List<String> args]) {
     });
 
     test('items', () async {
-      final schema = await JsonSchema.createSchema({
+      final schema = await JsonSchema.createSchemaAsync({
         "items": {"\$ref": "http://localhost:1234/integer.json"}
       });
 
@@ -196,7 +196,7 @@ void main([List<String> args]) {
     });
 
     test('not / anyOf', () async {
-      final schema = await JsonSchema.createSchema({
+      final schema = await JsonSchema.createSchemaAsync({
         "items": {
           "not": {
             "anyOf": [

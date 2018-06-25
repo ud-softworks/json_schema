@@ -84,7 +84,8 @@ void main([List<String> args]) {
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
-      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests, {bool isSync = false}) {
+      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
+          {bool isSync = false}) {
     String shortSchemaVersion = schemaVersion;
     if (schemaVersion == JsonSchemaVersions.draft4) {
       shortSchemaVersion = 'draft4';
@@ -143,8 +144,6 @@ void main([List<String> args]) {
   ];
 
   final List<String> syncSkippedTests = const [
-    'valid definition : valid definition schema',
-    'remote ref, containing refs itself : remote ref valid',
     r'$ref to boolean schema false : any value is invalid',
   ];
 

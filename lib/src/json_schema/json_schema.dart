@@ -67,16 +67,13 @@ class RetrievalRequest {
 /// result in a FormatException being thrown.
 class JsonSchema {
   JsonSchema._fromMap(this._root, this._schemaMap, this._path, {JsonSchema parent, Map<String, dynamic> providedRefs}) {
-    this._isSync = _root._isSync;
     this._providedRefMap = providedRefs ?? {};
     this._parent = parent;
     _initialize();
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromBool(this._root, this._schemaBool, this._path,
-      {bool isSync = false, JsonSchema parent, Map<String, Map> providedRefs}) {
-    this._isSync = _root._isSync;
+  JsonSchema._fromBool(this._root, this._schemaBool, this._path, {JsonSchema parent, Map<String, Map> providedRefs}) {
     this._providedRefMap = providedRefs ?? {};
     this._parent = parent;
     _initialize();
@@ -84,13 +81,11 @@ class JsonSchema {
   }
 
   JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {Uri fetchedFromUri, bool isSync = false}) {
-    this._isSync = isSync;
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync);
   }
 
   JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {Uri fetchedFromUri, bool isSync = false}) {
-    this._isSync = isSync;
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync);
   }
 
   /// Create a schema from a [Map].
@@ -155,12 +150,13 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  _initialize({String schemaVersion, Uri fetchedFromUri}) {
+  _initialize({String schemaVersion, Uri fetchedFromUri, bool isSync = false}) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
       final version = _getSchemaVersion(schemaVersion, this._schemaMap);
 
       _root = this;
+      _isSync = isSync;
       _schemaVersion = version;
       _fetchedFromUri = fetchedFromUri;
       try {
@@ -173,6 +169,7 @@ class JsonSchema {
       _addSchemaToRefMap('#', this);
       _thisCompleter = new Completer();
     } else {
+      _isSync = _root._isSync;
       _schemaVersion = _root.schemaVersion;
       _schemaRefs = _root._schemaRefs;
       _refMap = _root._refMap;
@@ -246,11 +243,17 @@ class JsonSchema {
       final List<RetrievalRequest> requestsToRemove = [];
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
-        try {
-          localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
-        } catch (e) {
-          // DO NOTHING: if we couldn't resolve the path locally,
-          // it just means we need to make a request after all
+        if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
+          final definitionRef = retrievalRequest.schemaUri.toString();
+          localSchema = JsonSchema.createSchemaSync(getJsonSchemaDefinitionByRef(definitionRef));
+          _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
+        } else {
+          try {
+            localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
+          } catch (e) {
+            // DO NOTHING: if we couldn't resolve the path locally,
+            // it just means we need to make a request after all
+          }
         }
         if (localSchema != null) {
           requestsToRemove.add(retrievalRequest);

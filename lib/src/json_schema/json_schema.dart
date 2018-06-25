@@ -583,7 +583,7 @@ class JsonSchema {
   /// [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get _uri => ((_id ?? _fetchedFromUri)?.removeFragment());
 
-  /// ID from the first ancestor with an ID
+  /// [Uri] from the first ancestor with an ID
   Uri get _inheritedUri {
     for (final parent in _parents) {
       if (parent._uri != null) {

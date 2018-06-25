@@ -144,7 +144,7 @@ void main([List<String> args]) {
   ];
 
   final List<String> syncSkippedTests = const [
-    r'$ref to boolean schema false : any value is invalid',
+    r'$ref to boolean schema false : any value is invalid', // TODO: this is a bug
   ];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);

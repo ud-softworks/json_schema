@@ -66,15 +66,13 @@ class RetrievalRequest {
 /// the schema itself is done on construction. Any errors in the schema
 /// result in a FormatException being thrown.
 class JsonSchema {
-  JsonSchema._fromMap(this._root, this._schemaMap, this._path, {JsonSchema parent, Map<String, dynamic> providedRefs}) {
-    this._providedRefMap = providedRefs ?? {};
+  JsonSchema._fromMap(this._root, this._schemaMap, this._path, {JsonSchema parent}) {
     this._parent = parent;
     _initialize();
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromBool(this._root, this._schemaBool, this._path, {JsonSchema parent, Map<String, Map> providedRefs}) {
-    this._providedRefMap = providedRefs ?? {};
+  JsonSchema._fromBool(this._root, this._schemaBool, this._path, {JsonSchema parent}) {
     this._parent = parent;
     _initialize();
     _addSchemaToRefMap(path, this);
@@ -180,7 +178,9 @@ class JsonSchema {
 
     if (_isSync) {
       _validateSchemaSync();
-      _root._thisCompleter.complete(this);
+      if (_root == this) {
+        _thisCompleter.complete(this);
+      }
     } else {
       _validateSchemaAsync();
     }
@@ -243,11 +243,13 @@ class JsonSchema {
       final List<RetrievalRequest> requestsToRemove = [];
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
+        // check if the ref is actually a standard schema definition, resolve it locally.
         if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
           final definitionRef = retrievalRequest.schemaUri.toString();
           localSchema = JsonSchema.createSchemaSync(getJsonSchemaDefinitionByRef(definitionRef));
           _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
         } else {
+          // attempt to get the schema from the existing schema cache.
           try {
             localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
           } catch (e) {
@@ -284,14 +286,10 @@ class JsonSchema {
   JsonSchema _resolveAllPathsSync() {
     _baseResolvePaths();
 
-    if (_root == this) {
-      return _root._getSchemaFromPath('#');
-    }
-    return null;
+    return _root._getSchemaFromPath('#');
   }
 
-  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  Future<JsonSchema> _validateSchemaAsync() {
+  void _validateSchemaBase() {
     // _logger.info('Validating schema $_path'); TODO: re-add logger
 
     _registerSchemaRef(_path, _schemaMap);
@@ -299,20 +297,20 @@ class JsonSchema {
     if (_isRemoteRef(_schemaMap)) {
       // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
     }
+  }
 
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
+  Future<JsonSchema> _validateSchemaAsync() {
+    _validateSchemaBase();
     _validateAndSetAllProperties();
     return _resolveAllPathsAsync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
 
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
   JsonSchema _validateSchemaSync() {
-    // _logger.info('Validating schema $_path'); TODO: re-add logger
-
-    if (_isRemoteRef(_path)) {
-      // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
-    }
-
+    _validateSchemaBase();
     _validateAndSetAllProperties();
     return _resolveAllPathsSync();
 
@@ -536,7 +534,6 @@ class JsonSchema {
   Completer _thisCompleter = new Completer();
 
   bool _isSync = false;
-  Map<String, JsonSchema> _providedRefMap = {};
 
   /// Shared keywords across all versions of JSON Schema.
   static Map<String, SchemaPropertySetter> _baseAccessMap = {

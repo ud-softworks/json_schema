@@ -126,11 +126,11 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri);
+      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true);
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri);
+      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true);
     }
     throw new ArgumentError(
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
@@ -176,7 +176,7 @@ class JsonSchema {
       _schemaAssignments = _root._schemaAssignments;
     }
 
-    if (_isSync) {
+    if (_root._isSync) {
       _validateSchemaSync();
       if (_root == this) {
         _thisCompleter.complete(this);
@@ -285,6 +285,13 @@ class JsonSchema {
   /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
   JsonSchema _resolveAllPathsSync() {
     _baseResolvePaths();
+
+    if (_root == this) {
+      if (_retrievalRequests.isNotEmpty) {
+        throw FormatExceptions.error(
+            'When resolving schemas synchronously, no remote refs may be included. Found ${_retrievalRequests.length}: ${_retrievalRequests.map((r) => r.schemaUri).join(',')}');
+      }
+    }
 
     return _root._getSchemaFromPath('#');
   }

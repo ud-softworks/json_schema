@@ -2,6 +2,7 @@
 .idea/
 .packages
 .project
+.dart_tool/
 .pub/
 *.dart.js
 *.iml

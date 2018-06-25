@@ -128,14 +128,9 @@ void main([List<String> args]) {
     });
   };
 
-  final List<String> commonSkippedFiles = const [
-    'refRemote.json', // We don't support this yet. Many libs don't
-  ];
+  final List<String> commonSkippedFiles = const [];
 
-  final List<String> commonSkippedTests = const [
-    'Recursive references between schemas : valid tree', // We don't yet support recursive refs.
-    'Recursive references between schemas : invalid tree' // We don't yet support recursive refs.
-  ];
+  final List<String> commonSkippedTests = const [];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
@@ -153,7 +148,7 @@ void main([List<String> args]) {
     }
   });
 
-  group('Nested \$refs: in root schema ', () {
+  group('Nested \$refs in root schema', () {
     test('properties', () async {
       final barSchema = await JsonSchema.createSchema({
         "properties": {

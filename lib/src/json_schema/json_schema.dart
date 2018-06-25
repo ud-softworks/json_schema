@@ -569,7 +569,7 @@ class JsonSchema {
   /// Base [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get _uriBase => _idBase ?? _fetchedFromUriBase;
 
-  /// ID from the first ancestor with an ID
+  /// [Uri] from the first ancestor with an ID
   Uri get _inheritedUriBase {
     for (final parent in _parents) {
       if (parent._uriBase != null) {
@@ -776,8 +776,7 @@ class JsonSchema {
   /// Given path, follow all references to an end path pointing to [JsonSchema].
   String endPath(String path) {
     _pathsEncountered.clear();
-    final finalPath = _endPath(path);
-    return finalPath;
+    return _endPath(path);
   }
 
   /// Recursive inner-function for [endPath].

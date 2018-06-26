@@ -86,16 +86,15 @@ class JsonSchema {
     _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync);
   }
 
-  /// Create a schema from a [Map].
+  /// Create a schema from a JSON [data].
   ///
-  /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
+  /// This method is asynchronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
   ///
-  /// TODO: If you want to create a [JsonSchema] synchronously,
-  /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
-  /// instead.
+  /// If you want to create a [JsonSchema] synchronously, use [createSchema]. Note that for
+  /// [createSchema] remote references are not supported.
   ///
-  /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
+  /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
   static Future<JsonSchema> createSchemaAsync(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
@@ -111,17 +110,13 @@ class JsonSchema {
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
   }
 
-  /// Create a schema from a [Map].
+  /// Create a schema from JSON [data].
   ///
-  /// This method is syncronous, and supports reading all ref'd schema from a
-  /// [Map<String, JsonSchema>] for items, properties, and sub-properties of the root
-  /// schema. If you want to create a [JsonSchema] without having to fetch ref'd schemas up
-  /// front, and use [createSchemaWithProvidedRefs] instead.
+  /// This method is synchronous, and doesn't support remote references, properties, and sub-properties of the root
+  /// schema. If you need remote reference support use [createSchemaAsync].
   ///
-  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String], and
-  /// the values on [providedRefs] are generated with more calls to [createSchemaWithProvidedRefs].
-  static JsonSchema createSchema(dynamic data,
-      {String schemaVersion, Uri fetchedFromUri, Map<String, dynamic> providedRefs}) {
+  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String].
+  static JsonSchema createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 

@@ -126,11 +126,13 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true);
+      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true)
+          .resolvePath('#');
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true);
+      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true)
+          .resolvePath('#');
     }
     throw new ArgumentError(
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
@@ -266,7 +268,7 @@ class JsonSchema {
   }
 
   /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
-  Future<JsonSchema> _resolveAllPathsAsync() {
+  void _resolveAllPathsAsync() {
     _baseResolvePaths();
 
     if (_root == this) {
@@ -279,11 +281,10 @@ class JsonSchema {
       }
       // _logger.info('Marked $_path complete'); TODO: re-add logger
     }
-    return _thisCompleter.future;
   }
 
   /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
-  JsonSchema _resolveAllPathsSync() {
+  void _resolveAllPathsSync() {
     _baseResolvePaths();
 
     if (_root == this) {
@@ -292,8 +293,6 @@ class JsonSchema {
             'When resolving schemas synchronously, no remote refs may be included. Found ${_retrievalRequests.length}: ${_retrievalRequests.map((r) => r.schemaUri).join(',')}');
       }
     }
-
-    return _root._getSchemaFromPath('#');
   }
 
   void _validateSchemaBase() {
@@ -304,22 +303,22 @@ class JsonSchema {
     if (_isRemoteRef(_schemaMap)) {
       // _logger.info('Top level schema is ref: $_schemaRefs'); TODO: re-add logger
     }
+
+    _validateAndSetAllProperties();
   }
 
   /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  Future<JsonSchema> _validateSchemaAsync() {
+  void _validateSchemaAsync() {
     _validateSchemaBase();
-    _validateAndSetAllProperties();
-    return _resolveAllPathsAsync();
+    _resolveAllPathsAsync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
 
   /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  JsonSchema _validateSchemaSync() {
+  void _validateSchemaSync() {
     _validateSchemaBase();
-    _validateAndSetAllProperties();
-    return _resolveAllPathsSync();
+    _resolveAllPathsSync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }

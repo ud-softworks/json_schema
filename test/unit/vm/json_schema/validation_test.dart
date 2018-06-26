@@ -143,9 +143,7 @@ void main([List<String> args]) {
     'refRemote.json',
   ];
 
-  final List<String> syncSkippedTests = const [
-    r'$ref to boolean schema false : any value is invalid', // TODO: this is a bug
-  ];
+  final List<String> syncSkippedTests = const [];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);

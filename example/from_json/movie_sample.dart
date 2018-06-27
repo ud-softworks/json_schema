@@ -81,7 +81,7 @@ main() {
     }
   };
 
-  JsonSchema.createSchema(movieSchema).then((schema) {
+  JsonSchema.createSchemaAsync(movieSchema).then((schema) {
     final validator = new Validator(schema);
     final bool validates = validator.validate(movies);
     if (!validates) {

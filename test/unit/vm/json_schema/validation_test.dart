@@ -84,7 +84,8 @@ void main([List<String> args]) {
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
-      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests) {
+      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
+          {bool isSync = false}) {
     String shortSchemaVersion = schemaVersion;
     if (schemaVersion == JsonSchemaVersions.draft4) {
       shortSchemaVersion = 'draft4';
@@ -115,11 +116,17 @@ void main([List<String> args]) {
                 final instance = validationTest['data'];
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
-                final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion).then((schema) {
+                if (isSync) {
+                  final schema = JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion);
                   validationResult = schema.validate(instance);
-                  checkResult();
-                });
+                  expect(validationResult, expectedResult);
+                } else {
+                  final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
+                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion).then((schema) {
+                    validationResult = schema.validate(instance);
+                    checkResult();
+                  });
+                }
               });
             });
           });
@@ -132,8 +139,16 @@ void main([List<String> args]) {
 
   final List<String> commonSkippedTests = const [];
 
+  final List<String> syncSkippedFiles = const [
+    'refRemote.json',
+  ];
+
+  final List<String> syncSkippedTests = const [];
+
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests, isSync: true);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests, isSync: true);
 
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {
@@ -150,7 +165,7 @@ void main([List<String> args]) {
 
   group('Nested \$refs in root schema', () {
     test('properties', () async {
-      final barSchema = await JsonSchema.createSchema({
+      final barSchema = await JsonSchema.createSchemaAsync({
         "properties": {
           "foo": {"\$ref": "http://localhost:1234/integer.json#"},
           "bar": {"\$ref": "http://localhost:4321/string.json#"}
@@ -167,7 +182,7 @@ void main([List<String> args]) {
     });
 
     test('items', () async {
-      final schema = await JsonSchema.createSchema({
+      final schema = await JsonSchema.createSchemaAsync({
         "items": {"\$ref": "http://localhost:1234/integer.json"}
       });
 
@@ -179,7 +194,7 @@ void main([List<String> args]) {
     });
 
     test('not / anyOf', () async {
-      final schema = await JsonSchema.createSchema({
+      final schema = await JsonSchema.createSchemaAsync({
         "items": {
           "not": {
             "anyOf": [

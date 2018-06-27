@@ -53,11 +53,13 @@ import 'package:json_schema/src/json_schema/typedefs.dart';
 typedef dynamic SchemaPropertySetter(JsonSchema s, dynamic value);
 typedef SchemaAssigner(JsonSchema s);
 typedef SchemaAdder(JsonSchema s);
-typedef Future<JsonSchema> RetrievalOperation();
+typedef Future<JsonSchema> AsyncRetrievalOperation();
+typedef JsonSchema SyncRetrievalOperation();
 
 class RetrievalRequest {
   Uri schemaUri;
-  RetrievalOperation retrievalOperation;
+  AsyncRetrievalOperation asyncRetrievalOperation;
+  SyncRetrievalOperation syncRetrievalOperation;
 }
 
 /// Constructed with a json schema, either as string or Map. Validation of
@@ -76,25 +78,24 @@ class JsonSchema {
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
+  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {Uri fetchedFromUri, bool isSync = false}) {
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {Uri fetchedFromUri}) {
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri);
+  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {Uri fetchedFromUri, bool isSync = false}) {
+    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync);
   }
 
-  /// Create a schema from a [Map].
+  /// Create a schema from a JSON [data].
   ///
-  /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
+  /// This method is asynchronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
   ///
-  /// TODO: If you want to create a [JsonSchema] synchronously,
-  /// first ensure you have fetched all sub-schemas out of band, and use [createSchemaWithProvidedRefs]
-  /// instead.
+  /// If you want to create a [JsonSchema] synchronously, use [createSchema]. Note that for
+  /// [createSchema] remote references are not supported.
   ///
-  /// Typically the supplied [Map] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
+  /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
+  static Future<JsonSchema> createSchemaAsync(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -104,6 +105,29 @@ class JsonSchema {
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri)._thisCompleter.future;
+    }
+    throw new ArgumentError(
+        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+  }
+
+  /// Create a schema from JSON [data].
+  ///
+  /// This method is synchronous, and doesn't support remote references, properties, and sub-properties of the root
+  /// schema. If you need remote reference support use [createSchemaAsync].
+  ///
+  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String].
+  static JsonSchema createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri}) {
+    /// Set the Schema version before doing anything else, since almost everything depends on it.
+    final version = _getSchemaVersion(schemaVersion, data);
+
+    if (data is Map) {
+      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true)
+          .resolvePath('#');
+
+      // Boolean schemas are only supported in draft 6 and later.
+    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true)
+          .resolvePath('#');
     }
     throw new ArgumentError(
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
@@ -121,12 +145,13 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  Future<JsonSchema> _initialize({String schemaVersion, Uri fetchedFromUri}) {
+  _initialize({String schemaVersion, Uri fetchedFromUri, bool isSync = false}) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
       final version = _getSchemaVersion(schemaVersion, this._schemaMap);
 
       _root = this;
+      _isSync = isSync;
       _schemaVersion = version;
       _fetchedFromUri = fetchedFromUri;
       try {
@@ -139,6 +164,7 @@ class JsonSchema {
       _addSchemaToRefMap('#', this);
       _thisCompleter = new Completer();
     } else {
+      _isSync = _root._isSync;
       _schemaVersion = _root.schemaVersion;
       _schemaRefs = _root._schemaRefs;
       _refMap = _root._refMap;
@@ -146,7 +172,15 @@ class JsonSchema {
       _thisCompleter = _root._thisCompleter;
       _schemaAssignments = _root._schemaAssignments;
     }
-    return _validateSchemaAsync();
+
+    if (_root._isSync) {
+      _validateSchemaSync();
+      if (_root == this) {
+        _thisCompleter.complete(this);
+      }
+    } else {
+      _validateSchemaAsync();
+    }
   }
 
   /// Calculate, validate and set all properties defined in the JSON Schema spec.
@@ -198,7 +232,7 @@ class JsonSchema {
     }
   }
 
-  Future<JsonSchema> _validateAllPathsAsync() {
+  void _baseResolvePaths() {
     if (_root == this) {
       _schemaAssignments.forEach((assignment) => assignment());
 
@@ -206,32 +240,57 @@ class JsonSchema {
       final List<RetrievalRequest> requestsToRemove = [];
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
-        try {
-          localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
-        } catch (e) {
-          // DO NOTHING: if we couldn't resolve the path locally,
-          // it just means we need to make a request after all
+        // check if the ref is actually a standard schema definition, resolve it locally.
+        if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
+          final definitionRef = retrievalRequest.schemaUri.toString();
+          localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(definitionRef));
+          _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
+        } else {
+          // attempt to get the schema from the existing schema cache.
+          try {
+            localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
+          } catch (e) {
+            // DO NOTHING: if we couldn't resolve the path locally,
+            // it just means we need to make a request after all
+          }
         }
         if (localSchema != null) {
           requestsToRemove.add(retrievalRequest);
         }
       }
       requestsToRemove.forEach((request) => _retrievalRequests.remove(request));
+    }
+  }
 
+  /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
+  void _resolveAllPathsAsync() {
+    _baseResolvePaths();
+
+    if (_root == this) {
       if (_retrievalRequests.isNotEmpty) {
         Future
-            .wait(_retrievalRequests.map((r) => r.retrievalOperation()))
+            .wait(_retrievalRequests.map((r) => r.asyncRetrievalOperation()))
             .then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
       } else {
         _thisCompleter.complete(_getSchemaFromPath('#'));
       }
       // _logger.info('Marked $_path complete'); TODO: re-add logger
     }
-    return _thisCompleter.future;
   }
 
-  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
-  Future<JsonSchema> _validateSchemaAsync() {
+  /// Check for refs that need to be fetched, fetch them, and return the final [JsonSchema].
+  void _resolveAllPathsSync() {
+    _baseResolvePaths();
+
+    if (_root == this) {
+      if (_retrievalRequests.isNotEmpty) {
+        throw FormatExceptions.error(
+            'When resolving schemas synchronously, no remote refs may be included. Found ${_retrievalRequests.length}: ${_retrievalRequests.map((r) => r.schemaUri).join(',')}');
+      }
+    }
+  }
+
+  void _validateSchemaBase() {
     // _logger.info('Validating schema $_path'); TODO: re-add logger
 
     _registerSchemaRef(_path, _schemaMap);
@@ -241,7 +300,20 @@ class JsonSchema {
     }
 
     _validateAndSetAllProperties();
-    return _validateAllPathsAsync();
+  }
+
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
+  void _validateSchemaAsync() {
+    _validateSchemaBase();
+    _resolveAllPathsAsync();
+
+    // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
+  }
+
+  /// Validate that a given [JsonSchema] conforms to the official JSON Schema spec.
+  void _validateSchemaSync() {
+    _validateSchemaBase();
+    _resolveAllPathsSync();
 
     // _logger.info('Completed Validating schema $_path'); TODO: re-add logger
   }
@@ -461,6 +533,8 @@ class JsonSchema {
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
   Completer _thisCompleter = new Completer();
+
+  bool _isSync = false;
 
   /// Shared keywords across all versions of JSON Schema.
   static Map<String, SchemaPropertySetter> _baseAccessMap = {
@@ -1025,12 +1099,13 @@ class JsonSchema {
         return _addSchemaToRefMap(originalRef.toString(), schema);
       };
 
-      final RetrievalOperation refSchemaOperation = () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
+      final AsyncRetrievalOperation refSchemaOperation =
+          () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction);
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.
       _root._retrievalRequests.add(new RetrievalRequest()
         ..schemaUri = _ref
-        ..retrievalOperation = refSchemaOperation);
+        ..asyncRetrievalOperation = refSchemaOperation);
     }
   }
 

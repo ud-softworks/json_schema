@@ -54,7 +54,7 @@ Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVe
     final response = await (new JsonRequest()..uri = uri).get();
     // HTTP servers ignore fragments, so resolve a sub-map if a fragment was specified.
     final parentSchema =
-        await JsonSchema.createSchema(response.body.asJson(), schemaVersion: schemaVersion, fetchedFromUri: uri);
+        await JsonSchema.createSchemaAsync(response.body.asJson(), schemaVersion: schemaVersion, fetchedFromUri: uri);
     final schema = JsonSchemaUtils.getSubMapFromFragment(parentSchema, uriWithFrag);
     return schema ?? parentSchema;
   } else {

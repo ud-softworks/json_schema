@@ -117,7 +117,8 @@ void main([List<String> args]) {
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
                 if (isSync) {
-                  final schema = JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion, refProvider: refProvider);
+                  final schema =
+                      JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion, refProvider: refProvider);
                   validationResult = schema.validate(instance);
                   expect(validationResult, expectedResult);
                 } else {
@@ -136,7 +137,7 @@ void main([List<String> args]) {
   };
 
   final RefProvider syncRefProvider = (String ref) {
-    switch(ref) {
+    switch (ref) {
       case 'http://localhost:1234/integer.json':
         return JsonSchema.createSchema(convert.JSON.decode(r'''
           {
@@ -212,8 +213,10 @@ void main([List<String> args]) {
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests, isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests, isSync: true, refProvider: syncRefProvider);
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests,
+      isSync: true, refProvider: syncRefProvider);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests,
+      isSync: true, refProvider: syncRefProvider);
 
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {

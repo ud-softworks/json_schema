@@ -78,12 +78,24 @@ class JsonSchema {
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion, {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync, refProvider: refProvider, refProviderAsync: refProviderAsync);
+  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion,
+      {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
+    _initialize(
+        schemaVersion: schemaVersion,
+        fetchedFromUri: fetchedFromUri,
+        isSync: isSync,
+        refProvider: refProvider,
+        refProviderAsync: refProviderAsync);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion, {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
-    _initialize(schemaVersion: schemaVersion, fetchedFromUri: fetchedFromUri, isSync: isSync, refProvider: refProvider, refProviderAsync: refProviderAsync);
+  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion,
+      {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
+    _initialize(
+        schemaVersion: schemaVersion,
+        fetchedFromUri: fetchedFromUri,
+        isSync: isSync,
+        refProvider: refProvider,
+        refProviderAsync: refProviderAsync);
   }
 
   /// Create a schema from a JSON [data].
@@ -95,16 +107,23 @@ class JsonSchema {
   /// [createSchema] remote references are not supported.
   ///
   /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchemaAsync(dynamic data, {String schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+  static Future<JsonSchema> createSchemaAsync(dynamic data,
+      {String schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)._thisCompleter.future;
+      return new JsonSchema._fromRootMap(data, schemaVersion,
+              fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
+          ._thisCompleter
+          .future;
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)._thisCompleter.future;
+      return new JsonSchema._fromRootBool(data, schemaVersion,
+              fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
+          ._thisCompleter
+          .future;
     }
     throw new ArgumentError(
         'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
@@ -121,12 +140,14 @@ class JsonSchema {
     final version = _getSchemaVersion(schemaVersion, data);
 
     if (data is Map) {
-      return new JsonSchema._fromRootMap(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
+      return new JsonSchema._fromRootMap(data, schemaVersion,
+              fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
 
       // Boolean schemas are only supported in draft 6 and later.
     } else if (data is bool && version == JsonSchemaVersions.draft6) {
-      return new JsonSchema._fromRootBool(data, schemaVersion, fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
+      return new JsonSchema._fromRootBool(data, schemaVersion,
+              fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
     }
     throw new ArgumentError(
@@ -145,7 +166,12 @@ class JsonSchema {
   }
 
   /// Construct and validate a JsonSchema.
-  _initialize({String schemaVersion, Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
+  _initialize(
+      {String schemaVersion,
+      Uri fetchedFromUri,
+      bool isSync = false,
+      RefProvider refProvider,
+      RefProviderAsync refProviderAsync}) {
     if (_root == null) {
       /// Set the Schema version before doing anything else, since almost everything depends on it.
       final version = _getSchemaVersion(schemaVersion, this._schemaMap);
@@ -1118,11 +1144,11 @@ class JsonSchema {
         return _addSchemaToRefMap(originalRef.toString(), schema);
       };
 
-      final AsyncRetrievalOperation asyncRefSchemaOperation =
-          _refProviderAsync == null ? () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction) :
-          () => _refProviderAsync(_ref.toString()).then(addSchemaFunction);
+      final AsyncRetrievalOperation asyncRefSchemaOperation = _refProviderAsync == null
+          ? () => createSchemaFromUrl(_ref.toString()).then(addSchemaFunction)
+          : () => _refProviderAsync(_ref.toString()).then(addSchemaFunction);
 
-      final SyncRetrievalOperation syncRefSchemaOperation = 
+      final SyncRetrievalOperation syncRefSchemaOperation =
           _refProvider != null ? () => addSchemaFunction(_refProvider(_ref.toString())) : null;
 
       /// Always add sub-schema retrieval requests to the [_root], as this is where the promise resolves.

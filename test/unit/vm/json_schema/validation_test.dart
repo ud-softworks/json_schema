@@ -85,7 +85,7 @@ void main([List<String> args]) {
 
   final runAllTestsForDraftX =
       (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
-          {bool isSync = false}) {
+          {bool isSync = false, RefProvider refProvider}) {
     String shortSchemaVersion = schemaVersion;
     if (schemaVersion == JsonSchemaVersions.draft4) {
       shortSchemaVersion = 'draft4';
@@ -117,7 +117,7 @@ void main([List<String> args]) {
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
                 if (isSync) {
-                  final schema = JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion);
+                  final schema = JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion, refProvider: refProvider);
                   validationResult = schema.validate(instance);
                   expect(validationResult, expectedResult);
                 } else {
@@ -135,20 +135,85 @@ void main([List<String> args]) {
     });
   };
 
+  final RefProvider syncRefProvider = (String ref) {
+    switch(ref) {
+      case 'http://localhost:1234/integer.json':
+        return JsonSchema.createSchema(convert.JSON.decode(r'''
+          {
+            "type": "integer"
+          }
+        '''));
+        break;
+      case 'http://localhost:1234/subSchemas.json#/integer':
+        return JsonSchema.createSchema(convert.JSON.decode(r'''
+          {
+            "integer": {
+              "type": "integer"
+            },
+            "refToInteger": {
+              "$ref": "#/integer"
+            }
+        }
+        ''')).resolvePath('#/integer');
+        break;
+      case 'http://localhost:1234/subSchemas.json#/refToInteger':
+        return JsonSchema.createSchema(convert.JSON.decode(r'''
+          {
+            "integer": {
+              "type": "integer"
+            },
+            "refToInteger": {
+              "$ref": "#/integer"
+            }
+        }
+        ''')).resolvePath('#/refToInteger');
+        break;
+      case 'http://localhost:1234/folder/folderInteger.json':
+        return JsonSchema.createSchema(convert.JSON.decode(r'''
+          {
+            "type": "integer"
+          }
+        '''));
+        break;
+      case 'http://localhost:1234/name.json#/definitions/orNull':
+        return JsonSchema.createSchema(convert.JSON.decode(r'''
+          {
+            "definitions": {
+              "orNull": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#"
+                  }
+                ]
+              }
+            },
+            "type": "string"
+          }
+        ''')).resolvePath('#/definitions/orNull');
+        break;
+      default:
+        return null;
+        break;
+    }
+  };
+
   final List<String> commonSkippedFiles = const [];
 
   final List<String> commonSkippedTests = const [];
 
   final List<String> syncSkippedFiles = const [
-    'refRemote.json',
+    // 'refRemote.json',
   ];
 
   final List<String> syncSkippedTests = const [];
 
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests, isSync: true);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests, isSync: true);
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests, isSync: true, refProvider: syncRefProvider);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests, isSync: true, refProvider: syncRefProvider);
 
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {

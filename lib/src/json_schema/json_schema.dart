@@ -313,6 +313,8 @@ class JsonSchema {
     _baseResolvePaths();
 
     if (_root == this) {
+      // If a ref provider is specified, use it and remove the corresponding retrieval request if
+      // the provider returns a result.
       if (_refProvider != null) {
         final completedRequests = [];
         _retrievalRequests.forEach((r) {
@@ -324,6 +326,7 @@ class JsonSchema {
         completedRequests.forEach((c) => _retrievalRequests.remove(c));
       }
 
+      // Throw an error if there are any remaining retrieval requests the ref provider couldn't resolve.
       if (_retrievalRequests.isNotEmpty) {
         throw FormatExceptions.error(
             'When resolving schemas synchronously, all remote refs must be resolvable via a RefProvider. Found ${_retrievalRequests.length} unresolvable request(s): ${_retrievalRequests.map((r) => r.schemaUri).join(',')}');
@@ -577,8 +580,24 @@ class JsonSchema {
 
   bool _isSync = false;
 
+  /// Synchronous ref provider used to resolve remote references in a given [JsonSchema].
+  ///
+  /// Note: only one ref provider should be passed in, sync or async.
+  ///
+  /// If [isSync] is true and a synchronous ref provided is specified: the synchronous provider will be used.
+  /// If [isSync] is true and no ref provider is specified: remote refs in a schema will cause an error to be thrown.
+  /// If [isSync] is false and an async ref provider is specified : the async ref provider will be used.
+  /// If [isSync] is false and no ref provider is specified: the default HTTP(S) ref provider will be used.
   RefProvider _refProvider;
 
+  /// Asynchronous ref provider used to resolve remote references in a given [JsonSchema].
+  ///
+  /// Note: only one ref provider should be passed in, sync or async.
+  ///
+  /// If [isSync] is true and a synchronous ref provided is specified: the synchronous provider will be used.
+  /// If [isSync] is true and no ref provider is specified: remote refs in a schema will cause an error to be thrown.
+  /// If [isSync] is false and an async ref provider is specified : the async ref provider will be used.
+  /// If [isSync] is false and no ref provider is specified: the default HTTP(S) ref provider will be used.
   RefProviderAsync _refProviderAsync;
 
   /// Shared keywords across all versions of JSON Schema.
@@ -1139,9 +1158,14 @@ class JsonSchema {
 
     if (_ref.scheme.isNotEmpty) {
       // TODO: should we do something if the ref is a fragment?
-      final addSchemaFunction = (schema) {
-        _addSchemaToRefMap(_ref.toString(), schema);
-        return _addSchemaToRefMap(originalRef.toString(), schema);
+      final addSchemaFunction = (JsonSchema schema) {
+        if (schema != null) {
+          _addSchemaToRefMap(_ref.toString(), schema);
+          return _addSchemaToRefMap(originalRef.toString(), schema);
+        } else {
+          throw FormatExceptions.error(
+              'Couldn\'t resolve ref: ${_ref} using the ${_refProviderAsync != null ?  'provided' : 'default HTTP(S)' } ref provider.');
+        }
       };
 
       final AsyncRetrievalOperation asyncRefSchemaOperation = _refProviderAsync == null

@@ -85,7 +85,7 @@ void main([List<String> args]) {
 
   final runAllTestsForDraftX =
       (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
-          {bool isSync = false, RefProvider refProvider}) {
+          {bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
     String shortSchemaVersion = schemaVersion;
     if (schemaVersion == JsonSchemaVersions.draft4) {
       shortSchemaVersion = 'draft4';
@@ -123,7 +123,7 @@ void main([List<String> args]) {
                   expect(validationResult, expectedResult);
                 } else {
                   final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion).then((schema) {
+                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProviderAsync).then((schema) {
                     validationResult = schema.validate(instance);
                     checkResult();
                   });
@@ -136,6 +136,7 @@ void main([List<String> args]) {
     });
   };
 
+  // Mock Ref Provider for refRemote tests. Emulates what createSchemaFromUrl would return.
   final RefProvider syncRefProvider = (String ref) {
     switch (ref) {
       case 'http://localhost:1234/integer.json':
@@ -201,22 +202,31 @@ void main([List<String> args]) {
     }
   };
 
+  final RefProviderAsync asyncRefProvider = (String ref) async {
+    // Mock a delayed response.
+    await new Duration(milliseconds: 1);
+    return syncRefProvider(ref);
+  };
+
   final List<String> commonSkippedFiles = const [];
 
   final List<String> commonSkippedTests = const [];
 
-  final List<String> syncSkippedFiles = const [
-    // 'refRemote.json',
-  ];
-
-  final List<String> syncSkippedTests = const [];
-
+  // Run all tests asynchronously with no ref provider.
   runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
   runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, syncSkippedFiles, syncSkippedTests,
+
+  // Run all tests synchronously with a sync ref provider.
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, syncSkippedFiles, syncSkippedTests,
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
+
+  // Run all tests asynchronously with an async ref provider.
+  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
+      refProviderAsync: asyncRefProvider);
+  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
+      refProviderAsync: asyncRefProvider);
 
   group('Schema self validation', () {
     for (final version in JsonSchemaVersions.allVersions) {

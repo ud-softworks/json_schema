@@ -59,10 +59,16 @@ main(List<String> args) async {
   ];
 
   config.genTestRunner.configs = [
+    new TestRunnerConfig(directory: 'test/unit/browser', env: Environment.browser, filename: 'generated_runner_test'),
     new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
   ];
 
-  config.test.unitTests = const ['test/unit/vm/generated_runner_test.dart'];
+  config.test.platforms = ['vm', 'content-shell'];
+
+  config.test.unitTests = const [
+    'test/unit/browser/generated_runner_test.dart',
+    'test/unit/vm/generated_runner_test.dart',
+  ];
 
   await dev(args);
 }

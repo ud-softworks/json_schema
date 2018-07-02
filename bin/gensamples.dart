@@ -42,22 +42,22 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 
 main() {
-  var sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  var outPath = join(dirname(sourcePath), 'schemaout');
+  final sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
+  final outPath = join(dirname(sourcePath), 'schemaout');
   new Directory(sourcePath).listSync().forEach((jsonFile) {
-    var fname = jsonFile.path;
-    var base = basenameWithoutExtension(fname);
-    var dotFilename = join(outPath, '$base.dot');
-    var pngOut = join(outPath, '$base.png');
+    final fname = jsonFile.path;
+    final base = basenameWithoutExtension(fname);
+    final dotFilename = join(outPath, '$base.dot');
+    final pngOut = join(outPath, '$base.png');
 
-    Schema.createSchemaFromUrl(fname).then((schema) {
+    JsonSchema.createSchemaFromUrl(fname).then((schema) {
       new File(dotFilename).writeAsStringSync(createDot(schema));
     }).then((_) {
       Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
         if (processResult.exitCode == 0) {
-          print("Finished running dot -Tpng -o$pngOut $fname");
+          print('Finished running dot -Tpng -o$pngOut $fname');
         } else {
-          print("FAILED: running dot -Tpng -o$pngOut $fname");
+          print('FAILED: running dot -Tpng -o$pngOut $fname');
         }
       });
     });

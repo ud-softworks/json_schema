@@ -37,9 +37,9 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import "dart:convert" as convert;
-import "package:json_schema/json_schema.dart";
-import "package:logging/logging.dart";
+import 'dart:convert' as convert;
+import 'package:json_schema/json_schema.dart';
+import 'package:logging/logging.dart';
 
 main() {
   Logger.root.onRecord.listen((LogRecord rec) => print('${rec.level.name}: ${rec.time}: ${rec.message}'));
@@ -48,19 +48,19 @@ main() {
   //////////////////////////////////////////////////////////////////////
   // Pull in schema from web
   //////////////////////////////////////////////////////////////////////
-  String url = "http://json-schema.org/draft-04/schema";
-  Schema.createSchemaFromUrl(url).then((Schema schema) {
+  String url = 'http://json-schema.org/draft-04/schema';
+  JsonSchema.createSchemaFromUrl(url).then((JsonSchema schema) {
     // TODO: Figure out the redirect issues here
     //   if(false) {
     //     print('''Does schema validate itself?
     //       ${schema.validate(schema.schemaMap)}''');
     //   }
 
-    var validSchema = {"type": "integer"};
+    final validSchema = {'type': 'integer'};
     print('''Does schema validate valid schema $validSchema?
   ${schema.validate(validSchema)}''');
 
-    var invalidSchema = {"type": "nibble"};
+    final invalidSchema = {'type': 'nibble'};
     print('''Does schema validate invalid schema $invalidSchema?
   ${schema.validate(invalidSchema)}''');
   });
@@ -68,27 +68,27 @@ main() {
   //////////////////////////////////////////////////////////////////////
   // Pull in schema from file in current directory
   //////////////////////////////////////////////////////////////////////
-  url = "grades_schema.json";
-  Schema.createSchemaFromUrl(url).then((schema) {
-    var grades = convert.JSON.decode('''
+  url = 'grades_schema.json';
+  JsonSchema.createSchemaFromUrl(url).then((schema) {
+    final grades = convert.JSON.decode('''
 {
-    "semesters": [
+    'semesters': [
         {
-            "semester": 1,
-            "grades": [
+            'semester': 1,
+            'grades': [
                 {
-                    "type": "homework",
-                    "date": "09/27/2013",
-                    "grade": 100,
-                    "avg": 93,
-                    "std": 8
+                    'type': 'homework',
+                    'date': '09/27/2013',
+                    'grade': 100,
+                    'avg': 93,
+                    'std': 8
                 },
                 {
-                    "type": "homework",
-                    "date": "09/28/2013",
-                    "grade": 100,
-                    "avg": 60,
-                    "std": 25
+                    'type': 'homework',
+                    'date': '09/28/2013',
+                    'grade': 100,
+                    'avg': 60,
+                    'std': 25
                 }
             ]
         }

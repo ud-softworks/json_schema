@@ -53,8 +53,6 @@ import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
 
-// custom <additional imports>
-// end <additional imports>
 //! The parser for this script
 ArgParser _parser;
 //! The comment and usage associated with this script
@@ -76,7 +74,7 @@ the file, otherwise written to stdout.
 //! The result is a map containing all options, including positional options
 Map _parseArgs(List<String> args) {
   ArgResults argResults;
-  Map result = {};
+  final Map result = {};
 
   _parser = new ArgParser();
   try {
@@ -141,23 +139,22 @@ Select log level from:
 final _logger = new Logger('schemadot');
 
 main(List<String> args) {
-  Logger.root.onRecord.listen((LogRecord r) => print("${r.loggerName} [${r.level}]:\t${r.message}"));
+  Logger.root.onRecord.listen((LogRecord r) => print('${r.loggerName} [${r.level}]:\t${r.message}'));
   Logger.root.level = Level.OFF;
-  Map argResults = _parseArgs(args);
-  Map options = argResults['options'];
+  final Map argResults = _parseArgs(args);
+  final Map options = argResults['options'];
 
   try {
-    if (options["in-uri"] == null) throw new ArgumentError("option: in-uri is required");
+    if (options['in-uri'] == null) throw new ArgumentError('option: in-uri is required');
   } on ArgumentError catch (e) {
     print(e);
     _usage();
     exit(-1);
   }
-  // custom <schemadot main>
 
   Logger.root.level = Level.OFF;
-  Completer completer = new Completer();
-  Uri uri = Uri.parse(options['in-uri']);
+  final Completer completer = new Completer();
+  final Uri uri = Uri.parse(options['in-uri']);
   if (uri.scheme == 'http') {
     new HttpClient()
         .getUrl(uri)
@@ -167,16 +164,16 @@ main(List<String> args) {
       completer.complete(text);
     });
   } else {
-    File target = new File(uri.toString());
+    final File target = new File(uri.toString());
     if (target.existsSync()) {
       completer.complete(target.readAsStringSync());
     }
   }
 
   completer.future.then((schemaText) {
-    Future schema = Schema.createSchema(convert.JSON.decode(schemaText));
+    final Future schema = JsonSchema.createSchemaAsync(convert.JSON.decode(schemaText));
     schema.then((schema) {
-      String dot = createDot(schema);
+      final String dot = createDot(schema);
       if (options['out-file'] != null) {
         new File(options['out-file']).writeAsStringSync(dot);
       } else {
@@ -184,10 +181,4 @@ main(List<String> args) {
       }
     });
   });
-
-  // end <schemadot main>
 }
-
-// custom <schemadot global>
-
-// end <schemadot global>

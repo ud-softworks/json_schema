@@ -14,7 +14,7 @@
 ### Example 1  
 
     String url = "http://json-schema.org/draft-04/schema";
-    Schema.createSchemaFromUrl(url)
+    JsonSchema.createSchemaFromUrl(url)
       .then((schema) {
         print('Does schema validate itself? ${schema.validate(schema.schemaMap)}');
       });
@@ -33,7 +33,7 @@
   _example/from\_url/validate\_instance\_from\_url.dart_
 
       url = "grades_schema.json";
-      Schema.createSchemaFromUrl(url)
+      JsonSchema.createSchemaFromUrl(url)
         .then((schema) {
           var grades = JSON.parse('''
     {
@@ -84,7 +84,7 @@
       var decimals = 3.14;
       var str = 'hi';
     
-      Schema.createSchema(mustBeIntegerSchema)
+      JsonSchema.createSchema(mustBeIntegerSchema)
         .then((schema) {
           print('$n => ${schema.validate(n)}');
           print('$decimals => ${schema.validate(decimals)}');

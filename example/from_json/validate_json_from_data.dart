@@ -37,8 +37,8 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import "package:json_schema/json_schema.dart";
-import "package:logging/logging.dart";
+import 'package:json_schema/json_schema.dart';
+import 'package:logging/logging.dart';
 
 main() {
   Logger.root.onRecord.listen((LogRecord rec) => print('${rec.level.name}: ${rec.time}: ${rec.message}'));
@@ -47,13 +47,13 @@ main() {
   //////////////////////////////////////////////////////////////////////
   // Define schema in code
   //////////////////////////////////////////////////////////////////////
-  var mustBeIntegerSchema = {"type": "integer"};
+  final mustBeIntegerSchema = {'type': 'integer'};
 
-  var n = 3;
-  var decimals = 3.14;
-  var str = 'hi';
+  final n = 3;
+  final decimals = 3.14;
+  final str = 'hi';
 
-  Schema.createSchema(mustBeIntegerSchema).then((schema) {
+  JsonSchema.createSchemaAsync(mustBeIntegerSchema).then((schema) {
     print('$n => ${schema.validate(n)}');
     print('$decimals => ${schema.validate(decimals)}');
     print('$str => ${schema.validate(str)}');

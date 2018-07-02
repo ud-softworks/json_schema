@@ -123,7 +123,9 @@ void main([List<String> args]) {
                   expect(validationResult, expectedResult);
                 } else {
                   final checkResult = expectAsync0(() => expect(validationResult, expectedResult));
-                  JsonSchema.createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProviderAsync).then((schema) {
+                  JsonSchema
+                      .createSchemaAsync(schemaData, schemaVersion: schemaVersion, refProvider: refProviderAsync)
+                      .then((schema) {
                     validationResult = schema.validate(instance);
                     checkResult();
                   });

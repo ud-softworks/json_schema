@@ -190,7 +190,7 @@ class JsonSchema {
       }
       _path = '#';
       _addSchemaToRefMap('#', this);
-      _thisCompleter = new Completer();
+      _thisCompleter = new Completer<JsonSchema>();
     } else {
       _isSync = _root._isSync;
       _refProvider = _root._refProvider;
@@ -576,7 +576,7 @@ class JsonSchema {
   Map<String, String> _schemaRefs = {};
 
   /// Completer that fires when [this] [JsonSchema] has finished building.
-  Completer _thisCompleter = new Completer();
+  Completer<JsonSchema> _thisCompleter = new Completer<JsonSchema>();
 
   bool _isSync = false;
 

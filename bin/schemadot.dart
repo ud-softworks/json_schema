@@ -49,6 +49,7 @@ import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:io';
 import 'package:args/args.dart';
+import 'package:dart2_constant/convert.dart' as convert2;
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';
@@ -171,7 +172,7 @@ main(List<String> args) {
   }
 
   completer.future.then((schemaText) {
-    final Future schema = JsonSchema.createSchemaAsync(convert.JSON.decode(schemaText));
+    final Future schema = JsonSchema.createSchemaAsync(convert2.json.decode(schemaText));
     schema.then((schema) {
       final String dot = createDot(schema);
       if (options['out-file'] != null) {

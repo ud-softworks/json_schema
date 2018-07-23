@@ -37,7 +37,7 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'dart:convert' as convert;
+import 'package:dart2_constant/convert.dart' as convert;
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
@@ -70,7 +70,7 @@ main() {
   //////////////////////////////////////////////////////////////////////
   url = 'grades_schema.json';
   JsonSchema.createSchemaFromUrl(url).then((schema) {
-    final grades = convert.JSON.decode('''
+    final grades = convert.json.decode('''
 {
     'semesters': [
         {

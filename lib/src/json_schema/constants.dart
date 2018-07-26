@@ -35,7 +35,8 @@
 //     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
-import 'dart:convert';
+
+import 'package:dart2_constant/convert.dart';
 
 class JsonSchemaValidationRegexes {
   static RegExp email = new RegExp(r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
@@ -96,7 +97,7 @@ Map getJsonSchemaDefinitionByRef(String ref) {
 }
 
 class JsonSchemaDefinitions {
-  static Map draft4 = JSON.decode(r'''
+  static Map draft4 = json.decode(r'''
     {
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -248,7 +249,7 @@ class JsonSchemaDefinitions {
 }
     ''');
 
-  static Map draft6 = JSON.decode(r'''
+  static Map draft6 = json.decode(r'''
     {
     "$schema": "http://json-schema.org/draft-06/schema#",
     "$id": "http://json-schema.org/draft-06/schema#",

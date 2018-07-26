@@ -40,9 +40,10 @@
 library json_schema.json_schema;
 
 import 'dart:async';
-import 'dart:convert' as convert;
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:dart2_constant/convert.dart' as convert2;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as PATH;
 

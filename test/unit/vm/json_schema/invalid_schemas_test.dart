@@ -38,7 +38,7 @@
 
 library json_schema.test_invalid_schemas;
 
-import 'dart:convert' as convert;
+import 'package:dart2_constant/convert.dart' as convert2;
 import 'dart:io';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
@@ -59,7 +59,7 @@ void main([List<String> args]) {
     String shortName = path.basename(testEntry.path);
     group("Invalid schema: ${shortName}", () {
       if (testEntry is File) {
-        List tests = convert.JSON.decode((testEntry as File).readAsStringSync());
+        List tests = convert2.json.decode((testEntry as File).readAsStringSync());
         tests.forEach((testObject) {
           var schemaData = testObject["schema"];
           var description = testObject["description"];

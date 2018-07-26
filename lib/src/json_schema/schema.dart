@@ -113,15 +113,15 @@ class Schema {
         request.followRedirects = true;
         return request.close();
       }).then((HttpClientResponse response) {
-        return response.transform(new convert.Utf8Decoder()).join().then((schemaText) {
-          Map map = convert.JSON.decode(schemaText);
+        return response.transform(new Utf8Decoder()).join().then((schemaText) {
+          Map map = convert2.json.decode(schemaText);
           return createSchema(map);
         });
       });
     } else if (uri.scheme == 'file' || uri.scheme == '') {
       return new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl)
           .readAsString()
-          .then((text) => createSchema(convert.JSON.decode(text)));
+          .then((text) => createSchema(convert2.json.decode(text)));
     } else {
       throw new FormatException("Url schemd must be http, file, or empty: $schemaUrl");
     }

@@ -293,7 +293,7 @@ void main([List<String> args]) {
     });
   });
 
-  group('examples property', () { 
+  group('examples property', () {
     group('in draft4', () {
       test('should NOT be supported', () {
         final schema = JsonSchema.createSchema({
@@ -337,6 +337,5 @@ void main([List<String> args]) {
         expect(schema.examples[5], equals("And neither is this one"));
       });
     });
-
   });
 }

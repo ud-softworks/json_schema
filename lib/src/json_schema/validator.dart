@@ -74,20 +74,20 @@ class Validator {
 
   static bool _typeMatch(SchemaType type, JsonSchema schema, dynamic instance) {
     switch (type) {
-      case SchemaType.OBJECT:
+      case SchemaType.object:
         return instance is Map;
-      case SchemaType.STRING:
+      case SchemaType.string:
         return instance is String;
-      case SchemaType.INTEGER:
+      case SchemaType.integer:
         return instance is int ||
-      case SchemaType.NUMBER:
             (schema.schemaVersion == SchemaVersion.draft6 && instance is num && instance.remainder(1) == 0);
+      case SchemaType.number:
         return instance is num;
-      case SchemaType.ARRAY:
+      case SchemaType.array:
         return instance is List;
-      case SchemaType.BOOLEAN:
+      case SchemaType.boolean:
         return instance is bool;
-      case SchemaType.NULL:
+      case SchemaType.nullValue:
         return instance == null;
     }
     return false;

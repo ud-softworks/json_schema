@@ -39,21 +39,21 @@
 class SchemaType implements Comparable<SchemaType> {
   const SchemaType._(this.value);
 
-  static const SchemaType ARRAY = const SchemaType._(0);
+  static const SchemaType array = const SchemaType._(0);
 
-  static const SchemaType BOOLEAN = const SchemaType._(1);
+  static const SchemaType boolean = const SchemaType._(1);
 
-  static const SchemaType INTEGER = const SchemaType._(2);
+  static const SchemaType integer = const SchemaType._(2);
 
-  static const SchemaType NUMBER = const SchemaType._(3);
+  static const SchemaType number = const SchemaType._(3);
 
-  static const SchemaType NULL = const SchemaType._(4);
+  static const SchemaType nullValue = const SchemaType._(4);
 
-  static const SchemaType OBJECT = const SchemaType._(5);
+  static const SchemaType object = const SchemaType._(5);
 
-  static const SchemaType STRING = const SchemaType._(6);
+  static const SchemaType string = const SchemaType._(6);
 
-  static List<SchemaType> get values => const <SchemaType>[ARRAY, BOOLEAN, INTEGER, NUMBER, NULL, OBJECT, STRING];
+  static List<SchemaType> get values => const <SchemaType>[array, boolean, integer, number, nullValue, object, string];
 
   final int value;
 
@@ -68,19 +68,19 @@ class SchemaType implements Comparable<SchemaType> {
   @override
   String toString() {
     switch (this) {
-      case ARRAY:
+      case array:
         return 'array';
-      case BOOLEAN:
+      case boolean:
         return 'boolean';
-      case INTEGER:
+      case integer:
         return 'integer';
-      case NUMBER:
+      case number:
         return 'number';
-      case NULL:
+      case nullValue:
         return 'null';
-      case OBJECT:
+      case object:
         return 'object';
-      case STRING:
+      case string:
         return 'string';
     }
     return null;
@@ -90,19 +90,19 @@ class SchemaType implements Comparable<SchemaType> {
     if (s == null) return null;
     switch (s) {
       case 'array':
-        return ARRAY;
+        return array;
       case 'boolean':
-        return BOOLEAN;
+        return boolean;
       case 'integer':
-        return INTEGER;
+        return integer;
       case 'number':
-        return NUMBER;
+        return number;
       case 'null':
-        return NULL;
+        return nullValue;
       case 'object':
-        return OBJECT;
+        return object;
       case 'string':
-        return STRING;
+        return string;
       default:
         return null;
     }

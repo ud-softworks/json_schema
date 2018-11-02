@@ -1,28 +1,83 @@
-# Json Schema
+# JSON Schema
 
-  A *dart:io* dependent library for validating json instances against json schema (version Draft 04)
+  A *platform agnostic* (dart:html or dart:io) Dart library for validating JSON instances against JSON Schemas (multi-version support with latest of Draft 6).
 
 ![Build Status](https://travis-ci.org/workiva/json_schema.svg)
 
+## How To Create a Schema
+  
+### Synchronous Creation, no $refs (Default Behavior):
+  
+The simplest way to create a schema is to pass JSON data directly to `JsonSchema.createSchema` with a JSON `String`, or decoded JSON via Dart `Map` or `bool`.
+    
+    Note: Creating JsonSchemas synchronously implies access to all $refs within the root schema. If you don't have access to all this data at the time of the construction, see "Asynchronous Creation".
 
-# How To Validate
 
-  To validate instances against a schema first create the schema, then
-  call validate on it with an json instance. This can be done with an
-  url:
+#### Example (Synchronous, Self-Contained Schema)
 
-### Example 1  
+A schema can be created with a Map that is either hand-crafted, referneced from a JSON file, or *previously* fetched from the network or file system.
 
-    String url = "http://json-schema.org/draft-04/schema";
-    JsonSchema.createSchemaFromUrl(url)
-      .then((schema) {
-        print('Does schema validate itself? ${schema.validate(schema.schemaMap)}');
-      });
+  ```dart
+/// Define schema in a Dart [Map] or use a JSON [String].
+var mustBeIntegerSchemaMap = {
+"type" : "integer"
+};
 
-  In this example a schema is created from the url and its stored
-  contents are validated against itself. Since the referenced schema
-  is the schema for schemas and the instance is, of course, a schema,
-  the result prints true.
+// Create some examples to validate against the schema.
+var n = 3;
+var decimals = 3.14;
+var str = 'hi';
+
+// Construct the schema from the schema map or JSON string.
+final schema = JsonSchema.createSchema(mustBeIntegerSchema);
+
+print('$n => ${schema.validate(n)}'); // true
+print('$decimals => ${schema.validate(decimals)}'); // false
+print('$str => ${schema.validate(str)}'); // false
+  ```
+
+### Synchronous Creation, with locally cached $refs:
+
+If you want to create `JsonSchema`s synchronously, and you have $refs that cannot be resolved within the root schema, but you have a cache of those $ref'd schemas locally, you can write a `RefProvider` to get them during schema evaluation.
+
+### Asynchronous Creation, with remote HTTP $refs:
+
+If you have schemas that have nested $refs that are HTTP URIs that are publically accessible, you can use `Future<JsonSchema> JsonSchema.createSchemaAsync` and the references will be fetched as needed during evaluation. You can also use `JsonSchema.createSchemaFromUrl` if you want to fetch the root schema remotely as well.
+
+#### Example 1 (createSchemaAsync)
+
+```dart
+// TODO
+```
+
+#### Example 2 (createSchemaFromUrl)
+
+```dart
+String url = "http://json-schema.org/draft-04/schema";
+final schema = await JsonSchema.createSchemaFromUrl(url)
+print('Does schema validate itself? ${schema.validate(schema.schemaMap)}');
+```
+
+    In this example a schema is created from the url and its stored
+    contents are validated against itself. Since the referenced schema
+    is the schema for schemas and the instance is, of course, a schema,
+    the result prints true.
+
+### Asynchronous Creation, with custom remote $refs:
+
+If you have nested $refs that are either non-HTTP URIs or non-publically-accessible HTTP $refs, you can supply an `AsyncRefProvider` to `createSchemaAsync`, and 
+
+
+#### Example
+
+```dart
+// TODO
+```
+
+
+## How To Validate JSON againt a schema
+
+To validate instances against a `JsonSchema` first create the schema, then call validate on it with an json instance (Dart `Map` or JSON `String`). This can be done with an url:
 
 ### Example 2
   
@@ -67,36 +122,6 @@
   in the current directory and a valid instance is submitted for
   validation (in the string of the print statement). This example also
   prints true.
-
-### Example 3
-
-  A schema can be created with a Map that is either hand-crafted or
-  the result of a call to json parse.
-
-      //////////////////////////////////////////////////////////////////////
-      // Define schema in code
-      //////////////////////////////////////////////////////////////////////
-      var mustBeIntegerSchema = {
-        "type" : "integer"
-      };
-    
-      var n = 3;
-      var decimals = 3.14;
-      var str = 'hi';
-    
-      JsonSchema.createSchema(mustBeIntegerSchema)
-        .then((schema) {
-          print('$n => ${schema.validate(n)}');
-          print('$decimals => ${schema.validate(decimals)}');
-          print('$str => ${schema.validate(str)}');
-        });
-
-  This example creates a schema requiring the type be integer. It then
-  tests against three instances with the following results:
-
-    3 => true
-    3.14 => false
-    hi => false
 
 # How To Use Schema Information
 
@@ -168,8 +193,3 @@
   For more detailed image open link:
   <a href="https://raw.github.com/patefacio/json_schema/master/example/from_url/grades_schema.png"
   target="_blank">Grade example schema diagram</a>
-
-# TODOS
-  
-  * Add a remote ref test that does not require files vended from local host
-  * Add support for optional tests: format

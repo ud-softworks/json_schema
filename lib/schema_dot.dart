@@ -81,8 +81,8 @@ class SchemaNode {
 
   static dynamic schemaType(JsonSchema schema) {
     dynamic result;
-    final schemaTypeList = schema.typeList;
-    if (schemaTypeList == null) {
+    final typeList = schema.typeList;
+    if (typeList == null) {
       if (schema.oneOf.length > 0) {
         result = 'oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}';
       } else if (schema.anyOf.length > 0) {
@@ -101,7 +101,7 @@ class SchemaNode {
         result = '$schema';
       }
     } else {
-      result = schemaTypeList.length == 1 ? schemaTypeList[0] : schemaTypeList;
+      result = typeList.length == 1 ? typeList[0] : typeList;
     }
     if ((result is List) && result.length == 0) result = {};
     if (result == null) result = {};

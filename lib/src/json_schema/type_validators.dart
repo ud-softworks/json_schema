@@ -40,7 +40,7 @@ class TypeValidators {
     throw FormatExceptions.error('$key must be a non-empty string: $value');
   }
 
-  static List<SchemaType> schemaTypeList(String key, dynamic value) {
+  static List<SchemaType> typeList(String key, dynamic value) {
     var typeList;
     if (value is String) {
       typeList = [SchemaType.fromString(value)];

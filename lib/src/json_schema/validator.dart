@@ -135,7 +135,7 @@ class Validator {
   }
 
   void _typeValidation(JsonSchema schema, dynamic instance) {
-    final typeList = schema.schemaTypeList;
+    final typeList = schema.typeList;
     if (typeList != null && typeList.length > 0) {
       if (!typeList.any((type) => _typeMatch(type, schema, instance))) {
         _err('${schema.path}: type: wanted ${typeList} got $instance');
@@ -183,7 +183,6 @@ class Validator {
       instance.forEach((item) => _validate(singleSchema, item));
     } else {
       final items = schema.itemsList;
-      final additionalItems = schema.additionalItems;
 
       if (items != null) {
         final expected = items.length;

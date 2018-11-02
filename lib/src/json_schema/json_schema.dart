@@ -522,7 +522,7 @@ class JsonSchema {
   String _title;
 
   /// List of allowable types for the [JsonSchema].
-  List<SchemaType> _schemaTypeList;
+  List<SchemaType> _typeList;
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Fields
@@ -873,7 +873,10 @@ class JsonSchema {
   String get title => _title;
 
   /// List of allowable types for the [JsonSchema].
-  List<SchemaType> get schemaTypeList => _schemaTypeList;
+  List<SchemaType> get typeList => _typeList;
+
+  /// Single allowable type for the [JsonSchema].
+  SchemaType get type => _typeList.length == 1 ? _typeList.single : null;
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Getters
@@ -1232,7 +1235,7 @@ class JsonSchema {
   _setTitle(dynamic value) => _title = TypeValidators.string('title', value);
 
   /// Validate, calculate and set the value of the 'type' JSON Schema prop.
-  _setType(dynamic value) => _schemaTypeList = TypeValidators.schemaTypeList('type', value);
+  _setType(dynamic value) => _typeList = TypeValidators.typeList('type', value);
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Property Setters

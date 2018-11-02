@@ -969,9 +969,6 @@ class JsonSchema {
     }
   }
 
-  /// Returns paths of all paths
-  Set get paths => new Set.from(_schemaRefs.keys)..addAll(_refMap.keys);
-
   /// Whether a given property is required for the [JsonSchema] instance to be valid.
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 

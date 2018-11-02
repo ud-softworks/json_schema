@@ -314,6 +314,7 @@ class SchemaNode {
 }
 
 /// Return a dot specification for [schema]
+@Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 String createDot(JsonSchema schema) => '''
 digraph G {
   fontname = "Bitstream Vera Sans"

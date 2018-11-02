@@ -534,8 +534,11 @@ class JsonSchema {
   /// List of [JsonSchema] used to validate items of this schema.
   List<JsonSchema> _itemsList;
 
-  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
-  /* union bool | Map */ dynamic _additionalItems;
+  /// Whether additional items are allowed.
+  bool _additionalItemsBool;
+
+  /// [JsonSchema] additionalItmes should conform to.
+  JsonSchema _additionalItemsSchema;
 
   /// [JsonSchema] definition that at least one item must match to be valid.
   JsonSchema _contains;
@@ -882,8 +885,11 @@ class JsonSchema {
   /// Ordered list of [JsonSchema] which the value of the same index must conform to.
   List<JsonSchema> get itemsList => _itemsList;
 
-  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
-  /* union bool | Map */ dynamic get additionalItems => _additionalItems;
+  /// Whether additional items are allowed.
+  bool get additionalItemsBool => _additionalItemsBool;
+
+  /// JsonSchema additional items should conform to.
+  JsonSchema get additionalItemsSchema => _additionalItemsSchema;
 
   /// The maximum number of items allowed.
   int get maxItems => _maxItems;
@@ -1250,9 +1256,9 @@ class JsonSchema {
   /// Validate, calculate and set the value of the 'additionalItems' JSON Schema prop.
   _setAdditionalItems(dynamic value) {
     if (value is bool) {
-      _additionalItems = value;
+      _additionalItemsBool = value;
     } else if (value is Map) {
-      _makeSchema('$_path/additionalItems', value, (rhs) => _additionalItems = rhs);
+      _makeSchema('$_path/additionalItems', value, (rhs) => _additionalItemsSchema = rhs);
     } else {
       throw FormatExceptions.error('additionalItems must be boolean or object: $value');
     }

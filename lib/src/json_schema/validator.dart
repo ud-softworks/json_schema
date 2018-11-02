@@ -192,12 +192,12 @@ class Validator {
           assert(items[i] != null);
           _validate(items[i], instance[i]);
         }
-        if (additionalItems is JsonSchema) {
+        if (schema.additionalItemsSchema != null) {
           for (int i = end; i < actual; i++) {
-            _validate(additionalItems, instance[i]);
+            _validate(schema.additionalItemsSchema, instance[i]);
           }
-        } else if (additionalItems is bool) {
-          if (!additionalItems && actual > end) {
+        } else if (schema.additionalItemsBool != null) {
+          if (!schema.additionalItemsBool && actual > end) {
             _err('${schema.path}: additionalItems false');
           }
         }

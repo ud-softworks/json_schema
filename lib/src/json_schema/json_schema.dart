@@ -728,6 +728,9 @@ class JsonSchema {
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool get schemaBool => _schemaBool;
 
+  /// JSON string represenatation of the schema.
+  String toJson() => json.encode(_schemaMap ?? _schemaBool);
+
   /// JSON Schema version used.
   ///
   /// Note: Only one version can be used for a nested [JsonScehema] object.

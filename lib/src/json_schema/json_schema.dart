@@ -106,7 +106,7 @@ class JsonSchema {
   /// If you want to create a [JsonSchema] synchronously, use [createSchema]. Note that for
   /// [createSchema] remote reference fetching is not supported.
   ///
-  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec), 
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec),
   /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
   static Future<JsonSchema> createSchemaAsync(dynamic schema,
       {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
@@ -147,7 +147,7 @@ class JsonSchema {
   /// This method is synchronous, and doesn't support fetching of remote references, properties, and sub-properties of the
   /// schema. If you need remote reference support use [createSchemaAsync].
   ///
-  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec), 
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec),
   /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
   static JsonSchema createSchema(dynamic schema,
       {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
@@ -1240,8 +1240,8 @@ class JsonSchema {
 
   /// Validate, calculate and set items of the 'pattern' JSON Schema prop that are also [JsonSchema]s.
   _setItems(dynamic value) {
-      _makeSchema('$_path/items', value, (rhs) => _items = rhs);
     if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
+      _makeSchema('$_path/items', value, (rhs) => _items = rhs);
     } else if (value is List) {
       int index = 0;
       _itemsList = new List(value.length);

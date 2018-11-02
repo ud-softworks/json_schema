@@ -973,7 +973,7 @@ class JsonSchema {
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 
   /// Validate [instance] against this schema
-  bool validate(dynamic instance) => new Validator(this).validate(instance);
+  bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) => new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
   // --------------------------------------------------------------------------
   // JSON Schema Internal Operations

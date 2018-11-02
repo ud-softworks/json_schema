@@ -37,6 +37,7 @@
 //     THE SOFTWARE.
 
 import 'dart:math';
+import 'package:dart2_constant/convert.dart';
 
 import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
@@ -51,14 +52,23 @@ class Validator {
   List<String> get errors => _errors;
 
   /// Validate the [instance] against the this validator's schema
-  bool validate(dynamic instance, [bool reportMultipleErrors = false]) {
+  bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) {
     // _logger.info('Validating ${instance.runtimeType}:$instance on ${_rootSchema}'); TODO: re-add logger
+
+    dynamic data = instance;
+    if (parseJson && instance is String) {
+      try {
+        data = json.decode(instance);
+      } catch (e) {
+        throw new ArgumentError('JSON instance provided to validate is not valid JSON.');
+      }
+    }
 
     _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
     if (!_reportMultipleErrors) {
       try {
-        _validate(_rootSchema, instance);
+        _validate(_rootSchema, data);
         return true;
       } on FormatException {
         return false;
@@ -68,7 +78,7 @@ class Validator {
       }
     }
 
-    _validate(_rootSchema, instance);
+    _validate(_rootSchema, data);
     return _errors.length == 0;
   }
 

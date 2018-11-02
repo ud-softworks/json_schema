@@ -40,10 +40,11 @@ import 'dart:async';
 
 import 'package:w_transport/w_transport.dart';
 
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 
-Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {String schemaVersion}) async {
+Future<JsonSchema> createSchemaFromUrlBrowser(String schemaUrl, {SchemaVersion schemaVersion}) async {
   final uriWithFrag = Uri.parse(schemaUrl);
   var uri = uriWithFrag.removeFragment();
   if (schemaUrl.endsWith('#')) {

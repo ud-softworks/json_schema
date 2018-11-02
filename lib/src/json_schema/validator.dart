@@ -80,8 +80,8 @@ class Validator {
         return instance is String;
       case SchemaType.INTEGER:
         return instance is int ||
-            (schema.schemaVersion == JsonSchemaVersions.draft6 && instance is num && instance.remainder(1) == 0);
       case SchemaType.NUMBER:
+            (schema.schemaVersion == SchemaVersion.draft6 && instance is num && instance.remainder(1) == 0);
         return instance is num;
       case SchemaType.ARRAY:
         return instance is List;
@@ -289,7 +289,7 @@ class Validator {
         break;
       case 'uri-reference':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriReferenceValidator ?? (_) => false;
 
@@ -300,7 +300,7 @@ class Validator {
         break;
       case 'uri-template':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriTemplateValidator ?? (_) => false;
 
@@ -341,7 +341,7 @@ class Validator {
         break;
       case 'json-pointer':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           if (JsonSchemaValidationRegexes.jsonPointer.firstMatch(instance) == null) {
             _err('json-pointer" format not accepted $instance');

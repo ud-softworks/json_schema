@@ -77,7 +77,7 @@ class JsonSchema {
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion,
+  JsonSchema._fromRootMap(this._schemaMap, SchemaVersion schemaVersion,
       {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
     _initialize(
         schemaVersion: schemaVersion,
@@ -87,7 +87,7 @@ class JsonSchema {
         refProviderAsync: refProviderAsync);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion,
+  JsonSchema._fromRootBool(this._schemaBool, SchemaVersion schemaVersion,
       {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
     _initialize(
         schemaVersion: schemaVersion,
@@ -106,8 +106,8 @@ class JsonSchema {
   /// [createSchema] remote references are not supported.
   ///
   /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchemaAsync(dynamic data,
-      {String schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+  static Future<JsonSchema> createSchemaAsync(dynamic schema,
+      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -118,7 +118,7 @@ class JsonSchema {
           .future;
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+    } else if (data is bool && version == SchemaVersion.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
           ._thisCompleter
@@ -144,7 +144,7 @@ class JsonSchema {
           .resolvePath('#');
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+    } else if (data is bool && version == SchemaVersion.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
@@ -166,7 +166,7 @@ class JsonSchema {
 
   /// Construct and validate a JsonSchema.
   _initialize(
-      {String schemaVersion,
+      {SchemaVersion schemaVersion,
       Uri fetchedFromUri,
       bool isSync = false,
       RefProvider refProvider,
@@ -218,7 +218,7 @@ class JsonSchema {
   void _validateAndSetIndividualProperties() {
     var accessMap;
     // Set the access map based on features used in the currently set version.
-    if (_root.schemaVersion == JsonSchemaVersions.draft4) {
+    if (_root.schemaVersion == SchemaVersion.draft4) {
       accessMap = _accessMapV4;
     } else {
       accessMap = _accessMapV6;
@@ -256,7 +256,7 @@ class JsonSchema {
     _validateAndSetIndividualProperties();
 
     // Interdependent properties were removed in draft6.
-    if (schemaVersion == JsonSchemaVersions.draft4) {
+    if (schemaVersion == SchemaVersion.draft4) {
       _validateInterdependentProperties();
     }
   }
@@ -270,7 +270,7 @@ class JsonSchema {
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
         // check if the ref is actually a standard schema definition, resolve it locally.
-        if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
+        if (SchemaVersion.fromString(retrievalRequest.schemaUri.toString()) != null) {
           final definitionRef = retrievalRequest.schemaUri.toString();
           localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(definitionRef));
           _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
@@ -383,7 +383,7 @@ class JsonSchema {
       return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (schemaDefinition is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    } else if (schemaDefinition is bool && schemaVersion == SchemaVersion.draft6) {
       return new JsonSchema._fromBool(_root, schemaDefinition, path, parent: this);
     }
     throw new ArgumentError(
@@ -407,7 +407,7 @@ class JsonSchema {
   bool _schemaBool;
 
   /// JSON Schema version string.
-  String _schemaVersion;
+  SchemaVersion _schemaVersion;
 
   /// Remote [Uri] the [JsonSchema] was fetched from, if any.
   Uri _fetchedFromUri;
@@ -700,8 +700,8 @@ class JsonSchema {
   /// JSON Schema version used.
   ///
   /// Note: Only one version can be used for a nested [JsonScehema] object.
-  /// Default: [JsonSchemaVersions.draft6]
-  String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
+  /// Default: [SchemaVersion.draft6]
+  SchemaVersion get schemaVersion => _root._schemaVersion ?? SchemaVersion.draft6;
 
   /// Base [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get _uriBase => _idBase ?? _fetchedFromUriBase;
@@ -752,7 +752,7 @@ class JsonSchema {
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
   num get exclusiveMaximum {
     // If we're on draft6, the property contains the value, return it.
-    if (schemaVersion == JsonSchemaVersions.draft6) {
+    if (schemaVersion == SchemaVersion.draft6) {
       return _exclusiveMaximumV6;
 
       // If we're on draft4, the property is a bool, so return the max instead.
@@ -770,7 +770,7 @@ class JsonSchema {
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
   num get exclusiveMinimum {
     // If we're on draft6, the property contains the value, return it.
-    if (schemaVersion == JsonSchemaVersions.draft6) {
+    if (schemaVersion == SchemaVersion.draft6) {
       return _exclusiveMinimumV6;
 
       // If we're on draft4, the property is a bool, so return the min instead.
@@ -983,7 +983,7 @@ class JsonSchema {
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
     var throwError;
 
-    if (schema is bool && schemaVersion != JsonSchemaVersions.draft6)
+    if (schema is bool && schemaVersion != SchemaVersion.draft6)
       throwError = () => throw FormatExceptions.schema(path, schema);
     if (schema is! Map && schema is! bool) throwError = () => throw FormatExceptions.schema(path, schema);
 
@@ -1109,7 +1109,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'not' JSON Schema prop.
   _setNot(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
       _makeSchema('$_path/not', value, (rhs) => _notSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
@@ -1124,7 +1124,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
   _setPropertyNames(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
       _makeSchema('$_path/propertyNames', value, (rhs) => _propertyNamesSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
@@ -1185,13 +1185,13 @@ class JsonSchema {
   /// Dertermine which schema version to use.
   ///
   /// Note: Uses the user specified version first, then the version set on the schema JSON, then the default.
-  static _getSchemaVersion(String userSchemaVersion, dynamic schema) {
+  static SchemaVersion _getSchemaVersion(SchemaVersion userSchemaVersion, dynamic schema) {
     if (userSchemaVersion != null) {
-      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', userSchemaVersion);
+      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', userSchemaVersion.toString());
     } else if (schema is Map && schema[r'$schema'] is String) {
       return TypeValidators.jsonSchemaVersion4Or6(r'$schema', schema[r'$schema']);
     }
-    return JsonSchemaVersions.draft6;
+    return SchemaVersion.draft6;
   }
 
   /// Validate, calculate and set the value of the 'title' JSON Schema prop.
@@ -1206,8 +1206,8 @@ class JsonSchema {
 
   /// Validate, calculate and set items of the 'pattern' JSON Schema prop that are also [JsonSchema]s.
   _setItems(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
       _makeSchema('$_path/items', value, (rhs) => _items = rhs);
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
     } else if (value is List) {
       int index = 0;
       _itemsList = new List(value.length);
@@ -1263,11 +1263,11 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'dependencies' JSON Schema prop.
   _setDependencies(dynamic value) => (TypeValidators.object('dependencies', value)).forEach((k, v) {
-        if (v is Map || v is bool && schemaVersion == JsonSchemaVersions.draft6) {
+        if (v is Map || v is bool && schemaVersion == SchemaVersion.draft6) {
           _makeSchema('$_path/dependencies/$k', v, (rhs) => _schemaDependencies[k] = rhs);
         } else if (v is List) {
           // Dependencies must have contents in draft4, but can be empty in draft6 and later
-          if (schemaVersion == JsonSchemaVersions.draft4) {
+          if (schemaVersion == SchemaVersion.draft4) {
             if (v.length == 0) throw FormatExceptions.error('property dependencies must be non-empty array');
           }
 

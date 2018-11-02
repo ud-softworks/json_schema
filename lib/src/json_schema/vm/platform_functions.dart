@@ -41,10 +41,12 @@ import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:dart2_constant/convert.dart' as convert2;
+
+import 'package:json_schema/src/json_schema/constants.dart';
 import 'package:json_schema/src/json_schema/json_schema.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 
-Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {String schemaVersion}) async {
+Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {SchemaVersion schemaVersion}) async {
   final uriWithFrag = Uri.parse(schemaUrl);
   final uri = schemaUrl.endsWith('#') ? uriWithFrag : uriWithFrag.removeFragment();
   Map schemaMap;

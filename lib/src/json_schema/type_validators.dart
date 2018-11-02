@@ -84,10 +84,11 @@ class TypeValidators {
     throw FormatExceptions.object(key, value);
   }
 
-  static String jsonSchemaVersion4Or6(String key, dynamic value) {
+  static SchemaVersion jsonSchemaVersion4Or6(String key, dynamic value) {
     string(key, value);
-    if (JsonSchemaVersions.allVersions.contains(value)) {
-      return value;
+    final schemaVersion = SchemaVersion.fromString(value);
+    if (schemaVersion != null) {
+      return schemaVersion;
     }
     throw FormatExceptions.error('Only draft 4 and draft 6 schemas supported');
   }

@@ -84,12 +84,12 @@ void main([List<String> args]) {
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
-      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
+      (SchemaVersion schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
           {bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
-    String shortSchemaVersion = schemaVersion;
-    if (schemaVersion == JsonSchemaVersions.draft4) {
+    String shortSchemaVersion = schemaVersion.toString();
+    if (schemaVersion == SchemaVersion.draft4) {
       shortSchemaVersion = 'draft4';
-    } else if (schemaVersion == JsonSchemaVersions.draft6) {
+    } else if (schemaVersion == SchemaVersion.draft6) {
       shortSchemaVersion = 'draft6';
     }
 
@@ -215,23 +215,23 @@ void main([List<String> args]) {
   final List<String> commonSkippedTests = const [];
 
   // Run all tests asynchronously with no ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
 
   // Run all tests synchronously with a sync ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
 
   // Run all tests asynchronously with an async ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
       refProviderAsync: asyncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
       refProviderAsync: asyncRefProvider);
 
   group('Schema self validation', () {
-    for (final version in JsonSchemaVersions.allVersions) {
+    for (final version in SchemaVersion.values.map((value) => value.toString())) {
       test('version: $version', () {
         // Pull in the official schema, verify description and then ensure
         // that the schema satisfies the schema for schemas.

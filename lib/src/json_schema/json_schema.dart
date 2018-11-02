@@ -928,16 +928,16 @@ class JsonSchema {
   /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
   Map<RegExp, JsonSchema> get patternProperties => _patternProperties;
 
-  /// TODO: write an informative comment for this.
+  /// Map of property dependencies by property name.
   Map<String, List<String>> get propertyDependencies => _propertyDependencies;
 
-  /// Map of sub-properties' [JsonSchema] by path. TODO: this might be inaccurate.
+  /// Map of sub-properties' [JsonSchema] by path.
   Map<String, JsonSchema> get refMap => _refMap;
 
   /// Properties that must be inclueded for the [JsonSchema] to be valid.
   List<String> get requiredProperties => _requiredProperties;
 
-  /// TODO: write an informative comment for this.
+  /// Map of schema dependencies by property name.
   Map<String, JsonSchema> get schemaDependencies => _schemaDependencies;
 
   // --------------------------------------------------------------------------

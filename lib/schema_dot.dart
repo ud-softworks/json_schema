@@ -42,6 +42,8 @@ library json_schema.schema_dot;
 import 'package:json_schema/json_schema.dart';
 
 /// Represents one node in the schema diagram
+///
+@Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 class SchemaNode {
   /// Referenced schema this node portrays
   JsonSchema schema;

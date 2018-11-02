@@ -28,8 +28,8 @@ json_schema 2.0 is here, and is packed with useful updates! We've tried to minim
     - If you were using `createSchema` to evaluate schema which have remote references, but you can cache all the remote references locally, you can use the optional `RefProvider` to allow sync resolution of those.
 
 - Platforms
- - dart:io Users: A single call to `configureBrowserForVm()` is required if using `createSchemaAsync`.
-  - dart:html Users: A single call to `configureBrowserForBrowser()` is required if using `createSchemaAsync`.
+  - dart:io Users: A single call to `configureBrowserForVm()` is required before using `createSchemaAsync`.
+  - dart:html Users: A single call to `configureBrowserForBrowser()` is required before using `createSchemaAsync`.
 
 - Removal of Custom Validation Logic
     - `set uriValidator` and `set emailValidator` have been removed and replaced with spec-supplied logical constraints.
@@ -40,7 +40,7 @@ json_schema 2.0 is here, and is packed with useful updates! We've tried to minim
   `bool get exclusiveMaximum` --> `num get exclusiveMaximum`. The old boolean values are available under `bool get hasExclusiveMinimum` and `bool get hasExclusiveMaximum`, while the new values contain the actual value of the min / max. This is consistent with how the spec was changes, see the release notes: https://json-schema.org/draft-06/json-schema-release-notes.html
 
 - `String get ref` --> `Uri get ref`
-  - Since the spec specifies that $refs MUST be a URI, we've given them some additional type safety .(https://tools.ietf.org/html/draft-wright-json-schema-01#section-8).
+  - Since the spec specifies that $refs MUST be a URI, we've given refs some additional type safety.(https://tools.ietf.org/html/draft-wright-json-schema-01#section-8).
 
 ## Notable Deprecations
 

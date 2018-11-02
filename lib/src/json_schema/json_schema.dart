@@ -37,6 +37,7 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
+import 'package:dart2_constant/convert.dart';
 
 import 'package:path/path.dart' as path_lib;
 
@@ -103,11 +104,24 @@ class JsonSchema {
   /// properties, and sub-properties of the root schema.
   ///
   /// If you want to create a [JsonSchema] synchronously, use [createSchema]. Note that for
-  /// [createSchema] remote references are not supported.
+  /// [createSchema] remote reference fetching is not supported.
   ///
-  /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec), 
+  /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
   static Future<JsonSchema> createSchemaAsync(dynamic schema,
       {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+    // Default to assuming the schema is already a decoded, primitive dart object.
+    dynamic data = schema;
+
+    /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    if (schema is String) {
+      try {
+        data = json.decode(schema);
+      } catch (e) {
+        throw new ArgumentError('String data provided to createSchemaAsync is not valid JSON.');
+      }
+    }
+
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -125,16 +139,30 @@ class JsonSchema {
           .future;
     }
     throw new ArgumentError(
-        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+        'Data provided to createSchemaAsync is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from JSON [data].
   ///
-  /// This method is synchronous, and doesn't support remote references, properties, and sub-properties of the root
+  /// This method is synchronous, and doesn't support fetching of remote references, properties, and sub-properties of the
   /// schema. If you need remote reference support use [createSchemaAsync].
   ///
-  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String].
-  static JsonSchema createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec), 
+  /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
+  static JsonSchema createSchema(dynamic schema,
+      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
+    // Default to assuming the schema is already a decoded, primitive dart object.
+    dynamic data = schema;
+
+    /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    if (schema is String) {
+      try {
+        data = json.decode(schema);
+      } catch (e) {
+        throw new ArgumentError('String data provided to createSchema is not valid JSON.');
+      }
+    }
+
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -150,14 +178,14 @@ class JsonSchema {
           .resolvePath('#');
     }
     throw new ArgumentError(
-        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+        'Data provided to createSchemaAsync is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from a URL.
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
-  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {String schemaVersion}) {
+  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {SchemaVersion schemaVersion}) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
     }

@@ -467,6 +467,9 @@ class JsonSchema {
   /// Possible values of the [JsonSchema].
   List _enumValues = [];
 
+  /// Example values for the given schema.
+  List _examples = [];
+
   /// Whether the maximum of the [JsonSchema] is exclusive.
   bool _exclusiveMaximum;
 
@@ -685,6 +688,7 @@ class JsonSchema {
       // Added in draft6
       'const': (JsonSchema s, dynamic v) => s._setConst(v),
       'contains': (JsonSchema s, dynamic v) => s._setContains(v),
+      'examples': (JsonSchema s, dynamic v) => s._setExamples(v),
       'propertyNames': (JsonSchema s, dynamic v) => s._setPropertyNames(v),
       // changed (imcompatible) in draft6
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
@@ -1269,6 +1273,9 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'contains' JSON Schema prop.
   _setContains(dynamic value) => _makeSchema('$_path/contains', value, (rhs) => _contains = rhs);
+
+  /// Validate, calculate and set the value of the 'examples' JSOM Schema prop.
+  _setExamples(dynamic value) => _examples = TypeValidators.list('examples', value);
 
   /// Validate, calculate and set the value of the 'maxItems' JSON Schema prop.
   _setMaxItems(dynamic value) => _maxItems = TypeValidators.nonNegativeInt('maxItems', value);

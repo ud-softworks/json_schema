@@ -50,12 +50,6 @@ main() {
   //////////////////////////////////////////////////////////////////////
   String url = 'http://json-schema.org/draft-04/schema';
   JsonSchema.createSchemaFromUrl(url).then((JsonSchema schema) {
-    // TODO: Figure out the redirect issues here
-    //   if(false) {
-    //     print('''Does schema validate itself?
-    //       ${schema.validate(schema.schemaMap)}''');
-    //   }
-
     final validSchema = {'type': 'integer'};
     print('''Does schema validate valid schema $validSchema?
   ${schema.validate(validSchema)}''');

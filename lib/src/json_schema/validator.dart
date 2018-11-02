@@ -355,7 +355,7 @@ class Validator {
   }
 
   void _objectPropertyValidation(JsonSchema schema, Map instance) {
-    final propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
+    final propMustValidate = schema.additionalPropertiesBool != null && !schema.additionalPropertiesBool;
 
     instance.forEach((k, v) {
       // Validate property names against the provided schema, if any.

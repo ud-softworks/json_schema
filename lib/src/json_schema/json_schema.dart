@@ -914,7 +914,7 @@ class JsonSchema {
   JsonSchema get propertyNamesSchema => _propertyNamesSchema;
 
   /// Whether additional properties, other than those specified, are allowed.
-  bool get additionalProperties => _additionalProperties;
+  bool get additionalPropertiesBool => _additionalProperties;
 
   /// [JsonSchema] that additional properties must conform to.
   JsonSchema get additionalPropertiesSchema => _additionalPropertiesSchema;

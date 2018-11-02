@@ -114,6 +114,7 @@ class JsonSchema {
     dynamic data = schema;
 
     /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.4.3.1
     if (schema is String) {
       try {
         data = json.decode(schema);
@@ -155,6 +156,7 @@ class JsonSchema {
     dynamic data = schema;
 
     /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.4.3.1
     if (schema is String) {
       try {
         data = json.decode(schema);
@@ -540,7 +542,7 @@ class JsonSchema {
   /// Whether additional items are allowed.
   bool _additionalItemsBool;
 
-  /// [JsonSchema] additionalItmes should conform to.
+  /// [JsonSchema] additionalItems should conform to.
   JsonSchema _additionalItemsSchema;
 
   /// [JsonSchema] definition that at least one item must match to be valid.
@@ -770,21 +772,33 @@ class JsonSchema {
   }
 
   /// Whether or not const is set, we need this since const can be null and valid.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.24
   bool get hasConst => _hasConst;
 
   /// Const value of the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.24
   dynamic get constValue => _constValue;
 
   /// Default value of the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.3
   dynamic get defaultValue => _defaultValue;
 
   /// Included [JsonSchema] definitions.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.1
   Map<String, JsonSchema> get definitions => _definitions;
 
   /// Description of the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.2
   String get description => _description;
 
   /// Possible values of the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.23
   List get enumValues => _enumValues;
 
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
@@ -841,48 +855,74 @@ class JsonSchema {
   }
 
   /// Maximum value of the [JsonSchema] value.
+  /// 
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.2
   num get maximum => _maximum;
 
   /// Minimum value of the [JsonSchema] value.
+  /// 
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.4
   num get minimum => _minimum;
 
   /// Maximum length of the [JsonSchema] value.
+  /// 
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.6
   int get maxLength => _maxLength;
 
   /// Minimum length of the [JsonSchema] value.
+  /// 
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.7
   int get minLength => _minLength;
 
   /// The number which the value of the [JsonSchema] must be a multiple of.
+  /// 
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.1
   num get multipleOf => _multipleOf;
 
   /// The path of the [JsonSchema] within the root [JsonSchema].
   String get path => _path;
 
   /// The regular expression the [JsonSchema] value must conform to.
+  /// 
+  /// Refernce: 
   RegExp get pattern => _pattern;
 
   /// A [List<JsonSchema>] which the value must conform to all of.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.26
   List<JsonSchema> get allOf => _allOf;
 
   /// A [List<JsonSchema>] which the value must conform to at least one of.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.27
   List<JsonSchema> get anyOf => _anyOf;
 
   /// A [List<JsonSchema>] which the value must conform to at least one of.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.28
   List<JsonSchema> get oneOf => _oneOf;
 
   /// A [JsonSchema] which the value must NOT be.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.29
   JsonSchema get notSchema => _notSchema;
 
   /// Ref to the URI of the [JsonSchema].
   Uri get ref => _ref;
 
   /// Title of the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.2
   String get title => _title;
 
   /// List of allowable types for the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.25
   List<SchemaType> get typeList => _typeList;
 
   /// Single allowable type for the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.25
   SchemaType get type => _typeList.length == 1 ? _typeList.single : null;
 
   // --------------------------------------------------------------------------
@@ -890,24 +930,43 @@ class JsonSchema {
   // --------------------------------------------------------------------------
 
   /// Single [JsonSchema] sub items of this [JsonSchema] must conform to.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.9
   JsonSchema get items => _items;
 
   /// Ordered list of [JsonSchema] which the value of the same index must conform to.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.9
   List<JsonSchema> get itemsList => _itemsList;
 
   /// Whether additional items are allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.10
   bool get additionalItemsBool => _additionalItemsBool;
 
   /// JsonSchema additional items should conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.10
   JsonSchema get additionalItemsSchema => _additionalItemsSchema;
 
+  /// List of example instances for the [JsonSchema].
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.4
+  List get examples => defaultValue != null ? ([]..addAll(_examples)..add(defaultValue)) : _examples;
+
   /// The maximum number of items allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.11
   int get maxItems => _maxItems;
 
   /// The minimum number of items allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.12
   int get minItems => _minItems;
 
   /// Whether the items in the list must be unique.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.13
   bool get uniqueItems => _uniqueItems;
 
   // --------------------------------------------------------------------------
@@ -915,30 +974,48 @@ class JsonSchema {
   // --------------------------------------------------------------------------
 
   /// Map of [JsonSchema]s for properties, by [String] key.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.18
   Map<String, JsonSchema> get properties => _properties;
 
   /// [JsonSchema] that property names must conform to.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.22
   JsonSchema get propertyNamesSchema => _propertyNamesSchema;
 
   /// Whether additional properties, other than those specified, are allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.20
   bool get additionalPropertiesBool => _additionalProperties;
 
   /// [JsonSchema] that additional properties must conform to.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.20
   JsonSchema get additionalPropertiesSchema => _additionalPropertiesSchema;
 
   /// [JsonSchema] definition that at least one item must match to be valid.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.14
   JsonSchema get contains => _contains;
 
   /// The maximum number of properties allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.15
   int get maxProperties => _maxProperties;
 
   /// The minimum number of properties allowed.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.16
   int get minProperties => _minProperties;
 
   /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.19
   Map<RegExp, JsonSchema> get patternProperties => _patternProperties;
 
   /// Map of property dependencies by property name.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.21
   Map<String, List<String>> get propertyDependencies => _propertyDependencies;
 
   /// Map of sub-properties' and references' [JsonSchema]s by path.
@@ -956,16 +1033,20 @@ This functionality will be removed in 3.0.
   Map<String, JsonSchema> get refMap => _refMap;
 
   /// Properties that must be inclueded for the [JsonSchema] to be valid.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.17
   List<String> get requiredProperties => _requiredProperties;
 
   /// Map of schema dependencies by property name.
+  /// 
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.21
   Map<String, JsonSchema> get schemaDependencies => _schemaDependencies;
 
   // --------------------------------------------------------------------------
   // Convenience Methods
   // --------------------------------------------------------------------------
 
-  /// Given path, follow all references to an end path pointing to [JsonSchema].
+  /// Given a path within the schema, follow all references to an end path pointing to a [JsonSchema].
   String endPath(String path) {
     _pathsEncountered.clear();
     return _endPath(path);

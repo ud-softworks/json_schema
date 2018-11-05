@@ -1371,7 +1371,7 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set the value of the 'contains' JSON Schema prop.
   _setContains(dynamic value) => _makeSchema('$_path/contains', value, (rhs) => _contains = rhs);
 
-  /// Validate, calculate and set the value of the 'examples' JSOM Schema prop.
+  /// Validate, calculate and set the value of the 'examples' JSON Schema prop.
   _setExamples(dynamic value) => _examples = TypeValidators.list('examples', value);
 
   /// Validate, calculate and set the value of the 'maxItems' JSON Schema prop.

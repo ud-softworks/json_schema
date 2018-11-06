@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -37,32 +38,41 @@
 //     THE SOFTWARE.
 
 import 'dart:io';
-import 'package:path/path.dart';
-import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/vm.dart';
-import 'package:json_schema/schema_dot.dart';
 
-main() {
+import 'package:json_schema/json_schema.dart';
+
+// For VM:
+import 'package:json_schema/vm.dart';
+
+// For Browser:
+// import 'package:json_schema/browser.dart';
+
+main() async {
+  // For VM:
   configureJsonSchemaForVm();
 
-  final sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  final outPath = join(dirname(sourcePath), 'schemaout');
-  new Directory(sourcePath).listSync().forEach((jsonFile) {
-    final fname = jsonFile.path;
-    final base = basenameWithoutExtension(fname);
-    final dotFilename = join(outPath, '$base.dot');
-    final pngOut = join(outPath, '$base.png');
+  // For Browser:
+  // configureJsonSchemaForBrowser();
 
-    JsonSchema.createSchemaFromUrl(fname).then((schema) {
-      new File(dotFilename).writeAsStringSync(createDot(schema));
-    }).then((_) {
-      Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
-        if (processResult.exitCode == 0) {
-          print('Finished running dot -Tpng -o$pngOut $fname');
-        } else {
-          print('FAILED: running dot -Tpng -o$pngOut $fname');
-        }
-      });
-    });
-  });
+  // Schema Defined as a JSON String
+  final schema = await JsonSchema.createSchemaAsync(r'''
+  {
+    "type": "array",
+    "items": {
+      "$ref": "https://raw.githubusercontent.com/json-schema-org/JSON-Schema-Test-Suite/master/remotes/integer.json"
+    }
+  }
+  ''');
+
+  // Create some examples to validate against the schema.
+  final numbersArray = [1, 2, 3];
+  final decimalsArray = [3.14, 1.2, 5.8];
+  final strArray = ['hello', 'world'];
+
+  print('$numbersArray => ${schema.validate(numbersArray)}'); // true
+  print('$decimalsArray => ${schema.validate(decimalsArray)}'); // false
+  print('$strArray => ${schema.validate(strArray)}'); // false
+
+  // Exit the process cleanly (VM Only).
+  exit(0);
 }

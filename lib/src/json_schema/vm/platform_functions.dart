@@ -50,7 +50,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {SchemaVersion schema
   final uriWithFrag = Uri.parse(schemaUrl);
   final uri = schemaUrl.endsWith('#') ? uriWithFrag : uriWithFrag.removeFragment();
   Map schemaMap;
-  if (uri.scheme == 'http') {
+  if (uri.scheme == 'http' || uri.scheme == 'https') {
     // Setup the HTTP request.
     final httpRequest = await new HttpClient().getUrl(uri);
     httpRequest.followRedirects = true;

@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -37,32 +38,35 @@
 //     THE SOFTWARE.
 
 import 'dart:io';
-import 'package:path/path.dart';
-import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/vm.dart';
-import 'package:json_schema/schema_dot.dart';
 
-main() {
+import 'package:json_schema/json_schema.dart';
+
+// For VM:
+import 'package:json_schema/vm.dart';
+
+// For Browser:
+// import 'package:json_schema/browser.dart';
+
+main() async {
+  // For VM:
   configureJsonSchemaForVm();
 
-  final sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  final outPath = join(dirname(sourcePath), 'schemaout');
-  new Directory(sourcePath).listSync().forEach((jsonFile) {
-    final fname = jsonFile.path;
-    final base = basenameWithoutExtension(fname);
-    final dotFilename = join(outPath, '$base.dot');
-    final pngOut = join(outPath, '$base.png');
+  // For Browser:
+  // configureJsonSchemaForBrowser();
 
-    JsonSchema.createSchemaFromUrl(fname).then((schema) {
-      new File(dotFilename).writeAsStringSync(createDot(schema));
-    }).then((_) {
-      Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
-        if (processResult.exitCode == 0) {
-          print('Finished running dot -Tpng -o$pngOut $fname');
-        } else {
-          print('FAILED: running dot -Tpng -o$pngOut $fname');
-        }
-      });
-    });
-  });
+  final url = "https://raw.githubusercontent.com/json-schema-org/JSON-Schema-Test-Suite/master/remotes/integer.json";
+
+  final schema = await JsonSchema.createSchemaFromUrl(url);
+
+  // Create some examples to validate against the schema.
+  final n = 3;
+  final decimals = 3.14;
+  final str = 'hi';
+
+  print('$n => ${schema.validate(n)}'); // true
+  print('$decimals => ${schema.validate(decimals)}'); // false
+  print('$str => ${schema.validate(str)}'); // false
+
+  // Exit the process cleanly (VM Only).
+  exit(0);
 }

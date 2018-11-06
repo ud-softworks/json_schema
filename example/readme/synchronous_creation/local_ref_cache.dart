@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -36,33 +37,67 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'dart:io';
-import 'package:path/path.dart';
 import 'package:json_schema/json_schema.dart';
-import 'package:json_schema/vm.dart';
-import 'package:json_schema/schema_dot.dart';
+import 'package:dart2_constant/convert.dart';
 
 main() {
-  configureJsonSchemaForVm();
+  final referencedSchema = {
+    r"$id": "https://example.com/geographical-location.schema.json",
+    r"$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "Longitude and Latitude",
+    "description": "A geographical coordinate on a planet (most commonly Earth).",
+    "required": ["latitude", "longitude"],
+    "type": "object",
+    "properties": {
+      "name": {"type": "string"},
+      "latitude": {"type": "number", "minimum": -90, "maximum": 90},
+      "longitude": {"type": "number", "minimum": -180, "maximum": 180}
+    }
+  };
 
-  final sourcePath = join(dirname(dirname(absolute(Platform.script.toFilePath()))), 'dot_samples', 'schemas');
-  final outPath = join(dirname(sourcePath), 'schemaout');
-  new Directory(sourcePath).listSync().forEach((jsonFile) {
-    final fname = jsonFile.path;
-    final base = basenameWithoutExtension(fname);
-    final dotFilename = join(outPath, '$base.dot');
-    final pngOut = join(outPath, '$base.png');
+  final RefProvider refProvider = (String ref) {
+    final Map references = {
+      'https://example.com/geographical-location.schema.json': JsonSchema.createSchema(referencedSchema),
+    };
 
-    JsonSchema.createSchemaFromUrl(fname).then((schema) {
-      new File(dotFilename).writeAsStringSync(createDot(schema));
-    }).then((_) {
-      Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {
-        if (processResult.exitCode == 0) {
-          print('Finished running dot -Tpng -o$pngOut $fname');
-        } else {
-          print('FAILED: running dot -Tpng -o$pngOut $fname');
-        }
-      });
-    });
-  });
+    if (references.containsKey(ref)) {
+      return references[ref];
+    }
+
+    return null;
+  };
+
+  final schema = JsonSchema.createSchema({
+    'type': 'array',
+    'items': {r'$ref': 'https://example.com/geographical-location.schema.json'}
+  }, refProvider: refProvider);
+
+  final workivaLocations = [
+    {
+      'name': 'Ames',
+      'latitude': 41.9956731,
+      'longitude': -93.6403663,
+    },
+    {
+      'name': 'Scottsdale',
+      'latitude': 33.4634707,
+      'longitude': -111.9266617,
+    }
+  ];
+
+  final badLocations = [
+    {
+      'name': 'Bad Badlands',
+      'latitude': 181,
+      'longitude': 92,
+    },
+    {
+      'name': 'Nowhereville',
+      'latitude': -2000,
+      'longitude': 7836,
+    }
+  ];
+
+  print('${json.encode(workivaLocations)} => ${schema.validate(workivaLocations)}');
+  print('${json.encode(badLocations)} => ${schema.validate(badLocations)}');
 }

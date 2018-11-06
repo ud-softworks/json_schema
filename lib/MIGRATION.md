@@ -26,7 +26,7 @@ json_schema 2.0 is here, and is packed with useful updates! We've tried to minim
     - If you were using `createSchema` to evaluate schemas that contained remote references you don't have cached locally, simply switch over to `createSchemaAsync`, which has the same behavior. If you continue to use the synchronous `createSchema`: *errors will be thrown when remote references are encountered*.
     - If you were using `createSchema` to evaluate schemas where all references can be resolved within the root schema, congrats! You can now remove all async behavior around creating schemas. No more async / await :)
     - If you were using `createSchema` to evaluate schema which have remote references, but you can cache all the remote references locally, you can use the optional `RefProvider` to allow sync resolution of those.
-    - A new use case is also available: you can now use custom logic to resolve your own $refs using `AsyncRefProvider` / `createSchemaAsync`.
+    - A new use case is also available: you can now use custom logic to resolve your own $refs using `RefProviderAsync` / `createSchemaAsync`.
 
 - Platforms
   - dart:io Users: A single call to `configureBrowserForVm()` is required before using `createSchemaAsync`.

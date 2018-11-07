@@ -37,6 +37,7 @@
 //     THE SOFTWARE.
 
 import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/vm.dart';
@@ -54,6 +55,7 @@ main() {
     final pngOut = join(outPath, '$base.png');
 
     JsonSchema.createSchemaFromUrl(fname).then((schema) {
+      schema.refMap.forEach((key, ref) => print('$key : $ref'));
       new File(dotFilename).writeAsStringSync(createDot(schema));
     }).then((_) {
       Process.run('dot', ['-Tpng', '-o$pngOut', dotFilename]).then((ProcessResult processResult) {

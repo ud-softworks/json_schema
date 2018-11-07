@@ -37,8 +37,9 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:json_schema/json_schema.dart';
 import 'package:dart2_constant/convert.dart';
+
+import 'package:json_schema/json_schema.dart';
 
 main() {
   final referencedSchema = {

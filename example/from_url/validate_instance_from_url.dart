@@ -38,6 +38,7 @@
 //     THE SOFTWARE.
 
 import 'package:dart2_constant/convert.dart' as convert;
+
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 

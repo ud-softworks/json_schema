@@ -37,9 +37,9 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'dart:io';
 import 'dart:async';
 import 'package:dart2_constant/convert.dart';
+import 'dart:io';
 
 import 'package:json_schema/json_schema.dart';
 

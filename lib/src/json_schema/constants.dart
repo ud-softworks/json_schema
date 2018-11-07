@@ -36,8 +36,6 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-import 'package:dart2_constant/convert.dart';
-
 class JsonSchemaValidationRegexes {
   static RegExp email = new RegExp(r'^[_A-Za-z0-9-\+]+(\.[_A-Za-z0-9-]+)*'
       r'@'
@@ -73,23 +71,56 @@ class JsonSchemaValidationRegexes {
   static RegExp jsonPointer = new RegExp(r'^(?:\/(?:[^~/]|~0|~1)*)*$');
 }
 
-class JsonSchemaVersions {
-  static const String draft4 = 'http://json-schema.org/draft-04/schema#';
-  static const String draft6 = 'http://json-schema.org/draft-06/schema#';
+class SchemaVersion implements Comparable<SchemaVersion> {
+  const SchemaVersion._(this.value);
 
-  static List<String> allVersions = const [
-    draft4,
-    draft6,
-  ];
+  static const SchemaVersion draft4 = const SchemaVersion._(0);
+
+  static const SchemaVersion draft6 = const SchemaVersion._(1);
+
+  static List<SchemaVersion> get values => const <SchemaVersion>[draft4, draft6];
+
+  final int value;
+
+  @override
+  int get hashCode => value;
+
+  SchemaVersion copy() => this;
+
+  @override
+  int compareTo(SchemaVersion other) => value.compareTo(other.value);
+
+  @override
+  String toString() {
+    switch (this) {
+      case draft4:
+        return 'http://json-schema.org/draft-04/schema#';
+      case draft6:
+        return 'http://json-schema.org/draft-06/schema#';
+    }
+    return null;
+  }
+
+  static SchemaVersion fromString(String s) {
+    if (s == null) return null;
+    switch (s) {
+      case 'http://json-schema.org/draft-04/schema#':
+        return draft4;
+      case 'http://json-schema.org/draft-06/schema#':
+        return draft6;
+      default:
+        return null;
+    }
+  }
 }
 
-Map getJsonSchemaDefinitionByRef(String ref) {
+String getJsonSchemaDefinitionByRef(String ref) {
   final mapping = {
-    JsonSchemaVersions.draft4: JsonSchemaDefinitions.draft4,
-    JsonSchemaVersions.draft6: JsonSchemaDefinitions.draft6,
+    SchemaVersion.draft4.toString(): JsonSchemaDefinitions.draft4,
+    SchemaVersion.draft6.toString(): JsonSchemaDefinitions.draft6,
   };
 
-  if (JsonSchemaVersions.allVersions.contains(ref)) {
+  if (SchemaVersion.values.map((value) => value.toString()).contains(ref)) {
     return mapping[ref];
   }
 
@@ -97,7 +128,7 @@ Map getJsonSchemaDefinitionByRef(String ref) {
 }
 
 class JsonSchemaDefinitions {
-  static Map draft4 = json.decode(r'''
+  static String draft4 = r'''
     {
     "id": "http://json-schema.org/draft-04/schema#",
     "$schema": "http://json-schema.org/draft-04/schema#",
@@ -247,9 +278,9 @@ class JsonSchemaDefinitions {
     },
     "default": {}
 }
-    ''');
+    ''';
 
-  static Map draft6 = json.decode(r'''
+  static String draft6 = r'''
     {
     "$schema": "http://json-schema.org/draft-06/schema#",
     "$id": "http://json-schema.org/draft-06/schema#",
@@ -404,5 +435,5 @@ class JsonSchemaDefinitions {
     },
     "default": {}
 }
-    ''');
+    ''';
 }

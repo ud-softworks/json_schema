@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -36,8 +37,68 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
-export 'package:json_schema/src/json_schema/constants.dart' show SchemaVersion;
-export 'package:json_schema/src/json_schema/schema_type.dart' show SchemaType;
-export 'package:json_schema/src/json_schema/validator.dart' show Validator;
-export 'package:json_schema/src/json_schema/typedefs.dart' show RefProvider, RefProviderAsync;
+import 'package:dart2_constant/convert.dart';
+
+import 'package:json_schema/json_schema.dart';
+
+main() {
+  final referencedSchema = {
+    r"$id": "https://example.com/geographical-location.schema.json",
+    r"$schema": "http://json-schema.org/draft-06/schema#",
+    "title": "Longitude and Latitude",
+    "description": "A geographical coordinate on a planet (most commonly Earth).",
+    "required": ["latitude", "longitude"],
+    "type": "object",
+    "properties": {
+      "name": {"type": "string"},
+      "latitude": {"type": "number", "minimum": -90, "maximum": 90},
+      "longitude": {"type": "number", "minimum": -180, "maximum": 180}
+    }
+  };
+
+  final RefProvider refProvider = (String ref) {
+    final Map references = {
+      'https://example.com/geographical-location.schema.json': JsonSchema.createSchema(referencedSchema),
+    };
+
+    if (references.containsKey(ref)) {
+      return references[ref];
+    }
+
+    return null;
+  };
+
+  final schema = JsonSchema.createSchema({
+    'type': 'array',
+    'items': {r'$ref': 'https://example.com/geographical-location.schema.json'}
+  }, refProvider: refProvider);
+
+  final workivaLocations = [
+    {
+      'name': 'Ames',
+      'latitude': 41.9956731,
+      'longitude': -93.6403663,
+    },
+    {
+      'name': 'Scottsdale',
+      'latitude': 33.4634707,
+      'longitude': -111.9266617,
+    }
+  ];
+
+  final badLocations = [
+    {
+      'name': 'Bad Badlands',
+      'latitude': 181,
+      'longitude': 92,
+    },
+    {
+      'name': 'Nowhereville',
+      'latitude': -2000,
+      'longitude': 7836,
+    }
+  ];
+
+  print('${json.encode(workivaLocations)} => ${schema.validate(workivaLocations)}');
+  print('${json.encode(badLocations)} => ${schema.validate(badLocations)}');
+}

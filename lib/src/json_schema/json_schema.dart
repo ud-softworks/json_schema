@@ -37,6 +37,7 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
+import 'package:dart2_constant/convert.dart';
 
 import 'package:path/path.dart' as path_lib;
 
@@ -77,7 +78,7 @@ class JsonSchema {
     _addSchemaToRefMap(path, this);
   }
 
-  JsonSchema._fromRootMap(this._schemaMap, String schemaVersion,
+  JsonSchema._fromRootMap(this._schemaMap, SchemaVersion schemaVersion,
       {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
     _initialize(
         schemaVersion: schemaVersion,
@@ -87,7 +88,7 @@ class JsonSchema {
         refProviderAsync: refProviderAsync);
   }
 
-  JsonSchema._fromRootBool(this._schemaBool, String schemaVersion,
+  JsonSchema._fromRootBool(this._schemaBool, SchemaVersion schemaVersion,
       {Uri fetchedFromUri, bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
     _initialize(
         schemaVersion: schemaVersion,
@@ -103,11 +104,25 @@ class JsonSchema {
   /// properties, and sub-properties of the root schema.
   ///
   /// If you want to create a [JsonSchema] synchronously, use [createSchema]. Note that for
-  /// [createSchema] remote references are not supported.
+  /// [createSchema] remote reference fetching is not supported.
   ///
-  /// Typically the supplied JSON [data] is result of [JSON.decode] on a JSON [String].
-  static Future<JsonSchema> createSchemaAsync(dynamic data,
-      {String schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec),
+  /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
+  static Future<JsonSchema> createSchemaAsync(dynamic schema,
+      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProviderAsync refProvider}) {
+    // Default to assuming the schema is already a decoded, primitive dart object.
+    dynamic data = schema;
+
+    /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.4.3.1
+    if (schema is String) {
+      try {
+        data = json.decode(schema);
+      } catch (e) {
+        throw new ArgumentError('String data provided to createSchemaAsync is not valid JSON.');
+      }
+    }
+
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -118,23 +133,38 @@ class JsonSchema {
           .future;
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+    } else if (data is bool && version == SchemaVersion.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, refProviderAsync: refProvider)
           ._thisCompleter
           .future;
     }
     throw new ArgumentError(
-        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+        'Data provided to createSchemaAsync is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from JSON [data].
   ///
-  /// This method is synchronous, and doesn't support remote references, properties, and sub-properties of the root
+  /// This method is synchronous, and doesn't support fetching of remote references, properties, and sub-properties of the
   /// schema. If you need remote reference support use [createSchemaAsync].
   ///
-  /// Typically the supplied [data] is result of [JSON.decode] on a JSON [String].
-  static JsonSchema createSchema(dynamic data, {String schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
+  /// The [schema] can either be a decoded JSON object (Only [Map] or [bool] per the spec),
+  /// or alternatively, a [String] may be passed in and JSON decoding will be handled automatically.
+  static JsonSchema createSchema(dynamic schema,
+      {SchemaVersion schemaVersion, Uri fetchedFromUri, RefProvider refProvider}) {
+    // Default to assuming the schema is already a decoded, primitive dart object.
+    dynamic data = schema;
+
+    /// JSON Schemas must be [bool]s or [Map]s, so if we encounter a [String], we're looking at encoded JSON.
+    /// https://json-schema.org/latest/json-schema-core.html#rfc.section.4.3.1
+    if (schema is String) {
+      try {
+        data = json.decode(schema);
+      } catch (e) {
+        throw new ArgumentError('String data provided to createSchema is not valid JSON.');
+      }
+    }
+
     /// Set the Schema version before doing anything else, since almost everything depends on it.
     final version = _getSchemaVersion(schemaVersion, data);
 
@@ -144,20 +174,20 @@ class JsonSchema {
           .resolvePath('#');
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (data is bool && version == JsonSchemaVersions.draft6) {
+    } else if (data is bool && version == SchemaVersion.draft6) {
       return new JsonSchema._fromRootBool(data, schemaVersion,
               fetchedFromUri: fetchedFromUri, isSync: true, refProvider: refProvider)
           .resolvePath('#');
     }
     throw new ArgumentError(
-        'Data provided to createSchema is not valid: Must be a Map (or bool in draft6 or later). | $data');
+        'Data provided to createSchemaAsync is not valid: Data must be, or parse to a Map (or bool in draft6 or later). | $data');
   }
 
   /// Create a schema from a URL.
   ///
   /// This method is asyncronous to support automatic fetching of sub-[JsonSchema]s for items,
   /// properties, and sub-properties of the root schema.
-  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {String schemaVersion}) {
+  static Future<JsonSchema> createSchemaFromUrl(String schemaUrl, {SchemaVersion schemaVersion}) {
     if (globalCreateJsonSchemaFromUrl == null) {
       throw new StateError('no globalCreateJsonSchemaFromUrl defined!');
     }
@@ -166,7 +196,7 @@ class JsonSchema {
 
   /// Construct and validate a JsonSchema.
   _initialize(
-      {String schemaVersion,
+      {SchemaVersion schemaVersion,
       Uri fetchedFromUri,
       bool isSync = false,
       RefProvider refProvider,
@@ -218,7 +248,7 @@ class JsonSchema {
   void _validateAndSetIndividualProperties() {
     var accessMap;
     // Set the access map based on features used in the currently set version.
-    if (_root.schemaVersion == JsonSchemaVersions.draft4) {
+    if (_root.schemaVersion == SchemaVersion.draft4) {
       accessMap = _accessMapV4;
     } else {
       accessMap = _accessMapV6;
@@ -256,7 +286,7 @@ class JsonSchema {
     _validateAndSetIndividualProperties();
 
     // Interdependent properties were removed in draft6.
-    if (schemaVersion == JsonSchemaVersions.draft4) {
+    if (schemaVersion == SchemaVersion.draft4) {
       _validateInterdependentProperties();
     }
   }
@@ -270,7 +300,7 @@ class JsonSchema {
       for (final retrievalRequest in _retrievalRequests) {
         JsonSchema localSchema;
         // check if the ref is actually a standard schema definition, resolve it locally.
-        if (JsonSchemaVersions.allVersions.contains(retrievalRequest.schemaUri.toString())) {
+        if (SchemaVersion.fromString(retrievalRequest.schemaUri.toString()) != null) {
           final definitionRef = retrievalRequest.schemaUri.toString();
           localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(definitionRef));
           _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSchema);
@@ -383,7 +413,7 @@ class JsonSchema {
       return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
 
       // Boolean schemas are only supported in draft 6 and later.
-    } else if (schemaDefinition is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    } else if (schemaDefinition is bool && schemaVersion == SchemaVersion.draft6) {
       return new JsonSchema._fromBool(_root, schemaDefinition, path, parent: this);
     }
     throw new ArgumentError(
@@ -407,7 +437,7 @@ class JsonSchema {
   bool _schemaBool;
 
   /// JSON Schema version string.
-  String _schemaVersion;
+  SchemaVersion _schemaVersion;
 
   /// Remote [Uri] the [JsonSchema] was fetched from, if any.
   Uri _fetchedFromUri;
@@ -438,6 +468,9 @@ class JsonSchema {
 
   /// Possible values of the [JsonSchema].
   List _enumValues = [];
+
+  /// Example values for the given schema.
+  List _examples = [];
 
   /// Whether the maximum of the [JsonSchema] is exclusive.
   bool _exclusiveMaximum;
@@ -494,7 +527,7 @@ class JsonSchema {
   String _title;
 
   /// List of allowable types for the [JsonSchema].
-  List<SchemaType> _schemaTypeList;
+  List<SchemaType> _typeList;
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Fields
@@ -506,8 +539,11 @@ class JsonSchema {
   /// List of [JsonSchema] used to validate items of this schema.
   List<JsonSchema> _itemsList;
 
-  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
-  /* union bool | Map */ dynamic _additionalItems;
+  /// Whether additional items are allowed.
+  bool _additionalItemsBool;
+
+  /// [JsonSchema] additionalItems should conform to.
+  JsonSchema _additionalItemsSchema;
 
   /// [JsonSchema] definition that at least one item must match to be valid.
   JsonSchema _contains;
@@ -654,6 +690,7 @@ class JsonSchema {
       // Added in draft6
       'const': (JsonSchema s, dynamic v) => s._setConst(v),
       'contains': (JsonSchema s, dynamic v) => s._setContains(v),
+      'examples': (JsonSchema s, dynamic v) => s._setExamples(v),
       'propertyNames': (JsonSchema s, dynamic v) => s._setPropertyNames(v),
       // changed (imcompatible) in draft6
       'exclusiveMaximum': (JsonSchema s, dynamic v) => s._setExclusiveMaximumV6(v),
@@ -697,11 +734,14 @@ class JsonSchema {
   /// JSON of the [JsonSchema] as a [bool]. Only this value or [_schemaMap] should be set, not both.
   bool get schemaBool => _schemaBool;
 
+  /// JSON string represenatation of the schema.
+  String toJson() => json.encode(_schemaMap ?? _schemaBool);
+
   /// JSON Schema version used.
   ///
   /// Note: Only one version can be used for a nested [JsonScehema] object.
-  /// Default: [JsonSchemaVersions.draft6]
-  String get schemaVersion => _root._schemaVersion ?? JsonSchemaVersions.draft6;
+  /// Default: [SchemaVersion.draft6]
+  SchemaVersion get schemaVersion => _root._schemaVersion ?? SchemaVersion.draft6;
 
   /// Base [Uri] of the [JsonSchema] based on $id, or where it was fetched from, in that order, if any.
   Uri get _uriBase => _idBase ?? _fetchedFromUriBase;
@@ -732,27 +772,39 @@ class JsonSchema {
   }
 
   /// Whether or not const is set, we need this since const can be null and valid.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.24
   bool get hasConst => _hasConst;
 
   /// Const value of the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.24
   dynamic get constValue => _constValue;
 
   /// Default value of the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.3
   dynamic get defaultValue => _defaultValue;
 
   /// Included [JsonSchema] definitions.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.1
   Map<String, JsonSchema> get definitions => _definitions;
 
   /// Description of the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.2
   String get description => _description;
 
   /// Possible values of the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.23
   List get enumValues => _enumValues;
 
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
   num get exclusiveMaximum {
     // If we're on draft6, the property contains the value, return it.
-    if (schemaVersion == JsonSchemaVersions.draft6) {
+    if (schemaVersion == SchemaVersion.draft6) {
       return _exclusiveMaximumV6;
 
       // If we're on draft4, the property is a bool, so return the max instead.
@@ -770,7 +822,7 @@ class JsonSchema {
   /// The value of the exclusiveMaximum for the [JsonSchema], if any exists.
   num get exclusiveMinimum {
     // If we're on draft6, the property contains the value, return it.
-    if (schemaVersion == JsonSchemaVersions.draft6) {
+    if (schemaVersion == SchemaVersion.draft6) {
       return _exclusiveMinimumV6;
 
       // If we're on draft4, the property is a bool, so return the min instead.
@@ -803,67 +855,122 @@ class JsonSchema {
   }
 
   /// Maximum value of the [JsonSchema] value.
+  ///
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.2
   num get maximum => _maximum;
 
   /// Minimum value of the [JsonSchema] value.
+  ///
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.4
   num get minimum => _minimum;
 
   /// Maximum length of the [JsonSchema] value.
+  ///
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.6
   int get maxLength => _maxLength;
 
   /// Minimum length of the [JsonSchema] value.
+  ///
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.7
   int get minLength => _minLength;
 
   /// The number which the value of the [JsonSchema] must be a multiple of.
+  ///
+  /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.1
   num get multipleOf => _multipleOf;
 
   /// The path of the [JsonSchema] within the root [JsonSchema].
   String get path => _path;
 
   /// The regular expression the [JsonSchema] value must conform to.
+  ///
+  /// Refernce:
   RegExp get pattern => _pattern;
 
   /// A [List<JsonSchema>] which the value must conform to all of.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.26
   List<JsonSchema> get allOf => _allOf;
 
   /// A [List<JsonSchema>] which the value must conform to at least one of.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.27
   List<JsonSchema> get anyOf => _anyOf;
 
   /// A [List<JsonSchema>] which the value must conform to at least one of.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.28
   List<JsonSchema> get oneOf => _oneOf;
 
   /// A [JsonSchema] which the value must NOT be.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.29
   JsonSchema get notSchema => _notSchema;
 
   /// Ref to the URI of the [JsonSchema].
   Uri get ref => _ref;
 
   /// Title of the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.2
   String get title => _title;
 
   /// List of allowable types for the [JsonSchema].
-  List<SchemaType> get schemaTypeList => _schemaTypeList;
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.25
+  List<SchemaType> get typeList => _typeList;
+
+  /// Single allowable type for the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.25
+  SchemaType get type => _typeList.length == 1 ? _typeList.single : null;
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Getters
   // --------------------------------------------------------------------------
 
   /// Single [JsonSchema] sub items of this [JsonSchema] must conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.9
   JsonSchema get items => _items;
 
   /// Ordered list of [JsonSchema] which the value of the same index must conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.9
   List<JsonSchema> get itemsList => _itemsList;
 
-  /// Whether additional items are allowed or the [JsonSchema] they should conform to.
-  /* union bool | Map */ dynamic get additionalItems => _additionalItems;
+  /// Whether additional items are allowed.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.10
+  bool get additionalItemsBool => _additionalItemsBool;
+
+  /// JsonSchema additional items should conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.10
+  JsonSchema get additionalItemsSchema => _additionalItemsSchema;
+
+  /// List of example instances for the [JsonSchema].
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-7.4
+  List get examples => defaultValue != null
+      ? ([]
+        ..addAll(_examples)
+        ..add(defaultValue))
+      : _examples;
 
   /// The maximum number of items allowed.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.11
   int get maxItems => _maxItems;
 
   /// The minimum number of items allowed.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.12
   int get minItems => _minItems;
 
   /// Whether the items in the list must be unique.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.13
   bool get uniqueItems => _uniqueItems;
 
   // --------------------------------------------------------------------------
@@ -871,46 +978,79 @@ class JsonSchema {
   // --------------------------------------------------------------------------
 
   /// Map of [JsonSchema]s for properties, by [String] key.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.18
   Map<String, JsonSchema> get properties => _properties;
 
   /// [JsonSchema] that property names must conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.22
   JsonSchema get propertyNamesSchema => _propertyNamesSchema;
 
   /// Whether additional properties, other than those specified, are allowed.
-  bool get additionalProperties => _additionalProperties;
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.20
+  bool get additionalPropertiesBool => _additionalProperties;
 
   /// [JsonSchema] that additional properties must conform to.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.20
   JsonSchema get additionalPropertiesSchema => _additionalPropertiesSchema;
 
   /// [JsonSchema] definition that at least one item must match to be valid.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.14
   JsonSchema get contains => _contains;
 
   /// The maximum number of properties allowed.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.15
   int get maxProperties => _maxProperties;
 
   /// The minimum number of properties allowed.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.16
   int get minProperties => _minProperties;
 
   /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.19
   Map<RegExp, JsonSchema> get patternProperties => _patternProperties;
 
-  /// TODO: write an informative comment for this.
+  /// Map of property dependencies by property name.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.21
   Map<String, List<String>> get propertyDependencies => _propertyDependencies;
 
-  /// Map of sub-properties' [JsonSchema] by path. TODO: this might be inaccurate.
+  /// Map of sub-properties' and references' [JsonSchema]s by path.
+  ///
+  /// Note: This is useful for drawing dependency graphs, etc, but should not be used for general
+  /// validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
+  /// to get the [JsonSchema] at any path, instead.
+  @Deprecated('''
+Note: This information is useful for drawing dependency graphs, etc, but should not be used for general 
+validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath] 
+to get the [JsonSchema] at any path, instead.
+
+This functionality will be removed in 3.0.
+  ''')
   Map<String, JsonSchema> get refMap => _refMap;
 
   /// Properties that must be inclueded for the [JsonSchema] to be valid.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.17
   List<String> get requiredProperties => _requiredProperties;
 
-  /// TODO: write an informative comment for this.
+  /// Map of schema dependencies by property name.
+  ///
+  /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.21
   Map<String, JsonSchema> get schemaDependencies => _schemaDependencies;
 
   // --------------------------------------------------------------------------
   // Convenience Methods
   // --------------------------------------------------------------------------
 
-  /// Given path, follow all references to an end path pointing to [JsonSchema].
+  /// Given a path within the schema, follow all references to an end path pointing to a [JsonSchema].
   String endPath(String path) {
     _pathsEncountered.clear();
     return _endPath(path);
@@ -932,14 +1072,12 @@ class JsonSchema {
     }
   }
 
-  /// Returns paths of all paths
-  Set get paths => new Set.from(_schemaRefs.keys)..addAll(_refMap.keys);
-
   /// Whether a given property is required for the [JsonSchema] instance to be valid.
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 
   /// Validate [instance] against this schema
-  bool validate(dynamic instance) => new Validator(this).validate(instance);
+  bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
+      new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
   // --------------------------------------------------------------------------
   // JSON Schema Internal Operations
@@ -983,7 +1121,7 @@ class JsonSchema {
   _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
     var throwError;
 
-    if (schema is bool && schemaVersion != JsonSchemaVersions.draft6)
+    if (schema is bool && schemaVersion != SchemaVersion.draft6)
       throwError = () => throw FormatExceptions.schema(path, schema);
     if (schema is! Map && schema is! bool) throwError = () => throw FormatExceptions.schema(path, schema);
 
@@ -1109,7 +1247,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'not' JSON Schema prop.
   _setNot(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
       _makeSchema('$_path/not', value, (rhs) => _notSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
@@ -1124,7 +1262,7 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
   _setPropertyNames(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
       _makeSchema('$_path/propertyNames', value, (rhs) => _propertyNamesSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
@@ -1185,20 +1323,20 @@ class JsonSchema {
   /// Dertermine which schema version to use.
   ///
   /// Note: Uses the user specified version first, then the version set on the schema JSON, then the default.
-  static _getSchemaVersion(String userSchemaVersion, dynamic schema) {
+  static SchemaVersion _getSchemaVersion(SchemaVersion userSchemaVersion, dynamic schema) {
     if (userSchemaVersion != null) {
-      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', userSchemaVersion);
+      return TypeValidators.jsonSchemaVersion4Or6(r'$schema', userSchemaVersion.toString());
     } else if (schema is Map && schema[r'$schema'] is String) {
       return TypeValidators.jsonSchemaVersion4Or6(r'$schema', schema[r'$schema']);
     }
-    return JsonSchemaVersions.draft6;
+    return SchemaVersion.draft6;
   }
 
   /// Validate, calculate and set the value of the 'title' JSON Schema prop.
   _setTitle(dynamic value) => _title = TypeValidators.string('title', value);
 
   /// Validate, calculate and set the value of the 'type' JSON Schema prop.
-  _setType(dynamic value) => _schemaTypeList = TypeValidators.schemaTypeList('type', value);
+  _setType(dynamic value) => _typeList = TypeValidators.typeList('type', value);
 
   // --------------------------------------------------------------------------
   // Schema List Item Related Property Setters
@@ -1206,7 +1344,7 @@ class JsonSchema {
 
   /// Validate, calculate and set items of the 'pattern' JSON Schema prop that are also [JsonSchema]s.
   _setItems(dynamic value) {
-    if (value is Map || value is bool && schemaVersion == JsonSchemaVersions.draft6) {
+    if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
       _makeSchema('$_path/items', value, (rhs) => _items = rhs);
     } else if (value is List) {
       int index = 0;
@@ -1222,9 +1360,9 @@ class JsonSchema {
   /// Validate, calculate and set the value of the 'additionalItems' JSON Schema prop.
   _setAdditionalItems(dynamic value) {
     if (value is bool) {
-      _additionalItems = value;
+      _additionalItemsBool = value;
     } else if (value is Map) {
-      _makeSchema('$_path/additionalItems', value, (rhs) => _additionalItems = rhs);
+      _makeSchema('$_path/additionalItems', value, (rhs) => _additionalItemsSchema = rhs);
     } else {
       throw FormatExceptions.error('additionalItems must be boolean or object: $value');
     }
@@ -1232,6 +1370,9 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'contains' JSON Schema prop.
   _setContains(dynamic value) => _makeSchema('$_path/contains', value, (rhs) => _contains = rhs);
+
+  /// Validate, calculate and set the value of the 'examples' JSON Schema prop.
+  _setExamples(dynamic value) => _examples = TypeValidators.list('examples', value);
 
   /// Validate, calculate and set the value of the 'maxItems' JSON Schema prop.
   _setMaxItems(dynamic value) => _maxItems = TypeValidators.nonNegativeInt('maxItems', value);
@@ -1263,11 +1404,11 @@ class JsonSchema {
 
   /// Validate, calculate and set the value of the 'dependencies' JSON Schema prop.
   _setDependencies(dynamic value) => (TypeValidators.object('dependencies', value)).forEach((k, v) {
-        if (v is Map || v is bool && schemaVersion == JsonSchemaVersions.draft6) {
+        if (v is Map || v is bool && schemaVersion == SchemaVersion.draft6) {
           _makeSchema('$_path/dependencies/$k', v, (rhs) => _schemaDependencies[k] = rhs);
         } else if (v is List) {
           // Dependencies must have contents in draft4, but can be empty in draft6 and later
-          if (schemaVersion == JsonSchemaVersions.draft4) {
+          if (schemaVersion == SchemaVersion.draft4) {
             if (v.length == 0) throw FormatExceptions.error('property dependencies must be non-empty array');
           }
 

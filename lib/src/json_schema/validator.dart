@@ -36,6 +36,7 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
+import 'package:dart2_constant/convert.dart';
 import 'dart:math';
 
 import 'package:json_schema/src/json_schema/constants.dart';
@@ -51,14 +52,23 @@ class Validator {
   List<String> get errors => _errors;
 
   /// Validate the [instance] against the this validator's schema
-  bool validate(dynamic instance, [bool reportMultipleErrors = false]) {
+  bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) {
     // _logger.info('Validating ${instance.runtimeType}:$instance on ${_rootSchema}'); TODO: re-add logger
+
+    dynamic data = instance;
+    if (parseJson && instance is String) {
+      try {
+        data = json.decode(instance);
+      } catch (e) {
+        throw new ArgumentError('JSON instance provided to validate is not valid JSON.');
+      }
+    }
 
     _reportMultipleErrors = reportMultipleErrors;
     _errors = [];
     if (!_reportMultipleErrors) {
       try {
-        _validate(_rootSchema, instance);
+        _validate(_rootSchema, data);
         return true;
       } on FormatException {
         return false;
@@ -68,26 +78,26 @@ class Validator {
       }
     }
 
-    _validate(_rootSchema, instance);
+    _validate(_rootSchema, data);
     return _errors.length == 0;
   }
 
   static bool _typeMatch(SchemaType type, JsonSchema schema, dynamic instance) {
     switch (type) {
-      case SchemaType.OBJECT:
+      case SchemaType.object:
         return instance is Map;
-      case SchemaType.STRING:
+      case SchemaType.string:
         return instance is String;
-      case SchemaType.INTEGER:
+      case SchemaType.integer:
         return instance is int ||
-            (schema.schemaVersion == JsonSchemaVersions.draft6 && instance is num && instance.remainder(1) == 0);
-      case SchemaType.NUMBER:
+            (schema.schemaVersion == SchemaVersion.draft6 && instance is num && instance.remainder(1) == 0);
+      case SchemaType.number:
         return instance is num;
-      case SchemaType.ARRAY:
+      case SchemaType.array:
         return instance is List;
-      case SchemaType.BOOLEAN:
+      case SchemaType.boolean:
         return instance is bool;
-      case SchemaType.NULL:
+      case SchemaType.nullValue:
         return instance == null;
     }
     return false;
@@ -135,7 +145,7 @@ class Validator {
   }
 
   void _typeValidation(JsonSchema schema, dynamic instance) {
-    final typeList = schema.schemaTypeList;
+    final typeList = schema.typeList;
     if (typeList != null && typeList.length > 0) {
       if (!typeList.any((type) => _typeMatch(type, schema, instance))) {
         _err('${schema.path}: type: wanted ${typeList} got $instance');
@@ -183,7 +193,6 @@ class Validator {
       instance.forEach((item) => _validate(singleSchema, item));
     } else {
       final items = schema.itemsList;
-      final additionalItems = schema.additionalItems;
 
       if (items != null) {
         final expected = items.length;
@@ -192,12 +201,12 @@ class Validator {
           assert(items[i] != null);
           _validate(items[i], instance[i]);
         }
-        if (additionalItems is JsonSchema) {
+        if (schema.additionalItemsSchema != null) {
           for (int i = end; i < actual; i++) {
-            _validate(additionalItems, instance[i]);
+            _validate(schema.additionalItemsSchema, instance[i]);
           }
-        } else if (additionalItems is bool) {
-          if (!additionalItems && actual > end) {
+        } else if (schema.additionalItemsBool != null) {
+          if (!schema.additionalItemsBool && actual > end) {
             _err('${schema.path}: additionalItems false');
           }
         }
@@ -289,7 +298,7 @@ class Validator {
         break;
       case 'uri-reference':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriReferenceValidator ?? (_) => false;
 
@@ -300,7 +309,7 @@ class Validator {
         break;
       case 'uri-template':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriTemplateValidator ?? (_) => false;
 
@@ -341,7 +350,7 @@ class Validator {
         break;
       case 'json-pointer':
         {
-          if (schema.schemaVersion != JsonSchemaVersions.draft6)
+          if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
           if (JsonSchemaValidationRegexes.jsonPointer.firstMatch(instance) == null) {
             _err('json-pointer" format not accepted $instance');
@@ -356,7 +365,7 @@ class Validator {
   }
 
   void _objectPropertyValidation(JsonSchema schema, Map instance) {
-    final propMustValidate = schema.additionalProperties != null && !schema.additionalProperties;
+    final propMustValidate = schema.additionalPropertiesBool != null && !schema.additionalPropertiesBool;
 
     instance.forEach((k, v) {
       // Validate property names against the provided schema, if any.

@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -36,8 +37,41 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
-export 'package:json_schema/src/json_schema/constants.dart' show SchemaVersion;
-export 'package:json_schema/src/json_schema/schema_type.dart' show SchemaType;
-export 'package:json_schema/src/json_schema/validator.dart' show Validator;
-export 'package:json_schema/src/json_schema/typedefs.dart' show RefProvider, RefProviderAsync;
+import 'dart:io';
+
+import 'package:json_schema/json_schema.dart';
+
+// For VM:
+import 'package:json_schema/vm.dart';
+
+// For Browser:
+// import 'package:json_schema/browser.dart';
+
+main() async {
+  // For VM:
+  configureJsonSchemaForVm();
+
+  // For Browser:
+  // configureJsonSchemaForBrowser();
+
+  final file = "example/readme/asynchronous_creation/geo.schema.json";
+
+  final schema = await JsonSchema.createSchemaFromUrl(file);
+
+  // Create some examples to validate against the schema.
+  final workivaAmes = {
+    'latitude': 41.9956731,
+    'longitude': -93.6403663,
+  };
+
+  final nowhereville = {
+    'latitude': -2000,
+    'longitude': 7836,
+  };
+
+  print('$workivaAmes => ${schema.validate(workivaAmes)}'); // true
+  print('$nowhereville => ${schema.validate(nowhereville)}'); // false
+
+  // Exit the process cleanly (VM Only).
+  exit(0);
+}

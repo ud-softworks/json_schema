@@ -46,10 +46,11 @@
 /// the file, otherwise written to stdout.
 ///
 import 'dart:async';
+import 'package:dart2_constant/convert.dart' as convert2;
 import 'dart:convert' as convert;
 import 'dart:io';
+
 import 'package:args/args.dart';
-import 'package:dart2_constant/convert.dart' as convert2;
 import 'package:json_schema/json_schema.dart';
 import 'package:json_schema/schema_dot.dart';
 import 'package:logging/logging.dart';

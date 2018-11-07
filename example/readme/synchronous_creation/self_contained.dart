@@ -1,3 +1,4 @@
+#!/usr/bin/env dart
 // Copyright 2013-2018 Workiva Inc.
 //
 // Licensed under the Boost Software License (the "License");
@@ -36,8 +37,21 @@
 //     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //     THE SOFTWARE.
 
-export 'package:json_schema/src/json_schema/json_schema.dart' show JsonSchema;
-export 'package:json_schema/src/json_schema/constants.dart' show SchemaVersion;
-export 'package:json_schema/src/json_schema/schema_type.dart' show SchemaType;
-export 'package:json_schema/src/json_schema/validator.dart' show Validator;
-export 'package:json_schema/src/json_schema/typedefs.dart' show RefProvider, RefProviderAsync;
+import 'package:json_schema/json_schema.dart';
+
+main() {
+  /// Define schema in a Dart [Map] or use a JSON [String].
+  final mustBeIntegerSchemaMap = {"type": "integer"};
+
+  // Create some examples to validate against the schema.
+  final n = 3;
+  final decimals = 3.14;
+  final str = 'hi';
+
+  // Construct the schema from the schema map or JSON string.
+  final schema = JsonSchema.createSchema(mustBeIntegerSchemaMap);
+
+  print('$n => ${schema.validate(n)}'); // true
+  print('$decimals => ${schema.validate(decimals)}'); // false
+  print('$str => ${schema.validate(str)}'); // false
+}

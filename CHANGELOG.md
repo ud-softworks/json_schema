@@ -1,3 +1,18 @@
+## 2.0.0
+
+* json_schema is no longer bound to dart:io and works in the browser!
+* Full JSON Schema draft6 compatibility
+* Much better $ref resolution, including deep nesting of $refs
+* More typed keyword getters for draft6 like `examples`
+* Syncronous schema evaluation by default 
+* Optional async evaluation and fetching with `createSchemaAsync`
+* Automatic parsing of JSON strings passed to `createSchema` and `createSchemaAsync`
+* Ability to do custom resolution of $refs with `RefProvider` and `RefProviderAsync`
+* Optional parsing of JSON strings passed to `validate` with `parseJson = true`
+* Dart 2.0 compatibility
+* Many small changes to make things more in line with modern dart.
+* Please see the [migration guide](./MIGRATION.md) for additional info.
+
 ## 1.0.8
 
 * Code cleanup

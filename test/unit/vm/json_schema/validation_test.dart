@@ -84,12 +84,12 @@ void main([List<String> args]) {
   final allDraft6 = testSuiteFolderV6.listSync()..addAll(optionalsV6.listSync());
 
   final runAllTestsForDraftX =
-      (String schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
+      (SchemaVersion schemaVersion, List<FileSystemEntity> allTests, List<String> skipFiles, List<String> skipTests,
           {bool isSync = false, RefProvider refProvider, RefProviderAsync refProviderAsync}) {
-    String shortSchemaVersion = schemaVersion;
-    if (schemaVersion == JsonSchemaVersions.draft4) {
+    String shortSchemaVersion = schemaVersion.toString();
+    if (schemaVersion == SchemaVersion.draft4) {
       shortSchemaVersion = 'draft4';
-    } else if (schemaVersion == JsonSchemaVersions.draft6) {
+    } else if (schemaVersion == SchemaVersion.draft6) {
       shortSchemaVersion = 'draft6';
     }
 
@@ -215,23 +215,23 @@ void main([List<String> args]) {
   final List<String> commonSkippedTests = const [];
 
   // Run all tests asynchronously with no ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests);
 
   // Run all tests synchronously with a sync ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
       isSync: true, refProvider: syncRefProvider);
 
   // Run all tests asynchronously with an async ref provider.
-  runAllTestsForDraftX(JsonSchemaVersions.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests,
       refProviderAsync: asyncRefProvider);
-  runAllTestsForDraftX(JsonSchemaVersions.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
+  runAllTestsForDraftX(SchemaVersion.draft6, allDraft6, commonSkippedFiles, commonSkippedTests,
       refProviderAsync: asyncRefProvider);
 
   group('Schema self validation', () {
-    for (final version in JsonSchemaVersions.allVersions) {
+    for (final version in SchemaVersion.values.map((value) => value.toString())) {
       test('version: $version', () {
         // Pull in the official schema, verify description and then ensure
         // that the schema satisfies the schema for schemas.
@@ -290,6 +290,52 @@ void main([List<String> args]) {
 
       expect(isValid, isTrue);
       expect(isInvalid, isFalse);
+    });
+  });
+
+  group('examples property', () {
+    group('in draft4', () {
+      test('should NOT be supported', () {
+        final schema = JsonSchema.createSchema({
+          "type": "string",
+          "examples": ["This", "message", "is", "lost."]
+        }, schemaVersion: SchemaVersion.draft4);
+
+        expect(schema.examples.isEmpty, isTrue);
+      });
+      test('should still pass the default value to the examples getter', () {
+        final schema = JsonSchema.createSchema({
+          "type": "string",
+          "examples": ["This", "message", "is", "lost."],
+          "default": "But this one isn't.",
+        }, schemaVersion: SchemaVersion.draft4);
+
+        expect(schema.examples.length, equals(1));
+        expect(schema.examples.single, equals("But this one isn't."));
+      });
+    });
+
+    group('in draft 6', () {
+      test('should be supported', () {
+        final schema = JsonSchema.createSchema({
+          "type": "string",
+          "examples": ["This", "message", "is", "not", "lost!"]
+        }, schemaVersion: SchemaVersion.draft6);
+
+        expect(schema.examples.length, equals(5));
+        expect(schema.examples[4], equals('lost!'));
+      });
+      test('should append the default value to the examples getter', () {
+        final schema = JsonSchema.createSchema({
+          "type": "string",
+          "examples": ["This", "message", "is", "not", "lost!"],
+          "default": "And neither is this one",
+        }, schemaVersion: SchemaVersion.draft6);
+
+        expect(schema.examples.length, equals(6));
+        expect(schema.examples[0], equals("This"));
+        expect(schema.examples[5], equals("And neither is this one"));
+      });
     });
   });
 }

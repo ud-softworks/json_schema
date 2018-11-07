@@ -42,6 +42,8 @@ library json_schema.schema_dot;
 import 'package:json_schema/json_schema.dart';
 
 /// Represents one node in the schema diagram
+///
+@Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 class SchemaNode {
   /// Referenced schema this node portrays
   JsonSchema schema;
@@ -81,8 +83,8 @@ class SchemaNode {
 
   static dynamic schemaType(JsonSchema schema) {
     dynamic result;
-    final schemaTypeList = schema.schemaTypeList;
-    if (schemaTypeList == null) {
+    final typeList = schema.typeList;
+    if (typeList == null) {
       if (schema.oneOf.length > 0) {
         result = 'oneOf:${schema.oneOf.map((schema) => schemaType(schema)).toList()}';
       } else if (schema.anyOf.length > 0) {
@@ -101,7 +103,7 @@ class SchemaNode {
         result = '$schema';
       }
     } else {
-      result = schemaTypeList.length == 1 ? schemaTypeList[0] : schemaTypeList;
+      result = typeList.length == 1 ? typeList[0] : typeList;
     }
     if ((result is List) && result.length == 0) result = {};
     if (result == null) result = {};
@@ -312,6 +314,7 @@ class SchemaNode {
 }
 
 /// Return a dot specification for [schema]
+@Deprecated('This functionality is not maintained, is untested, and may be removed in a future release.')
 String createDot(JsonSchema schema) => '''
 digraph G {
   fontname = "Bitstream Vera Sans"

@@ -12,12 +12,12 @@ The simplest way to create a schema is to pass JSON data directly to `JsonSchema
 
 After creating any schema, JSON instances can be validated by calling `.validate(instance)` on that schema. By default, instances are expected to be pre-parsed JSON as native dart primitives (`Map`, `List`, `String`, `bool`, `num`, `int`). You can also optionally parse at validation time by passing in a string and setting `parseJson`: `schema.validate('{ "name": "any JSON object"}', parseJson: true)`.
     
-    Note: Creating JsonSchemas synchronously implies access to all $refs within the root schema. If you don't have access to all this data at the time of the construction, see "Asynchronous Creation" examples below.
+  > Note: Creating JsonSchemas synchronously implies access to all $refs within the root schema. If you don't have access to all this data at the time of the construction, see "Asynchronous Creation" examples below.
 
 
 #### Example
 
-A schema can be created with a Map that is either hand-crafted, referneced from a JSON file, or *previously* fetched from the network or file system.
+A schema can be created with a Map that is either hand-crafted, referenced from a JSON file, or *previously* fetched from the network or file system.
 
 ```dart
 import 'package:json_schema/json_schema.dart';
@@ -115,7 +115,7 @@ main() {
 
 ### Asynchronous Creation, Remote HTTP Refs
 
-If you have schemas that have nested $refs that are HTTP URIs that are publically accessible, you can use `Future<JsonSchema> JsonSchema.createSchemaAsync` and the references will be fetched as needed during evaluation. You can also use `JsonSchema.createSchemaFromUrl` if you want to fetch the root schema remotely as well (see next example).
+If you have schemas that have nested $refs that are HTTP URIs that are publicly accessible, you can use `Future<JsonSchema> JsonSchema.createSchemaAsync` and the references will be fetched as needed during evaluation. You can also use `JsonSchema.createSchemaFromUrl` if you want to fetch the root schema remotely as well (see next example).
 
 #### Example
 
@@ -163,7 +163,7 @@ main() async {
 
 ### Asynchronous Creation, From URL or File
 
-You can also create a schema directly from a publically accessible URL, like so:
+You can also create a schema directly from a publicly accessible URL, like so:
 
 #### Example 1 - URL
 
@@ -248,7 +248,7 @@ main() async {
 
 ### Asynchronous Creation, with custom remote $refs:
 
-If you have nested $refs that are either non-HTTP URIs or non-publically-accessible HTTP $refs, you can supply an `RefProviderAsync` to `createSchemaAsync`, and perform any custom logic you need.
+If you have nested $refs that are either non-HTTP URIs or non-publicly-accessible HTTP $refs, you can supply an `RefProviderAsync` to `createSchemaAsync`, and perform any custom logic you need.
 
 #### Example
 
@@ -343,16 +343,9 @@ main() async {
 
 ## How To Use Schema Information
 
-  Schema information can be used for validation; but it can also be a
-  valuable source of information about the structure of data. The
-  Schema class provided here works by fully parsing the schema first,
-  which itself must be valid on all paths within the schema. The only
-  invalid content of a provided schema are _free-form properties_
-  containing schema that are not referenced. Accessors are provided
-  for the meta-data associated with a schema, so tools can do *stuff*
-  with it. 
+  Schema information can be used for validation; but it can also be a valuable source of information about the structure of data. The `JsonSchema` class fully parses the schema first, which itself must be valid on all paths within the schema. Accessors are provided for all specified keywords of the JSON Schema specification associated with a schema, so tools can use it to create rich views of the data, like forms or diagrams.
 
-  One example use is the _schemadot_ program included in the _bin_
+  One example use is the *deprecated* _schemadot_ program included in the _bin_
   folder which takes schema as input and outputs a _Graphviz_ _dot_
   file, providing a picture of the schema. This does not provide all
   information of the schema, and is a work in progress - but it can be

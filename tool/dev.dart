@@ -63,7 +63,7 @@ main(List<String> args) async {
     new TestRunnerConfig(directory: 'test/unit/vm', env: Environment.vm, filename: 'generated_runner_test'),
   ];
 
-  config.test.platforms = ['vm', 'content-shell'];
+  config.test.platforms = ['vm', 'chrome'];
 
   config.test.unitTests = const [
     'test/unit/browser/generated_runner_test.dart',

@@ -327,8 +327,7 @@ class JsonSchema {
 
     if (_root == this) {
       if (_retrievalRequests.isNotEmpty) {
-        Future
-            .wait(_retrievalRequests.map((r) => r.asyncRetrievalOperation()))
+        Future.wait(_retrievalRequests.map((r) => r.asyncRetrievalOperation()))
             .then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
       } else {
         _thisCompleter.complete(_getSchemaFromPath('#'));
@@ -714,7 +713,7 @@ class JsonSchema {
 
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
   List<JsonSchema> get _parents {
-    final parents = [];
+    final parents = <JsonSchema>[];
 
     var circularRefEscapeHatch = 0;
     var nextParent = this._parent;
@@ -1301,7 +1300,7 @@ This functionality will be removed in 3.0.
           return _addSchemaToRefMap(originalRef.toString(), schema);
         } else {
           throw FormatExceptions.error(
-              'Couldn\'t resolve ref: ${_ref} using the ${_refProviderAsync != null ?  'provided' : 'default HTTP(S)' } ref provider.');
+              'Couldn\'t resolve ref: ${_ref} using the ${_refProviderAsync != null ? 'provided' : 'default HTTP(S)'} ref provider.');
         }
       };
 
@@ -1422,8 +1421,8 @@ This functionality will be removed in 3.0.
             uniqueDeps.add(propDep);
           });
         } else {
-          throw FormatExceptions
-              .error('dependency values must be object or array (or boolean in draft6 and later): $v');
+          throw FormatExceptions.error(
+              'dependency values must be object or array (or boolean in draft6 and later): $v');
         }
       });
 
@@ -1438,8 +1437,10 @@ This functionality will be removed in 3.0.
       (k, v) => _makeSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[new RegExp(k)] = rhs));
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
-  _setRequired(dynamic value) => _requiredProperties = TypeValidators.nonEmptyList('required', value);
+  _setRequired(dynamic value) =>
+      _requiredProperties = (TypeValidators.nonEmptyList('required', value))?.map((value) => value as String)?.toList();
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
-  _setRequiredV6(dynamic value) => _requiredProperties = TypeValidators.list('required', value);
+  _setRequiredV6(dynamic value) =>
+      _requiredProperties = (TypeValidators.list('required', value))?.map((value) => value as String)?.toList();
 }

@@ -4,7 +4,6 @@ analyzer:
     - test/src_list.dart
     - node_modules/**
     - packages/**
-    - tool/**
     - test/functional/file_artifacts/**
     - lib/frugal_packages/**
 

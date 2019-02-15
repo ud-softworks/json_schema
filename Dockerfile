@@ -1,17 +1,10 @@
-FROM google/dart:1.24.3 as build
-
-ARG GIT_SSH_KEY
-ARG KNOWN_HOSTS_CONTENT
-RUN mkdir /root/.ssh/ && \
-    echo "$KNOWN_HOSTS_CONTENT" > "/root/.ssh/known_hosts" && \
-    chmod 700 /root/.ssh/ && \
-    umask 0077 && echo "$GIT_SSH_KEY" >/root/.ssh/id_rsa && \
-    eval "$(ssh-agent -s)" && ssh-add /root/.ssh/id_rsa
-
+FROM google/dart:2.1.0
 WORKDIR /build/
-ADD . /build/
 
+# Build Environment Vars
 ARG BUILD_ID
+ARG BUILD_NUMBER
+ARG BUILD_URL
 ARG GIT_COMMIT
 ARG GIT_BRANCH
 ARG GIT_TAG
@@ -19,12 +12,25 @@ ARG GIT_COMMIT_RANGE
 ARG GIT_HEAD_URL
 ARG GIT_MERGE_HEAD
 ARG GIT_MERGE_BRANCH
+# Expose env vars for git ssh access
+ARG GIT_SSH_KEY
+ARG KNOWN_HOSTS_CONTENT
 
-RUN pub get && \
-    git config remote.origin.url "git@github.com:Workiva/semver-audit-dart.git" && \
-    git clone ssh://git@github.com/workiva/semver-audit-dart.git --branch 1.4.0 && \
-    git config remote.origin.url "git@github.com:Workiva/json_schema.git" && \
-    pub global activate --source path ./semver-audit-dart && \
-    pub global run semver_audit report --repo Workiva/json_schema
+# Install SSH keys for git ssh access
+RUN mkdir /root/.ssh
+RUN echo "$KNOWN_HOSTS_CONTENT" > "/root/.ssh/known_hosts"
+RUN echo "$GIT_SSH_KEY" > "/root/.ssh/id_rsa"
+RUN chmod 700 /root/.ssh/
+RUN chmod 600 /root/.ssh/id_rsa
+
+RUN pub global activate -sgit git@github.com:Workiva/semver-audit-dart.git
+
+COPY pubspec.yaml ./
+RUN pub get
+
+ADD ./ ./
+
+RUN pub global run semver_audit report --repo Workiva/json_schema
+
 ARG BUILD_ARTIFACTS_BUILD=/build/pubspec.lock
 FROM scratch

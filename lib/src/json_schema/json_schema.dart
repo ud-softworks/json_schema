@@ -711,6 +711,9 @@ class JsonSchema {
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema get root => _root;
 
+  /// The parent [JsonSchema] for this [JsonSchema].
+  JsonSchema get parent => _parent;
+
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
   List<JsonSchema> get _parents {
     final parents = <JsonSchema>[];
@@ -878,9 +881,6 @@ class JsonSchema {
   /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.1
   num get multipleOf => _multipleOf;
 
-  /// The parent [JsonSchema] for this [JsonSchema].
-  JsonSchema get parent => _parent;
-  
   /// The path of the [JsonSchema] within the root [JsonSchema].
   String get path => _path;
 

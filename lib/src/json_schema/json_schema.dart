@@ -878,6 +878,9 @@ class JsonSchema {
   /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.1
   num get multipleOf => _multipleOf;
 
+  /// The parent [JsonSchema].
+  JsonSchema get parent => _parent;
+  
   /// The path of the [JsonSchema] within the root [JsonSchema].
   String get path => _path;
 
@@ -1071,8 +1074,17 @@ This functionality will be removed in 3.0.
     }
   }
 
+  /// Name of the property of the current [JsonSchema] within its parent.
+  String get propertyName {
+    final pathFragments = path.split('/');
+    return pathFragments.length > 2 ? pathFragments.last : null;
+  }
+
   /// Whether a given property is required for the [JsonSchema] instance to be valid.
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
+
+  /// Whether the [JsonSchema] is required on its parent.
+  bool get requiredOnParent => _parent.propertyRequired(propertyName);
 
   /// Validate [instance] against this schema
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>

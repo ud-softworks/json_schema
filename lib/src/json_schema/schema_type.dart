@@ -56,10 +56,7 @@ class SchemaType implements Comparable<SchemaType> {
   static List<SchemaType> get values => const <SchemaType>[array, boolean, integer, number, nullValue, object, string];
 
   final int value;
-
-  @override
-  int get hashCode => value;
-
+  
   SchemaType copy() => this;
 
   @override

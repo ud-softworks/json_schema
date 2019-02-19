@@ -878,7 +878,7 @@ class JsonSchema {
   /// Reference: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.1
   num get multipleOf => _multipleOf;
 
-  /// The parent [JsonSchema].
+  /// The parent [JsonSchema] for this [JsonSchema].
   JsonSchema get parent => _parent;
   
   /// The path of the [JsonSchema] within the root [JsonSchema].

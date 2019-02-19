@@ -1076,7 +1076,8 @@ This functionality will be removed in 3.0.
 
   /// Name of the property of the current [JsonSchema] within its parent.
   String get propertyName {
-    final pathFragments = path.split('/');
+    final pathUri = Uri.parse(path);
+    final pathFragments = pathUri.fragment?.split('/');
     return pathFragments.length > 2 ? pathFragments.last : null;
   }
 

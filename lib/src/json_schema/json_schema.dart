@@ -1085,7 +1085,7 @@ This functionality will be removed in 3.0.
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
 
   /// Whether the [JsonSchema] is required on its parent.
-  bool get requiredOnParent => _parent.propertyRequired(propertyName);
+  bool get requiredOnParent => _parent?.propertyRequired(propertyName) ?? false;
 
   /// Validate [instance] against this schema
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>

@@ -89,7 +89,7 @@ class SchemaVersion implements Comparable<SchemaVersion> {
 
   @override
   String toString() {
-    switch(this) {
+    switch (this) {
       case draft4:
         return 'http://json-schema.org/draft-04/schema#';
       case draft6:

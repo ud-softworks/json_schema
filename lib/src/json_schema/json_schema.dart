@@ -327,7 +327,8 @@ class JsonSchema {
 
     if (_root == this) {
       if (_retrievalRequests.isNotEmpty) {
-        Future.wait(_retrievalRequests.map((r) => r.asyncRetrievalOperation()))
+        Future
+            .wait(_retrievalRequests.map((r) => r.asyncRetrievalOperation()))
             .then((_) => _thisCompleter.complete(_getSchemaFromPath('#')));
       } else {
         _thisCompleter.complete(_getSchemaFromPath('#'));
@@ -1434,8 +1435,8 @@ This functionality will be removed in 3.0.
             uniqueDeps.add(propDep);
           });
         } else {
-          throw FormatExceptions.error(
-              'dependency values must be object or array (or boolean in draft6 and later): $v');
+          throw FormatExceptions
+              .error('dependency values must be object or array (or boolean in draft6 and later): $v');
         }
       });
 

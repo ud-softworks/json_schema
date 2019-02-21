@@ -707,7 +707,7 @@ class JsonSchema {
   bool operator ==(dynamic other) => other is JsonSchema && new MapEquality().equals(schemaMap, other.schemaMap);
 
   @override
-  int get hashCode => schemaMap.hashCode;
+  int get hashCode => new MapEquality().hash(schemaMap);
 
   @override
   String toString() => '${_schemaMap}';

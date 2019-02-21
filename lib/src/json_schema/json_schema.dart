@@ -37,8 +37,9 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
-import 'package:dart2_constant/convert.dart';
 
+import 'package:collection/collection.dart';
+import 'package:dart2_constant/convert.dart';
 import 'package:path/path.dart' as path_lib;
 
 import 'package:json_schema/src/json_schema/constants.dart';
@@ -701,6 +702,12 @@ class JsonSchema {
 
   /// Get a nested [JsonSchema] from a path.
   JsonSchema resolvePath(String path) => _getSchemaFromPath(path);
+
+  @override
+  bool operator ==(dynamic other) => other is JsonSchema && new MapEquality().equals(schemaMap, other.schemaMap);
+
+  @override
+  int get hashCode => schemaMap.hashCode;
 
   @override
   String toString() => '${_schemaMap}';

@@ -63,6 +63,9 @@ class SchemaType implements Comparable<SchemaType> {
   int compareTo(SchemaType other) => value.compareTo(other.value);
 
   @override
+  int get hashCode => value.hashCode;
+
+  @override
   String toString() {
     switch (this) {
       case array:

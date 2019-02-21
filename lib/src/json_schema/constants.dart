@@ -82,10 +82,10 @@ class SchemaVersion implements Comparable<SchemaVersion> {
 
   final int value;
 
-  SchemaVersion copy() => this;
-
   @override
-  int get hashCode => value.hashCode;
+  int get hashCode => value;
+
+  SchemaVersion copy() => this;
 
   @override
   int compareTo(SchemaVersion other) => value.compareTo(other.value);

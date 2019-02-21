@@ -57,13 +57,13 @@ class SchemaType implements Comparable<SchemaType> {
 
   final int value;
 
+  @override
+  int get hashCode => value;
+
   SchemaType copy() => this;
 
   @override
   int compareTo(SchemaType other) => value.compareTo(other.value);
-
-  @override
-  int get hashCode => value.hashCode;
 
   @override
   String toString() {

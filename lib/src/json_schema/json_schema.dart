@@ -37,8 +37,9 @@
 //     THE SOFTWARE.
 
 import 'dart:async';
-import 'package:dart2_constant/convert.dart';
 
+import 'package:collection/collection.dart';
+import 'package:dart2_constant/convert.dart';
 import 'package:path/path.dart' as path_lib;
 
 import 'package:json_schema/src/json_schema/constants.dart';
@@ -702,6 +703,12 @@ class JsonSchema {
   JsonSchema resolvePath(String path) => _getSchemaFromPath(path);
 
   @override
+  bool operator ==(dynamic other) => other is JsonSchema && new MapEquality().equals(schemaMap, other.schemaMap);
+
+  @override
+  int get hashCode => new MapEquality().hash(schemaMap);
+
+  @override
   String toString() => '${_schemaMap}';
 
   // --------------------------------------------------------------------------
@@ -710,6 +717,9 @@ class JsonSchema {
 
   /// The root [JsonSchema] for this [JsonSchema].
   JsonSchema get root => _root;
+
+  /// The parent [JsonSchema] for this [JsonSchema].
+  JsonSchema get parent => _parent;
 
   /// Get the anchestry of the current schema, up to the root [JsonSchema].
   List<JsonSchema> get _parents {
@@ -1071,8 +1081,18 @@ This functionality will be removed in 3.0.
     }
   }
 
+  /// Name of the property of the current [JsonSchema] within its parent.
+  String get propertyName {
+    final pathUri = Uri.parse(path);
+    final pathFragments = pathUri.fragment?.split('/');
+    return pathFragments.length > 2 ? pathFragments.last : null;
+  }
+
   /// Whether a given property is required for the [JsonSchema] instance to be valid.
   bool propertyRequired(String property) => _requiredProperties != null && _requiredProperties.contains(property);
+
+  /// Whether the [JsonSchema] is required on its parent.
+  bool get requiredOnParent => _parent?.propertyRequired(propertyName) ?? false;
 
   /// Validate [instance] against this schema
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>

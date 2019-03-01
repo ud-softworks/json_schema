@@ -1,0 +1,4 @@
+{
+    "$id": "some_id_that_doesn't_match_ref#",
+    "type": "integer"
+}

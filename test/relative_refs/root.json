@@ -1,0 +1,11 @@
+{
+  "$id": "root.json",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "title": "Root Schema",
+  "description": "A schema with relative refs to other schema files",
+  "type": "object",
+  "properties": {
+    "integer": {"$ref": "subdir/integer.json"},
+    "string": {"$ref": "string.json"}
+  }
+}

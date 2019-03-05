@@ -79,7 +79,8 @@ class JsonSchemaUtils {
     if (uri.pathSegments.isNotEmpty /* && uri.pathSegments.last.endsWith('.json')*/) {
       segments = []..addAll(uri.pathSegments);
       segments.removeLast();
-      return new Uri(scheme: uri.scheme, host: uri.host, port: uri.port, pathSegments: segments);
+
+      return uri.replace(pathSegments: segments);
     }
     return uri;
   }

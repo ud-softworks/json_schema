@@ -337,4 +337,13 @@ void main([List<String> args]) {
       });
     });
   });
+
+  test('Schema from relative filesystem URI should be supported', () async {
+    // this assumes that tests are run from the root directory of the project
+    final schema = await JsonSchema.createSchemaFromUrl('test/relative_refs/root.json');
+
+    expect(schema.validate({"string": 123, "integer": 123}), isFalse);
+    expect(schema.validate({"string": "a string", "integer": "a string"}), isFalse);
+    expect(schema.validate({"string": "a string", "integer": 123}), isTrue);
+  });
 }

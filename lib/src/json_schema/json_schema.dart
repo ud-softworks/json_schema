@@ -1037,8 +1037,8 @@ class JsonSchema {
   /// validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
   /// to get the [JsonSchema] at any path, instead.
   @Deprecated('''
-Note: This information is useful for drawing dependency graphs, etc, but should not be used for general 
-validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath] 
+Note: This information is useful for drawing dependency graphs, etc, but should not be used for general
+validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
 to get the [JsonSchema] at any path, instead.
 
 This functionality will be removed in 3.0.
@@ -1292,7 +1292,6 @@ This functionality will be removed in 3.0.
   _setRef(dynamic value) {
     _ref = TypeValidators.uri(r'$ref', value);
     final Uri originalRef = Uri.parse(_ref.toString());
-
     // TODO: add a more advanced check to find out if the $ref is local.
     // Does it have a fragment? Append the base and check if it exists in the _refMap
     // Does it have a path? Append the base and check if it exists in the _refMap
@@ -1305,14 +1304,15 @@ This functionality will be removed in 3.0.
           template += '#${_ref.fragment}';
         }
         _ref = Uri.parse(template);
-
         // If the $id has a fragment, append it to the base, or use it alone.
       } else if (_ref.fragment != null && _ref.fragment.isNotEmpty) {
         _ref = Uri.parse('${_inheritedUri ?? ''}#${_ref.fragment}');
       }
     }
 
-    if (_ref.scheme.isNotEmpty) {
+    // The ref's base is a relative file path, so it should be treated as a relative file URI
+    final isRelativeFileUri = _inheritedUriBase != null && _inheritedUriBase.scheme.isEmpty;
+    if (_ref.scheme.isNotEmpty || isRelativeFileUri) {
       // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (JsonSchema schema) {
         if (schema != null) {

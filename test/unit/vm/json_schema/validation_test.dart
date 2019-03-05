@@ -211,7 +211,16 @@ void main([List<String> args]) {
 
   final List<String> commonSkippedFiles = const [];
 
-  final List<String> commonSkippedTests = const [];
+  /// A list of tests to skip for all drafts.
+  /// Should match the portion of the test name printed after the JSON file name on test run.
+  final List<String> commonSkippedTests = const [
+    // Parsing of large numbers in JSON changed in Dart 2.2, resulting in
+    // a more accurate representation of the input, but a type of `double`.
+    // Previous versions of Dart pass this test, but the integer output is not
+    // equivalent to the JSON input.
+    'integer : a bignum is an integer',
+    'integer : a negative bignum is an integer',
+  ];
 
   // Run all tests asynchronously with no ref provider.
   runAllTestsForDraftX(SchemaVersion.draft4, allDraft4, commonSkippedFiles, commonSkippedTests);

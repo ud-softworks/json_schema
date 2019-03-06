@@ -45,6 +45,18 @@ import 'package:json_schema/src/json_schema/schema_type.dart';
 import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/global_platform_functions.dart' show defaultValidators;
 
+class Instance {
+  Instance(dynamic data, {List<String> path}) {
+    this.data = data;
+    this.path = path ?? [];
+  }
+
+  dynamic data;
+  List<String> path;
+
+  @override toString() => data.toString();
+}
+
 /// Initialized with schema, validates instances against it
 class Validator {
   Validator(this._rootSchema);
@@ -103,7 +115,9 @@ class Validator {
     return false;
   }
 
-  void _numberValidation(JsonSchema schema, num n) {
+  void _numberValidation(JsonSchema schema, Instance instance) {
+    final num n = instance.data;
+
     final maximum = schema.maximum;
     final minimum = schema.minimum;
     final exclusiveMaximum = schema.exclusiveMaximum;
@@ -147,14 +161,14 @@ class Validator {
   void _typeValidation(JsonSchema schema, dynamic instance) {
     final typeList = schema.typeList;
     if (typeList != null && typeList.length > 0) {
-      if (!typeList.any((type) => _typeMatch(type, schema, instance))) {
+      if (!typeList.any((type) => _typeMatch(type, schema, instance.data))) {
         _err('${schema.path}: type: wanted ${typeList} got $instance');
       }
     }
   }
 
   void _constValidation(JsonSchema schema, dynamic instance) {
-    if (schema.hasConst && !JsonSchemaUtils.jsonEqual(instance, schema.constValue)) {
+    if (schema.hasConst && !JsonSchemaUtils.jsonEqual(instance.data, schema.constValue)) {
       _err('${schema.path}: const violated ${instance}');
     }
   }
@@ -170,8 +184,8 @@ class Validator {
     }
   }
 
-  void _stringValidation(JsonSchema schema, String instance) {
-    final actual = instance.runes.length;
+  void _stringValidation(JsonSchema schema, Instance instance) {
+    final actual = instance.data.runes.length;
     final minLength = schema.minLength;
     final maxLength = schema.maxLength;
     if (maxLength is int && actual > maxLength) {
@@ -180,17 +194,17 @@ class Validator {
       _err('${schema.path}: minLength violated ($instance vs $minLength)');
     }
     final pattern = schema.pattern;
-    if (pattern != null && !pattern.hasMatch(instance)) {
+    if (pattern != null && !pattern.hasMatch(instance.data)) {
       _err('${schema.path}: pattern violated ($instance vs $pattern)');
     }
   }
 
-  void _itemsValidation(JsonSchema schema, List instance) {
-    final int actual = instance.length;
+  void _itemsValidation(JsonSchema schema, Instance instance) {
+    final int actual = instance.data.length;
 
     final singleSchema = schema.items;
     if (singleSchema != null) {
-      instance.forEach((item) => _validate(singleSchema, item));
+      instance.data.forEach((item) => _validate(singleSchema, item));
     } else {
       final items = schema.itemsList;
 
@@ -199,11 +213,11 @@ class Validator {
         final end = min(expected, actual);
         for (int i = 0; i < end; i++) {
           assert(items[i] != null);
-          _validate(items[i], instance[i]);
+          _validate(items[i], instance.data[i]);
         }
         if (schema.additionalItemsSchema != null) {
           for (int i = end; i < actual; i++) {
-            _validate(schema.additionalItemsSchema, instance[i]);
+            _validate(schema.additionalItemsSchema, instance.data[i]);
           }
         } else if (schema.additionalItemsBool != null) {
           if (!schema.additionalItemsBool && actual > end) {
@@ -222,11 +236,11 @@ class Validator {
     }
 
     if (schema.uniqueItems) {
-      final end = instance.length;
+      final end = instance.data.length;
       final penultimate = end - 1;
       for (int i = 0; i < penultimate; i++) {
         for (int j = i + 1; j < end; j++) {
-          if (JsonSchemaUtils.jsonEqual(instance[i], instance[j])) {
+          if (JsonSchemaUtils.jsonEqual(instance.data[i], instance.data[j])) {
             _err('${schema.path}: uniqueItems violated: $instance [$i]==[$j]');
           }
         }
@@ -234,13 +248,13 @@ class Validator {
     }
 
     if (schema.contains != null) {
-      if (!instance.any((item) => new Validator(schema.contains).validate(item))) {
+      if (!instance.data.any((item) => new Validator(schema.contains).validate(item))) {
         _err('${schema.path}: contains violated: $instance');
       }
     }
   }
 
-  void _validateAllOf(JsonSchema schema, instance) {
+  void _validateAllOf(JsonSchema schema, Instance instance) {
     final List<JsonSchema> schemas = schema.allOf;
     final errorsSoFar = _errors.length;
     int i = 0;
@@ -256,13 +270,13 @@ class Validator {
     });
   }
 
-  void _validateAnyOf(JsonSchema schema, instance) {
+  void _validateAnyOf(JsonSchema schema, Instance instance) {
     if (!schema.anyOf.any((s) => new Validator(s).validate(instance))) {
       _err('${schema.path}/anyOf: anyOf violated ($instance, ${schema.anyOf})');
     }
   }
 
-  void _validateOneOf(JsonSchema schema, instance) {
+  void _validateOneOf(JsonSchema schema, Instance instance) {
     try {
       schema.oneOf.singleWhere((s) => new Validator(s).validate(instance));
     } on StateError catch (notOneOf) {
@@ -270,18 +284,18 @@ class Validator {
     }
   }
 
-  void _validateNot(JsonSchema schema, instance) {
+  void _validateNot(JsonSchema schema, Instance instance) {
     if (new Validator(schema.notSchema).validate(instance)) {
       _err('${schema.notSchema.path}: not violated');
     }
   }
 
-  void _validateFormat(JsonSchema schema, instance) {
+  void _validateFormat(JsonSchema schema, Instance instance) {
     switch (schema.format) {
       case 'date-time':
         {
           try {
-            DateTime.parse(instance);
+            DateTime.parse(instance.data);
           } catch (e) {
             _err('"date-time" format not accepted $instance');
           }
@@ -291,7 +305,7 @@ class Validator {
         {
           final isValid = defaultValidators.uriValidator ?? (_) => false;
 
-          if (!isValid(instance)) {
+          if (!isValid(instance.data)) {
             _err('"uri" format not accepted $instance');
           }
         }
@@ -302,7 +316,7 @@ class Validator {
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriReferenceValidator ?? (_) => false;
 
-          if (!isValid(instance)) {
+          if (!isValid(instance.data)) {
             _err('"uri-reference" format not accepted $instance');
           }
         }
@@ -313,7 +327,7 @@ class Validator {
             _err('${schema.format} not supported as format before draft6');
           final isValid = defaultValidators.uriTemplateValidator ?? (_) => false;
 
-          if (!isValid(instance)) {
+          if (!isValid(instance.data)) {
             _err('"uri-template" format not accepted $instance');
           }
         }
@@ -322,28 +336,28 @@ class Validator {
         {
           final isValid = defaultValidators.emailValidator ?? (_) => false;
 
-          if (!isValid(instance)) {
+          if (!isValid(instance.data)) {
             _err('"email" format not accepted $instance');
           }
         }
         break;
       case 'ipv4':
         {
-          if (JsonSchemaValidationRegexes.ipv4.firstMatch(instance) == null) {
+          if (JsonSchemaValidationRegexes.ipv4.firstMatch(instance.data) == null) {
             _err('"ipv4" format not accepted $instance');
           }
         }
         break;
       case 'ipv6':
         {
-          if (JsonSchemaValidationRegexes.ipv6.firstMatch(instance) == null) {
+          if (JsonSchemaValidationRegexes.ipv6.firstMatch(instance.data) == null) {
             _err('ipv6" format not accepted $instance');
           }
         }
         break;
       case 'hostname':
         {
-          if (JsonSchemaValidationRegexes.hostname.firstMatch(instance) == null) {
+          if (JsonSchemaValidationRegexes.hostname.firstMatch(instance.data) == null) {
             _err('"hostname" format not accepted $instance');
           }
         }
@@ -352,7 +366,7 @@ class Validator {
         {
           if (schema.schemaVersion != SchemaVersion.draft6)
             _err('${schema.format} not supported as format before draft6');
-          if (JsonSchemaValidationRegexes.jsonPointer.firstMatch(instance) == null) {
+          if (JsonSchemaValidationRegexes.jsonPointer.firstMatch(instance.data) == null) {
             _err('json-pointer" format not accepted $instance');
           }
         }
@@ -364,34 +378,36 @@ class Validator {
     }
   }
 
-  void _objectPropertyValidation(JsonSchema schema, Map instance) {
+  void _objectPropertyValidation(JsonSchema schema, Instance instance) {
     final propMustValidate = schema.additionalPropertiesBool != null && !schema.additionalPropertiesBool;
 
-    instance.forEach((k, v) {
+    instance.data.forEach((k, v) {
       // Validate property names against the provided schema, if any.
       if (schema.propertyNamesSchema != null) {
         _validate(schema.propertyNamesSchema, k);
       }
 
+      final newInstance = new Instance(v, path: instance.path + [k]);
+
       bool propCovered = false;
       final JsonSchema propSchema = schema.properties[k];
       if (propSchema != null) {
         assert(propSchema != null);
-        _validate(propSchema, v);
+        _validate(propSchema, newInstance);
         propCovered = true;
       }
 
       schema.patternProperties.forEach((regex, patternSchema) {
         if (regex.hasMatch(k)) {
           assert(patternSchema != null);
-          _validate(patternSchema, v);
+          _validate(patternSchema, newInstance);
           propCovered = true;
         }
       });
 
       if (!propCovered) {
         if (schema.additionalPropertiesSchema != null) {
-          _validate(schema.additionalPropertiesSchema, v);
+          _validate(schema.additionalPropertiesSchema, newInstance);
         } else if (propMustValidate) {
           _err('${schema.path}: unallowed additional property $k');
         }
@@ -399,19 +415,19 @@ class Validator {
     });
   }
 
-  void _propertyDependenciesValidation(JsonSchema schema, Map instance) {
+  void _propertyDependenciesValidation(JsonSchema schema, Instance instance) {
     schema.propertyDependencies.forEach((k, dependencies) {
-      if (instance.containsKey(k)) {
-        if (!dependencies.every((prop) => instance.containsKey(prop))) {
+      if (instance.data.containsKey(k)) {
+        if (!dependencies.every((prop) => instance.data.containsKey(prop))) {
           _err('${schema.path}: prop $k => $dependencies required');
         }
       }
     });
   }
 
-  void _schemaDependenciesValidation(JsonSchema schema, Map instance) {
+  void _schemaDependenciesValidation(JsonSchema schema, Instance instance) {
     schema.schemaDependencies.forEach((k, otherSchema) {
-      if (instance.containsKey(k)) {
+      if (instance.data.containsKey(k)) {
         if (!new Validator(otherSchema).validate(instance)) {
           _err('${otherSchema.path}: prop $k violated schema dependency');
         }
@@ -419,9 +435,9 @@ class Validator {
     });
   }
 
-  void _objectValidation(JsonSchema schema, Map instance) {
+  void _objectValidation(JsonSchema schema, Instance instance) {
     // Min / Max Props
-    final numProps = instance.length;
+    final numProps = instance.data.length;
     final minProps = schema.minProperties;
     final maxProps = schema.maxProperties;
     if (numProps < minProps) {
@@ -433,7 +449,7 @@ class Validator {
     // Required Properties
     if (schema.requiredProperties != null) {
       schema.requiredProperties.forEach((prop) {
-        if (!instance.containsKey(prop)) {
+        if (!instance.data.containsKey(prop)) {
           _err('${schema.path}: required prop missing: ${prop} from $instance');
         }
       });
@@ -455,6 +471,15 @@ class Validator {
       return;
     }
 
+    if (instance is! Instance) {
+      instance = new Instance(instance);
+    }
+
+    // TODO: remove this debug
+    print("INSTANCE:");
+    print(instance.data);
+    print(instance.path);
+
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.
     if (schema.ref != null) {
@@ -464,15 +489,15 @@ class Validator {
     _typeValidation(schema, instance);
     _constValidation(schema, instance);
     _enumValidation(schema, instance);
-    if (instance is List) _itemsValidation(schema, instance);
-    if (instance is String) _stringValidation(schema, instance);
-    if (instance is num) _numberValidation(schema, instance);
+    if (instance.data is List) _itemsValidation(schema, instance);
+    if (instance.data is String) _stringValidation(schema, instance);
+    if (instance.data is num) _numberValidation(schema, instance);
     if (schema.allOf.length > 0) _validateAllOf(schema, instance);
     if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
     if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
     if (schema.notSchema != null) _validateNot(schema, instance);
     if (schema.format != null) _validateFormat(schema, instance);
-    if (instance is Map) _objectValidation(schema, instance);
+    if (instance.data is Map) _objectValidation(schema, instance);
   }
 
   void _err(String msg) {

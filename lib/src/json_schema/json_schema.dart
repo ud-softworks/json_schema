@@ -1098,6 +1098,12 @@ This functionality will be removed in 3.0.
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
       new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
+  List<String> validateWithErrors(dynamic instance, {bool parseJson = false}) {
+    final validator = new Validator(this);
+    validator.validate(instance, reportMultipleErrors: true, parseJson: parseJson);
+    return validator.errors;
+  }
+
   // --------------------------------------------------------------------------
   // JSON Schema Internal Operations
   // --------------------------------------------------------------------------

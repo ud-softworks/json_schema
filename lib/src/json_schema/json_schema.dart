@@ -1098,10 +1098,10 @@ This functionality will be removed in 3.0.
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
       new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
-  List<String> validateWithErrors(dynamic instance, {bool parseJson = false}) {
+  List<ValidationError> validateWithErrors(dynamic instance, {bool parseJson = false}) {
     final validator = new Validator(this);
     validator.validate(instance, reportMultipleErrors: true, parseJson: parseJson);
-    return validator.errors;
+    return validator.errorObjects;
   }
 
   // --------------------------------------------------------------------------
@@ -1129,7 +1129,7 @@ This functionality will be removed in 3.0.
   }
 
   /// Checks if a [schemaDefinition] has a $ref.
-  /// If it does, it adds the $ref to [_shemaRefs] at the path key and returns true.
+  /// If it does, it adds the $ref to [_schemaRefs] at the path key and returns true.
   void _registerSchemaRef(String path, dynamic schemaDefinition) {
     if (_isRemoteRef(schemaDefinition)) {
       final schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);

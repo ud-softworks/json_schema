@@ -57,12 +57,6 @@ class Instance {
   @override toString() => data.toString();
 }
 
-  // void _err(String msg) {
-  //   // _logger.warning(msg); TODO: re-add logger
-  //   _errors.add(msg);
-  //   if (!_reportMultipleErrors) throw new FormatException(msg);
-  // }
-
 class ValidationError {
   ValidationError(this.instancePath, this.schemaPath, this.message);
 
@@ -75,7 +69,7 @@ class ValidationError {
   /// A human-readable message explaining why validation failed
   String message;
 
-  @override toString() => '$schemaPath: $message';
+  @override toString() => '$instancePath: $schemaPath: $message';
 }
 
 /// Initialized with schema, validates instances against it
@@ -200,7 +194,7 @@ class Validator {
     final enumValues = schema.enumValues;
     if (enumValues.length > 0) {
       try {
-        enumValues.singleWhere((v) => JsonSchemaUtils.jsonEqual(instance, v));
+        enumValues.singleWhere((v) => JsonSchemaUtils.jsonEqual(instance.data, v));
       } on StateError {
         _err('enum violated ${instance}', instance.path, schema.path);
       }
@@ -227,7 +221,10 @@ class Validator {
 
     final singleSchema = schema.items;
     if (singleSchema != null) {
-      instance.data.forEach((item) => _validate(singleSchema, item));
+      instance.data.asMap().forEach((index, item) {
+        final itemInstance = new Instance(item, path: '${instance.path}/$index');
+        _validate(singleSchema, itemInstance);
+      });
     } else {
       final items = schema.itemsList;
 
@@ -236,15 +233,17 @@ class Validator {
         final end = min(expected, actual);
         for (int i = 0; i < end; i++) {
           assert(items[i] != null);
-          _validate(items[i], instance.data[i]);
+          final itemInstance = new Instance(instance.data[i], path: '${instance.path}/$i');
+          _validate(items[i], itemInstance);
         }
         if (schema.additionalItemsSchema != null) {
           for (int i = end; i < actual; i++) {
-            _validate(schema.additionalItemsSchema, instance.data[i]);
+            final itemInstance = new Instance(instance.data[i], path: '${instance.path}/$i');
+            _validate(schema.additionalItemsSchema, itemInstance);
           }
         } else if (schema.additionalItemsBool != null) {
           if (!schema.additionalItemsBool && actual > end) {
-            _err('additionalItems false', instance.path, schema.path);
+            _err('additionalItems false', instance.path, schema.path + '/additionalItems');
           }
         }
       }
@@ -415,7 +414,7 @@ class Validator {
         _validate(schema.propertyNamesSchema, k);
       }
 
-      final newInstance = new Instance(v, path: '${instance.path}/k');
+      final newInstance = new Instance(v, path: '${instance.path}/$k');
 
       bool propCovered = false;
       final JsonSchema propSchema = schema.properties[k];
@@ -478,7 +477,7 @@ class Validator {
     if (schema.requiredProperties != null) {
       schema.requiredProperties.forEach((prop) {
         if (!instance.data.containsKey(prop)) {
-          _err('required prop missing: ${prop} from $instance', instance.path, schema.path);
+          _err('required prop missing: ${prop} from $instance', instance.path, schema.path + '/required');
         }
       });
     }
@@ -504,9 +503,9 @@ class Validator {
     }
 
     // TODO: remove this debug
-    print("INSTANCE:");
-    print(instance.data);
-    print(instance.path);
+    // print("INSTANCE:");
+    // print(instance.data);
+    // print(instance.path);
 
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.
@@ -530,6 +529,8 @@ class Validator {
 
   void _err(String msg, String instancePath, String schemaPath) {
     // _logger.warning(msg); TODO: re-add logger
+
+    schemaPath = schemaPath.replaceFirst('#', '');
     _errors.add(new ValidationError(instancePath, schemaPath, msg));
     if (!_reportMultipleErrors) throw new FormatException(msg);
   }

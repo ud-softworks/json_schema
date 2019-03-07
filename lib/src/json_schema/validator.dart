@@ -294,7 +294,11 @@ class Validator {
   }
 
   void _validateAnyOf(JsonSchema schema, Instance instance) {
-    if (!schema.anyOf.any((s) => new Validator(s).validate(instance))) {
+    if (!schema.anyOf.any((s) {
+      final errorsSoFar = _errors.length;
+      _validate(s, instance);
+      return _errors.length == errorsSoFar;
+    })) {
       // TODO: deal with /anyOf
       _err('${schema.path}/anyOf: anyOf violated ($instance, ${schema.anyOf})', instance.path, schema.path);
     }

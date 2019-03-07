@@ -39,7 +39,7 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
     // - additional items bool
 
     // if (schema.allOf.length > 0) _validateAllOf(schema, instance);
-// if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
+    // if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
 // if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
 // if (schema.notSchema != null) _validateNot(schema, instance);
 // if (schema.format != null) _validateFormat(schema, instance);
@@ -249,6 +249,21 @@ void main() {
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey/allOf/1/required');
       expect(errors[0].message, contains('required'));
+    });
+
+    test('anyOf', () {
+      final schema = createObjectSchema({
+        "anyOf": [
+          {"type": "integer"},
+          {"minimum": 2}
+        ]
+      });
+
+      final errors = schema.validateWithErrors({'someKey': 1.5});
+
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/anyOf/0');
+      expect(errors[0].message, contains('type'));
     });
   });
 }

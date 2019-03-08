@@ -16,56 +16,6 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
   });
 }
 
-    // _typeValidation(schema, instance);
-    // _constValidation(schema, instance);
-    // _enumValidation(schema, instance);
-
-    // if (instance.data is String) _stringValidation(schema, instance);
-    // - maxLength
-    // - minLength
-    // - pattern
-
-    // if (instance.data is num) _numberValidation(schema, instance);
-    // - maximum
-    // - minimum
-    // - exclusiveMaximum
-    // - exclusiveMinimum
-    // - multipleOf
-
-    // if (instance.data is List) _itemsValidation(schema, instance);
-    // - single schema
-    // - multiple schemas
-    // - additional items
-    // - additional items bool
-
-    // if (schema.allOf.length > 0) _validateAllOf(schema, instance);
-    // if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
-    // if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
-    // if (schema.notSchema != null) _validateNot(schema, instance);
-
-    // if (schema.format != null) _validateFormat(schema, instance);
-    // - date-time
-    // - uri
-    // - uri-reference
-    // - uri-template
-    // - email
-    // - ipv4
-    // - ipv6
-    // - hostname
-    // - json-pointer
-
-    // if (instance.data is Map) _objectValidation(schema, instance);
-    // - minProperties
-    // - maxProperties
-    // - required
-    // - pattern properties
-    // - additional properties
-    // - property dependencies
-    // - schema dependencies
-
-// - pattern??
-
-
 void main() {
   group('validation error', () {
     test('type', () {
@@ -568,6 +518,53 @@ void main() {
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey/dependencies/bar');
       expect(errors[0].message, contains('schema dependency'));
+    });
+
+    group('reference', () {
+      final schemaJson = {
+        'properties': {
+          'minItems': {"minItems": 2},
+          'maxItems': {"maxItems": 2},
+          'minLength': {"\$ref": "#/properties/refDestination"},
+          'refDestination': {'minLength': 5},
+          'maxLength': {'\$ref': 'http://localhost/destination.json'},
+          'stringArray': {
+            'type': 'array',
+            'items': {'type': 'string'}
+          },
+        }
+      };
+
+      final RefProvider syncRefProvider = (String ref) {
+        final refs = {
+          'http://localhost/destination.json': {"maxLength": 2}
+        };
+
+        return JsonSchema.createSchema(refs[ref]);
+      };
+
+      final schema =
+          JsonSchema.createSchema(schemaJson, refProvider: syncRefProvider);
+
+      test('local', () {
+        final errors = schema.validateWithErrors({'minLength': 'foo'});
+
+        expect(errors.length, 1);
+        expect(errors[0].instancePath, '/minLength');
+        expect(errors[0].schemaPath, '/properties/refDestination');
+        expect(errors[0].message, contains('minLength'));
+      });
+
+      test('remote', () {
+        final errors = schema.validateWithErrors({'maxLength': 'foo'});
+
+        expect(errors.length, 1);
+        expect(errors[0].instancePath, '/maxLength');
+        expect(errors[0].schemaPath, 'http://localhost/destination.json/');
+        expect(errors[0].message, contains('maxLength'));
+      });
+
+
     });
   });
 }

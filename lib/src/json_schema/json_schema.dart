@@ -1226,13 +1226,13 @@ This functionality will be removed in 3.0.
 
   /// Validate, calculate and set the value of the 'id' JSON Schema prop.
   _setId(dynamic value) {
-    /// First, just add the ref directly, as a fallback, and in case the ID has it's own
-    /// unique origin (i.e. http://example1.com vs http://example2.com/)
+    // First, just add the ref directly, as a fallback, and in case the ID has its own
+    // unique origin (i.e. http://example1.com vs http://example2.com/)
     _id = TypeValidators.uri('id', value);
 
-    /// If the current schema $id has no scheme.
+    // If the current schema $id has no scheme.
     if (_id.scheme.isEmpty) {
-      /// If the $id has a path and the root has a base, append it to the base.
+      // If the $id has a path and the root has a base, append it to the base.
       if (_inheritedUriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
         final path = _id.path.startsWith('/') ? _id.path : '/${_id.path}';
         _id = Uri.parse('${_inheritedUriBase.toString()}$path');
@@ -1250,7 +1250,7 @@ This functionality will be removed in 3.0.
       // This is expected behavior.
     }
 
-    /// Add the current schema to the ref map by it's id, so it can be referenced elsewhere.
+    // Add the current schema to the ref map by its id, so it can be referenced elsewhere.
     _addSchemaToRefMap(_id.toString(), this);
     return _id;
   }
@@ -1322,6 +1322,8 @@ This functionality will be removed in 3.0.
       // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (JsonSchema schema) {
         if (schema != null) {
+          // TODO: explain this
+          schema._path = _ref.toString() + '/';
           _addSchemaToRefMap(_ref.toString(), schema);
           return _addSchemaToRefMap(originalRef.toString(), schema);
         } else {

@@ -41,8 +41,19 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
     // if (schema.allOf.length > 0) _validateAllOf(schema, instance);
     // if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
     // if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
-// if (schema.notSchema != null) _validateNot(schema, instance);
-// if (schema.format != null) _validateFormat(schema, instance);
+    // if (schema.notSchema != null) _validateNot(schema, instance);
+
+    // if (schema.format != null) _validateFormat(schema, instance);
+    // - date-time
+    // - uri
+    // - uri-reference
+    // - uri-template
+    // - email
+    // - ipv4
+    // - ipv6
+    // - hostname
+    // - json-pointer
+
 // if (instance.data is Map) _objectValidation(schema, instance);
 
 void main() {
@@ -299,6 +310,141 @@ void main() {
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey/oneOf');
       expect(errors[0].message, contains('oneOf'));
+    });
+
+    test('not', () {
+      final schema = createObjectSchema({
+        "not": {"type": "integer"}
+      });
+
+      final errors = schema.validateWithErrors({'someKey': 3});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/not');
+      expect(errors[0].message, contains('not'));
+    });
+
+    test('date-time format', () {
+      final schema = createObjectSchema({'format': 'date-time'});
+
+      final errors = schema.validateWithErrors({'someKey': 'foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('date-time'));
+    });
+
+    test('URI format', () {
+      final schema = createObjectSchema({'format': 'uri'});
+
+      final errors = schema.validateWithErrors({'someKey': 'foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('uri'));
+    });
+
+    test('URI reference format', () {
+      final schema = createObjectSchema({'format': 'uri-reference'});
+
+      final errors = schema.validateWithErrors({'someKey': '\\\\WINDOWS\\fileshare'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('uri-reference'));
+    });
+
+    test('URI template format', () {
+      final schema = createObjectSchema({'format': 'uri-template'});
+
+      final errors = schema.validateWithErrors({'someKey': 'http://example.com/dictionary/{term:1}/{term'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('uri-template'));
+    });
+
+    test('Email address format', () {
+      final schema = createObjectSchema({'format': 'email'});
+
+      final errors = schema.validateWithErrors({'someKey': 'foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('email'));
+    });
+
+    test('IPv4 format', () {
+      final schema = createObjectSchema({'format': 'ipv4'});
+
+      final errors = schema.validateWithErrors({'someKey': 'foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('ipv4'));
+    });
+
+    test('IPv6 format', () {
+      final schema = createObjectSchema({'format': 'ipv6'});
+
+      final errors = schema.validateWithErrors({'someKey': '::foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('ipv6'));
+    });
+
+    test('Hostname format', () {
+      final schema = createObjectSchema({'format': 'hostname'});
+
+      final errors = schema.validateWithErrors({'someKey': 'not_valid'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('hostname'));
+    });
+
+    test('JSON Pointer format', () {
+      final schema = createObjectSchema({'format': 'json-pointer'});
+
+      final errors = schema.validateWithErrors({'someKey': 'foo'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('json-pointer'));
+    });
+
+    test('Format non-string', () {
+      final schema = createObjectSchema({'format': 'uri'});
+
+      final errors = schema.validateWithErrors({'someKey': 3});
+
+      for (var err in errors) print(err);
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('type'));
+    });
+
+    test('Unsupported format', () {
+      final schema = createObjectSchema({'format': 'fake-format'});
+
+      final errors = schema.validateWithErrors({'someKey': '3'});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('not supported'));
     });
   });
 }

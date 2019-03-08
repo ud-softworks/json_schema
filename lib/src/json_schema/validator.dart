@@ -301,11 +301,17 @@ class Validator {
   void _validateNot(JsonSchema schema, Instance instance) {
     if (new Validator(schema.notSchema).validate(instance)) {
       // TODO: deal with .notSchema
-      _err('${schema.notSchema.path}: not violated', instance.path, schema.path);
+      _err('${schema.notSchema.path}: not violated', instance.path, schema.notSchema.path);
     }
   }
 
   void _validateFormat(JsonSchema schema, Instance instance) {
+    if (instance.data is! String) {
+      _err('${instance.data} is type ${instance.data.runtimeType}; only inputs '
+           'of type String are accepted for format operations.', instance.path, schema.path);
+      return;
+    }
+
     switch (schema.format) {
       case 'date-time':
         {

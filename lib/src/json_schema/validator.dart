@@ -277,30 +277,15 @@ class Validator {
   }
 
   void _validateAllOf(JsonSchema schema, Instance instance) {
-    final List<JsonSchema> schemas = schema.allOf;
-    final errorsSoFar = _errors.length;
-    int i = 0;
-    schemas.every((s) {
-      assert(s != null);
-      _validate(s, instance);
-      final bool valid = _errors.length == errorsSoFar;
-      if (!valid) {
-        // TODO: deal with /$i
-        _err('${s.path}/$i: allOf violated ${instance}', instance.path, schema.path);
-      }
-      i++;
-      return valid;
-    });
+    if (!schema.allOf.every((s) => new Validator(s).validate(instance))) {
+      _err('${schema.path}: allOf violated ${instance}', instance.path, schema.path + '/allOf');
+    }
   }
 
   void _validateAnyOf(JsonSchema schema, Instance instance) {
-    if (!schema.anyOf.any((s) {
-      final errorsSoFar = _errors.length;
-      _validate(s, instance);
-      return _errors.length == errorsSoFar;
-    })) {
+    if (!schema.anyOf.any((s) => new Validator(s).validate(instance))) {
       // TODO: deal with /anyOf
-      _err('${schema.path}/anyOf: anyOf violated ($instance, ${schema.anyOf})', instance.path, schema.path);
+      _err('${schema.path}/anyOf: anyOf violated ($instance, ${schema.anyOf})', instance.path, schema.path + '/anyOf');
     }
   }
 
@@ -309,7 +294,7 @@ class Validator {
       schema.oneOf.singleWhere((s) => new Validator(s).validate(instance));
     } on StateError catch (notOneOf) {
       // TODO: deal with oneOf
-      _err('${schema.path}/oneOf: violated ${notOneOf.message}', instance.path, schema.path);
+      _err('${schema.path}/oneOf: violated ${notOneOf.message}', instance.path, schema.path + '/oneOf');
     }
   }
 

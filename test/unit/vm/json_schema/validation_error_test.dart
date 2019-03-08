@@ -40,7 +40,7 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
 
     // if (schema.allOf.length > 0) _validateAllOf(schema, instance);
     // if (schema.anyOf.length > 0) _validateAnyOf(schema, instance);
-// if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
+    // if (schema.oneOf.length > 0) _validateOneOf(schema, instance);
 // if (schema.notSchema != null) _validateNot(schema, instance);
 // if (schema.format != null) _validateFormat(schema, instance);
 // if (instance.data is Map) _objectValidation(schema, instance);
@@ -51,6 +51,7 @@ void main() {
       final schema = createObjectSchema({"type": "string"});
       final errors = schema.validateWithErrors({'someKey': 1});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey');
       expect(errors[0].message, contains('type'));
@@ -60,6 +61,7 @@ void main() {
       final schema = createObjectSchema({'const': 'foo'});
       final errors = schema.validateWithErrors({'someKey': 'bar'});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey');
       expect(errors[0].message, contains('const'));
@@ -69,6 +71,7 @@ void main() {
       final schema = createObjectSchema({'enum': [1, 2, 3]});
       final errors = schema.validateWithErrors({'someKey': 4});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey');
       expect(errors[0].message, contains('enum'));
@@ -84,6 +87,7 @@ void main() {
       test('minLength', () {
         final errors = schema.validateWithErrors({'someKey': 'ab'});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey');
         expect(errors[0].schemaPath, '/properties/someKey');
         expect(errors[0].message, contains('minLength'));
@@ -92,6 +96,7 @@ void main() {
       test('maxLength', () {
         final errors = schema.validateWithErrors({'someKey': 'abcdef'});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey');
         expect(errors[0].schemaPath, '/properties/someKey');
         expect(errors[0].message, contains('maxLength'));
@@ -100,6 +105,7 @@ void main() {
       test('pattern', () {
         final errors = schema.validateWithErrors({'someKey': 'bye'});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey');
         expect(errors[0].schemaPath, '/properties/someKey');
         expect(errors[0].message, contains('pattern'));
@@ -124,6 +130,7 @@ void main() {
       test('maximum', () {
         final errors = schema.validateWithErrors({'someKey': {'nonexclusive': 5.1}});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey/nonexclusive');
         expect(errors[0].schemaPath, '/properties/someKey/properties/nonexclusive');
         expect(errors[0].message, contains('maximum'));
@@ -132,6 +139,7 @@ void main() {
       test('minimum', () {
         final errors = schema.validateWithErrors({'someKey': {'nonexclusive': 2.9}});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey/nonexclusive');
         expect(errors[0].schemaPath, '/properties/someKey/properties/nonexclusive');
         expect(errors[0].message, contains('minimum'));
@@ -140,6 +148,7 @@ void main() {
       test('exclusiveMaximum', () {
         final errors = schema.validateWithErrors({'someKey': {'exclusive': 5.0}});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey/exclusive');
         expect(errors[0].schemaPath, '/properties/someKey/properties/exclusive');
         expect(errors[0].message, contains('exclusiveMaximum'));
@@ -148,6 +157,7 @@ void main() {
       test('exclusiveMinimum', () {
         final errors = schema.validateWithErrors({'someKey': {'exclusive': 3.0}});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey/exclusive');
         expect(errors[0].schemaPath, '/properties/someKey/properties/exclusive');
         expect(errors[0].message, contains('exclusiveMinimum'));
@@ -156,6 +166,7 @@ void main() {
       test('multipleOf', () {
         final errors = schema.validateWithErrors({'someKey': {'multiple': 7}});
 
+        expect(errors.length, 1);
         expect(errors[0].instancePath, '/someKey/multiple');
         expect(errors[0].schemaPath, '/properties/someKey/properties/multiple');
         expect(errors[0].message, contains('multipleOf'));
@@ -166,6 +177,7 @@ void main() {
       final schema = createObjectSchema({'items': {'type': 'integer'}});
       final errors = schema.validateWithErrors({'someKey': [1, 2, 'foo']});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey/2');
       expect(errors[0].schemaPath, '/properties/someKey/items');
       expect(errors[0].message, contains('type'));
@@ -178,6 +190,7 @@ void main() {
       ]});
       final errors = schema.validateWithErrors({'someKey': ['foo', 'bar']});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey/0');
       expect(errors[0].schemaPath, '/properties/someKey/items/0');
       expect(errors[0].message, contains('type'));
@@ -191,6 +204,7 @@ void main() {
       });
       final errors = schema.validateWithErrors({'someKey': ['foo', 'bar', 'baz']});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey/2');
       expect(errors[0].schemaPath, '/properties/someKey/additionalItems');
       expect(errors[0].message, contains('type'));
@@ -204,6 +218,7 @@ void main() {
       });
       final errors = schema.validateWithErrors({'someKey': ['foo', 'bar', 'baz']});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey/additionalItems');
       expect(errors[0].message, contains('additionalItems'));
@@ -219,9 +234,11 @@ void main() {
 
       final errors = schema.validateWithErrors({'someKey': 'a long string'});
 
+      for (var err in errors) print(err);
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
-      expect(errors[0].schemaPath, '/properties/someKey/allOf/1');
-      expect(errors[0].message, contains('maxLength'));
+      expect(errors[0].schemaPath, '/properties/someKey/allOf');
+      expect(errors[0].message, contains('allOf'));
     });
 
     test('allOf with an additional base schema', () {
@@ -246,9 +263,10 @@ void main() {
 
       final errors = schema.validateWithErrors({'someKey': {'foo': 'string', 'bar': 1}});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
-      expect(errors[0].schemaPath, '/properties/someKey/allOf/1/required');
-      expect(errors[0].message, contains('required'));
+      expect(errors[0].schemaPath, '/properties/someKey/allOf');
+      expect(errors[0].message, contains('allOf'));
     });
 
     test('anyOf', () {
@@ -261,9 +279,26 @@ void main() {
 
       final errors = schema.validateWithErrors({'someKey': 1.5});
 
+      expect(errors.length, 1);
       expect(errors[0].instancePath, '/someKey');
-      expect(errors[0].schemaPath, '/properties/someKey/anyOf/0');
+      expect(errors[0].schemaPath, '/properties/someKey/anyOf');
       expect(errors[0].message, contains('type'));
+    });
+
+    test('oneOf', () {
+      final schema = createObjectSchema({
+        "oneOf": [
+            {"type": "integer"},
+            {"minimum": 2}
+        ]
+      });
+
+      final errors = schema.validateWithErrors({'someKey': 3});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/oneOf');
+      expect(errors[0].message, contains('oneOf'));
     });
   });
 }

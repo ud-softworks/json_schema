@@ -431,7 +431,7 @@ class Validator {
         if (schema.additionalPropertiesSchema != null) {
           _validate(schema.additionalPropertiesSchema, newInstance);
         } else if (propMustValidate) {
-          _err('unallowed additional property $k', instance.path, schema.path);
+          _err('unallowed additional property $k', instance.path, schema.path + '/additionalProperties');
         }
       }
     });
@@ -441,7 +441,7 @@ class Validator {
     schema.propertyDependencies.forEach((k, dependencies) {
       if (instance.data.containsKey(k)) {
         if (!dependencies.every((prop) => instance.data.containsKey(prop))) {
-          _err('prop $k => $dependencies required', instance.path, schema.path);
+          _err('prop $k => $dependencies required', instance.path, schema.path + '/dependencies');
         }
       }
     });

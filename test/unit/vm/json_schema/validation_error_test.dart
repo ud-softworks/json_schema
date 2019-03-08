@@ -54,7 +54,17 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
     // - hostname
     // - json-pointer
 
-// if (instance.data is Map) _objectValidation(schema, instance);
+    // if (instance.data is Map) _objectValidation(schema, instance);
+    // - minProperties
+    // - maxProperties
+    // - required
+    // - pattern properties
+    // - additional properties
+    // - property dependencies
+    // - schema dependencies
+
+// - pattern??
+
 
 void main() {
   group('validation error', () {
@@ -445,6 +455,119 @@ void main() {
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey');
       expect(errors[0].message, contains('not supported'));
+    });
+
+    test('Object minProperties', () {
+      final schema = createObjectSchema({'minProperties': 2});
+      final errors = schema.validateWithErrors({'someKey': {'foo': 'bar'}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('minProperties'));
+    });
+
+    test('Object maxProperties', () {
+      final schema = createObjectSchema({'maxProperties': 1});
+      final errors = schema.validateWithErrors({'someKey': {'foo': 1, 'bar': 2}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('maxProperties'));
+    });
+
+    test('Object required properties', () {
+      final schema = createObjectSchema({
+       'properties': {
+          'foo': {'type': 'string'},
+          'bar': {'type': 'string'}
+        },
+        'required': ['foo', 'bar']
+      });
+      final errors = schema.validateWithErrors({'someKey': {'foo': 'a'}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/required');
+      expect(errors[0].message, contains('required'));
+    });
+
+    test('Object pattern properties', () {
+      final schema = createObjectSchema({
+       'patternProperties': {
+          'f.*o': {'type': 'integer'},
+        }
+      });
+      final errors = schema.validateWithErrors({'someKey': {'foooooooo': 'a'}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey/foooooooo');
+      expect(errors[0].schemaPath, '/properties/someKey/patternProperties/f.*o');
+      expect(errors[0].message, contains('type'));
+    });
+
+    test('Object additional properties not allowed', () {
+      final schema = createObjectSchema({
+       'properties': {
+          'foo': {'type': 'string'},
+          'bar': {'type': 'string'}
+        },
+        'additionalProperties': false
+      });
+      final errors = schema.validateWithErrors({'someKey': {'foo': 'a', 'bar': 'b', 'baz': 'c'}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/additionalProperties');
+      expect(errors[0].message, contains('additional property'));
+    });
+
+    test('Object additional properties with schema', () {
+      final schema = createObjectSchema({
+       'properties': {
+          'foo': {'type': 'string'},
+          'bar': {'type': 'string'}
+        },
+        'additionalProperties': {'type': 'string'}
+      });
+      final errors = schema.validateWithErrors({'someKey': {'foo': 'a', 'bar': 'b', 'baz': 3}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey/baz');
+      expect(errors[0].schemaPath, '/properties/someKey/additionalProperties');
+      expect(errors[0].message, contains('type'));
+    });
+
+    test('Object with property dependencies', () {
+      final schema = createObjectSchema({
+       'dependencies': {'bar': ['foo']}
+      });
+      final errors = schema.validateWithErrors({'someKey': {'bar': 'b'}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/dependencies');
+      expect(errors[0].message, contains('required'));
+    });
+
+    test('Object with schema dependencies', () {
+      final schema = createObjectSchema({
+        "dependencies": {
+          "bar": {
+            "properties": {
+              "foo": {"type": "integer"},
+              "bar": {"type": "integer"}
+            }
+          }
+        }
+      });
+      final errors = schema.validateWithErrors({'someKey': {"foo": 2, "bar": "quux"}});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey/dependencies/bar');
+      expect(errors[0].message, contains('schema dependency'));
     });
   });
 }

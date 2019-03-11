@@ -1322,7 +1322,9 @@ This functionality will be removed in 3.0.
       // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (JsonSchema schema) {
         if (schema != null) {
-          // TODO: explain this
+          // Set referenced schema's path should be equivalent to the $ref value.
+          // Otherwise it's set as `/`, which doesn't help track down
+          // the source of validation errors.
           schema._path = _ref.toString() + '/';
           _addSchemaToRefMap(_ref.toString(), schema);
           return _addSchemaToRefMap(originalRef.toString(), schema);

@@ -71,7 +71,7 @@ class ValidationError {
   String message;
 
   @override
-  toString() => '$instancePath: $schemaPath: $message';
+  toString() => '$instancePath: $message';
 }
 
 /// Initialized with schema, validates instances against it

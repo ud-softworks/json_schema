@@ -1094,10 +1094,13 @@ This functionality will be removed in 3.0.
   /// Whether the [JsonSchema] is required on its parent.
   bool get requiredOnParent => _parent?.propertyRequired(propertyName) ?? false;
 
-  /// Validate [instance] against this schema
+  /// Validate [instance] against this schema, returning a boolean indicating whether
+  /// validation succeeded or failed.
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
       new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
 
+  /// Validate [instance] against this schema, returning a list of [ValidationError]
+  /// objects with information about any validation errors that occurred.
   List<ValidationError> validateWithErrors(dynamic instance, {bool parseJson = false}) {
     final validator = new Validator(this);
     validator.validate(instance, reportMultipleErrors: true, parseJson: parseJson);

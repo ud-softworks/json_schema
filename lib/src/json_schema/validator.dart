@@ -54,7 +54,8 @@ class Instance {
   dynamic data;
   String path;
 
-  @override toString() => data.toString();
+  @override
+  toString() => data.toString();
 }
 
 class ValidationError {
@@ -69,7 +70,8 @@ class ValidationError {
   /// A human-readable message explaining why validation failed
   String message;
 
-  @override toString() => '$instancePath: $schemaPath: $message';
+  @override
+  toString() => '$instancePath: $schemaPath: $message';
 }
 
 /// Initialized with schema, validates instances against it
@@ -307,8 +309,11 @@ class Validator {
 
   void _validateFormat(JsonSchema schema, Instance instance) {
     if (instance.data is! String) {
-      _err('${instance.data} is type ${instance.data.runtimeType}; only inputs '
-           'of type String are accepted for format operations.', instance.path, schema.path);
+      _err(
+          '${instance.data} is type ${instance.data.runtimeType}; only inputs '
+          'of type String are accepted for format operations.',
+          instance.path,
+          schema.path);
       return;
     }
 
@@ -488,7 +493,8 @@ class Validator {
     /// If the [JsonSchema] is a bool, always return this value.
     if (schema.schemaBool != null) {
       if (schema.schemaBool == false) {
-        _err('schema is a boolean == false, this schema will never validate. Instance: $instance', instance.path, schema.path);
+        _err('schema is a boolean == false, this schema will never validate. Instance: $instance', instance.path,
+            schema.path);
       }
       return;
     }

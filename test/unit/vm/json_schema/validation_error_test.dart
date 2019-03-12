@@ -4,10 +4,6 @@
 import 'package:json_schema/json_schema.dart';
 import 'package:test/test.dart';
 
-// TODO: test nested $refs
-// https://github.com/epoberezkin/ajv/issues/876
-// https://github.com/epoberezkin/ajv/issues/512
-
 JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
   return JsonSchema.createSchema({
     'properties': {'someKey': nestedSchema}

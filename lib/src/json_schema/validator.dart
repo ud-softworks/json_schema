@@ -46,9 +46,9 @@ import 'package:json_schema/src/json_schema/utils.dart';
 import 'package:json_schema/src/json_schema/global_platform_functions.dart' show defaultValidators;
 
 class Instance {
-  Instance(dynamic data, {String path}) {
+  Instance(dynamic data, {String path = ''}) {
     this.data = data;
-    this.path = path ?? '';
+    this.path = path;
   }
 
   dynamic data;
@@ -490,6 +490,10 @@ class Validator {
   }
 
   void _validate(JsonSchema schema, dynamic instance) {
+    if (instance is! Instance) {
+      instance = new Instance(instance);
+    }
+
     /// If the [JsonSchema] is a bool, always return this value.
     if (schema.schemaBool != null) {
       if (schema.schemaBool == false) {
@@ -498,15 +502,6 @@ class Validator {
       }
       return;
     }
-
-    if (instance is! Instance) {
-      instance = new Instance(instance);
-    }
-
-    // TODO: remove this debug
-    // print("INSTANCE:");
-    // print(instance.data);
-    // print(instance.path);
 
     /// If the [JsonSchema] being validated is a ref, pull the ref
     /// from the [refMap] instead.

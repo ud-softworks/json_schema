@@ -16,6 +16,26 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
 
 void main() {
   group('validation error', () {
+    test('boolean false at root', () {
+      final schema = JsonSchema.createSchema(false);
+      final errors = schema.validateWithErrors({'someKey': 1});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '');
+      expect(errors[0].schemaPath, '');
+      expect(errors[0].message, contains('boolean == false'));
+    });
+
+    test('boolean false in object', () {
+      final schema = JsonSchema.createSchema({'properties': {'someKey': false}});
+      final errors = schema.validateWithErrors({'someKey': 1});
+
+      expect(errors.length, 1);
+      expect(errors[0].instancePath, '/someKey');
+      expect(errors[0].schemaPath, '/properties/someKey');
+      expect(errors[0].message, contains('boolean == false'));
+    });
+
     test('type', () {
       final schema = createObjectSchema({"type": "string"});
       final errors = schema.validateWithErrors({'someKey': 1});

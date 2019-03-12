@@ -23,7 +23,9 @@ void main() {
     });
 
     test('boolean false in object', () {
-      final schema = JsonSchema.createSchema({'properties': {'someKey': false}});
+      final schema = JsonSchema.createSchema({
+        'properties': {'someKey': false}
+      });
       final errors = schema.validateWithErrors({'someKey': 1});
 
       expect(errors.length, 1);

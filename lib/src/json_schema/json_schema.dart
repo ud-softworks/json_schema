@@ -1094,9 +1094,18 @@ This functionality will be removed in 3.0.
   /// Whether the [JsonSchema] is required on its parent.
   bool get requiredOnParent => _parent?.propertyRequired(propertyName) ?? false;
 
-  /// Validate [instance] against this schema
+  /// Validate [instance] against this schema, returning a boolean indicating whether
+  /// validation succeeded or failed.
   bool validate(dynamic instance, {bool reportMultipleErrors = false, bool parseJson = false}) =>
       new Validator(this).validate(instance, reportMultipleErrors: reportMultipleErrors, parseJson: parseJson);
+
+  /// Validate [instance] against this schema, returning a list of [ValidationError]
+  /// objects with information about any validation errors that occurred.
+  List<ValidationError> validateWithErrors(dynamic instance, {bool parseJson = false}) {
+    final validator = new Validator(this);
+    validator.validate(instance, reportMultipleErrors: true, parseJson: parseJson);
+    return validator.errorObjects;
+  }
 
   // --------------------------------------------------------------------------
   // JSON Schema Internal Operations
@@ -1123,7 +1132,7 @@ This functionality will be removed in 3.0.
   }
 
   /// Checks if a [schemaDefinition] has a $ref.
-  /// If it does, it adds the $ref to [_shemaRefs] at the path key and returns true.
+  /// If it does, it adds the $ref to [_schemaRefs] at the path key and returns true.
   void _registerSchemaRef(String path, dynamic schemaDefinition) {
     if (_isRemoteRef(schemaDefinition)) {
       final schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
@@ -1220,13 +1229,13 @@ This functionality will be removed in 3.0.
 
   /// Validate, calculate and set the value of the 'id' JSON Schema prop.
   _setId(dynamic value) {
-    /// First, just add the ref directly, as a fallback, and in case the ID has it's own
-    /// unique origin (i.e. http://example1.com vs http://example2.com/)
+    // First, just add the ref directly, as a fallback, and in case the ID has its own
+    // unique origin (i.e. http://example1.com vs http://example2.com/)
     _id = TypeValidators.uri('id', value);
 
-    /// If the current schema $id has no scheme.
+    // If the current schema $id has no scheme.
     if (_id.scheme.isEmpty) {
-      /// If the $id has a path and the root has a base, append it to the base.
+      // If the $id has a path and the root has a base, append it to the base.
       if (_inheritedUriBase != null && _id.path != null && _id.path != '/' && _id.path.isNotEmpty) {
         final path = _id.path.startsWith('/') ? _id.path : '/${_id.path}';
         _id = Uri.parse('${_inheritedUriBase.toString()}$path');
@@ -1244,7 +1253,7 @@ This functionality will be removed in 3.0.
       // This is expected behavior.
     }
 
-    /// Add the current schema to the ref map by it's id, so it can be referenced elsewhere.
+    // Add the current schema to the ref map by its id, so it can be referenced elsewhere.
     _addSchemaToRefMap(_id.toString(), this);
     return _id;
   }
@@ -1316,6 +1325,10 @@ This functionality will be removed in 3.0.
       // TODO: should we do something if the ref is a fragment?
       final addSchemaFunction = (JsonSchema schema) {
         if (schema != null) {
+          // Set referenced schema's path should be equivalent to the $ref value.
+          // Otherwise it's set as `/`, which doesn't help track down
+          // the source of validation errors.
+          schema._path = _ref.toString() + '/';
           _addSchemaToRefMap(_ref.toString(), schema);
           return _addSchemaToRefMap(originalRef.toString(), schema);
         } else {

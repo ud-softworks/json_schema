@@ -1,5 +1,5 @@
 name: json_schema
-version: 2.1.3
+version: 2.1.4
 description: Provide support for validating instances against json schema
 authors:
   - Michael Carter <michael.carter@workiva.com>

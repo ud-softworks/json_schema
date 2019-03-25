@@ -703,10 +703,11 @@ class JsonSchema {
   JsonSchema resolvePath(String path) => _getSchemaFromPath(path);
 
   @override
-  bool operator ==(dynamic other) => other is JsonSchema && new MapEquality().equals(schemaMap, other.schemaMap);
+  bool operator ==(dynamic other) =>
+      other is JsonSchema && new DeepCollectionEquality().equals(schemaMap, other.schemaMap);
 
   @override
-  int get hashCode => new MapEquality().hash(schemaMap);
+  int get hashCode => new DeepCollectionEquality().hash(schemaMap);
 
   @override
   String toString() => '${_schemaMap}';

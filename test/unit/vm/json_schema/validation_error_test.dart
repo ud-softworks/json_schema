@@ -589,10 +589,7 @@ void main() {
       });
 
       test('with an instance path should include the path', () {
-        final errors = schema.validateWithErrors({
-          'foo': 'some string',
-          'bar': 'oops this should be an integer'
-        });
+        final errors = schema.validateWithErrors({'foo': 'some string', 'bar': 'oops this should be an integer'});
         expect(errors.length, 1);
         expect(errors[0].toString().startsWith('/bar:'), isTrue);
       });

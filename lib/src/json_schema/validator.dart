@@ -71,7 +71,7 @@ class ValidationError {
   String message;
 
   @override
-  toString() => '$instancePath: $message';
+  toString() => instancePath.isEmpty ? message : '$instancePath: $message';
 }
 
 /// Initialized with schema, validates instances against it

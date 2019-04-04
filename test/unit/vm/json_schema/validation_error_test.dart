@@ -11,7 +11,7 @@ JsonSchema createObjectSchema(Map<String, dynamic> nestedSchema) {
 }
 
 void main() {
-  group('validation error', () {
+  group('ValidationError', () {
     test('boolean false at root', () {
       final schema = JsonSchema.createSchema(false);
       final errors = schema.validateWithErrors({'someKey': 1});
@@ -577,6 +577,31 @@ void main() {
       expect(errors[0].instancePath, '/someKey');
       expect(errors[0].schemaPath, '/properties/someKey/dependencies/bar');
       expect(errors[0].message, contains('schema dependency'));
+    });
+
+    group('string formatting', () {
+      final schema = JsonSchema.createSchema({
+        "properties": {
+          "foo": {"type": "string"},
+          "bar": {"type": "integer"}
+        },
+        "required": ["foo"]
+      });
+
+      test('with an instance path should include the path', () {
+        final errors = schema.validateWithErrors({
+          'foo': 'some string',
+          'bar': 'oops this should be an integer'
+        });
+        expect(errors.length, 1);
+        expect(errors[0].toString().startsWith('/bar:'), isTrue);
+      });
+
+      test('without an instance path should omit the colon', () {
+        final errors = schema.validateWithErrors({});
+        expect(errors.length, 1);
+        expect(errors[0].toString(), 'required prop missing: foo from {}');
+      });
     });
 
     group('reference', () {

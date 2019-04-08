@@ -8,6 +8,7 @@ addons:
 cache:
   directories:
     - $HOME/.pub-cache
+install: false
 script:
   # Use pub 2 for Dart 1.
   - if [[ $(dart dart_version.dart) = "1" ]]; then

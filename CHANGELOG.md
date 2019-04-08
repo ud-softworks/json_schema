@@ -1,6 +1,7 @@
-## 2.1.5
+## 2.2.0
 
 * Add note about root path in error string when instance path is empty
+* Expose `ValidationError` class
 
 ## 2.1.4
 

@@ -59,7 +59,7 @@ class Instance {
 }
 
 class ValidationError {
-  ValidationError(this.instancePath, this.schemaPath, this.message);
+  ValidationError._(this.instancePath, this.schemaPath, this.message);
 
   /// Path in the instance data to the key where this error occurred
   String instancePath;
@@ -71,7 +71,7 @@ class ValidationError {
   String message;
 
   @override
-  toString() => '$instancePath: $message';
+  toString() => '${instancePath.isEmpty ? '# (root)' : instancePath}: $message';
 }
 
 /// Initialized with schema, validates instances against it
@@ -527,7 +527,7 @@ class Validator {
     // _logger.warning(msg); TODO: re-add logger
 
     schemaPath = schemaPath.replaceFirst('#', '');
-    _errors.add(new ValidationError(instancePath, schemaPath, msg));
+    _errors.add(new ValidationError._(instancePath, schemaPath, msg));
     if (!_reportMultipleErrors) throw new FormatException(msg);
   }
 

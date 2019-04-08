@@ -594,10 +594,10 @@ void main() {
         expect(errors[0].toString().startsWith('/bar:'), isTrue);
       });
 
-      test('without an instance path should omit the colon', () {
+      test('without an instance path should add "root" instead of the path', () {
         final errors = schema.validateWithErrors({});
         expect(errors.length, 1);
-        expect(errors[0].toString(), 'required prop missing: foo from {}');
+        expect(errors[0].toString(), '# (root): required prop missing: foo from {}');
       });
     });
 

@@ -9,7 +9,19 @@ cache:
   directories:
     - $HOME/.pub-cache
 script:
-  - pub get
+  # Use pub 2 for Dart 1.
+  - |
+    if [[ $(dart dart_version.dart) = "1" ]]; then
+      curl --connect-timeout 15 --retry 5 https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip > ${TRAVIS_HOME}/dartsdk2.zip
+      unzip ${TRAVIS_HOME}/dartsdk2.zip -d ${TRAVIS_HOME}/dart2 > /dev/null
+      rm ${TRAVIS_HOME}/dartsdk2.zip
+      _PUB_TEST_SDK_VERSION=1.24.3 timeout 5m ${TRAVIS_HOME}/dart2/dart-sdk/bin/pub get --no-precompile
+    fi
+  # Use normal "pub get" for Dart 2.
+  - |
+    if [[ $(dart dart_version.dart) = "2" ]]; then
+      pub get
+    fi
   - pub run dependency_validator --ignore build_runner,build_test,build_web_compilers,dart_style,coverage
   - pub run dart_dev dart2-only -- format --check
   - pub run dart_dev analyze

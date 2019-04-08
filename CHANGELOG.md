@@ -1,6 +1,6 @@
 ## 2.1.5
 
-* Omit colon in error string when instance path is empty
+* Add note about root path in error string when instance path is empty
 
 ## 2.1.4
 

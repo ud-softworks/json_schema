@@ -161,7 +161,7 @@ main(List<String> args) {
     new HttpClient()
         .getUrl(uri)
         .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) => response.transform(new convert.Utf8Decoder()).join())
+        .then((HttpClientResponse response) => new convert.Utf8Decoder().bind(response).join())
         .then((text) {
       completer.complete(text);
     });

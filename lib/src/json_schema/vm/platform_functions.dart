@@ -60,7 +60,7 @@ Future<JsonSchema> createSchemaFromUrlVm(String schemaUrl, {SchemaVersion schema
     if (response.statusCode == HttpStatus.NOT_FOUND) {
       throw new ArgumentError('Schema at URL: $schemaUrl can\'t be found.');
     }
-    final schemaText = await response.transform(new convert.Utf8Decoder()).join();
+    final schemaText = await new convert.Utf8Decoder().bind(response).join();
     schemaMap = convert2.json.decode(schemaText);
   } else if (uri.scheme == 'file' || uri.scheme == '') {
     final fileString = await new File(uri.scheme == 'file' ? uri.toFilePath() : schemaUrl).readAsString();

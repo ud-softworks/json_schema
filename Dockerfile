@@ -1,4 +1,4 @@
-FROM google/dart:2.1.0
+FROM google/dart:2.4.0
 WORKDIR /build/
 
 # Build Environment Vars

@@ -23,7 +23,7 @@ RUN echo "$GIT_SSH_KEY" > "/root/.ssh/id_rsa"
 RUN chmod 700 /root/.ssh/
 RUN chmod 600 /root/.ssh/id_rsa
 
-RUN pub global activate -sgit git@github.com:Workiva/semver-audit-dart.git
+RUN pub global activate --hosted-url https://pub.workiva.org semver_audit ^2.0.1
 
 COPY pubspec.yaml ./
 RUN pub get

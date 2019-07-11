@@ -17,6 +17,7 @@ script:
       unzip ${TRAVIS_HOME}/dartsdk2.zip -d ${TRAVIS_HOME}/dart2 > /dev/null
       rm ${TRAVIS_HOME}/dartsdk2.zip
       _PUB_TEST_SDK_VERSION=1.24.3 timeout 5m ${TRAVIS_HOME}/dart2/dart-sdk/bin/pub get --no-precompile
+      pub get
     fi
   # Use normal "pub get" for Dart 2.
   - |

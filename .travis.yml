@@ -24,9 +24,10 @@ script:
     if [[ $(dart dart_version.dart) = "2" ]]; then
       pub get
     fi
-  - pub run dependency_validator --ignore build_runner,build_test,build_web_compilers,dart_style,coverage
+  - pub run dependency_validator --ignore coverage
   - pub run dart_dev dart2-only -- format --check
   - pub run dart_dev analyze
-  - pub run dart_dev test
+  - pub run dart_dev test -p vm
+  - pub run dart_dev test -p chrome --release
   # TODO: re-enable coverage when a Dart 2 solution is available.
   # - pub run dart_dev dart1-only -- coverage --no-html && bash <(curl -s https://codecov.io/bash) -f coverage/coverage.lcov

@@ -406,8 +406,8 @@ class JsonSchema {
 
   /// Create a sub-schema inside the root, using either a directly nested schema, or a definition.
   JsonSchema _createSubSchema(dynamic schemaDefinition, String path) {
-    assert(!_schemaRefs.containsKey(path));
-    assert(!_refMap.containsKey(path));
+    // assert(!_schemaRefs.containsKey(path));
+    // assert(!_refMap.containsKey(path));
 
     if (schemaDefinition is Map) {
       return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
@@ -1122,12 +1122,14 @@ This functionality will be removed in 3.0.
       return false;
     }
 
-    final dynamic ref = schemaDefinitionMap[r'$ref'];
-    if (ref != null) {
-      TypeValidators.nonEmptyString(r'$ref', ref);
-      // If the ref begins with "#" it is a local ref, so we return false.
-      if (ref[0] != '#') return false;
-      return true;
+    if (schemaDefinitionMap[r'$ref'] is String) {
+      final String ref = schemaDefinitionMap[r'$ref'];
+      if (ref != null) {
+        TypeValidators.nonEmptyString(r'$ref', ref);
+        // If the ref begins with "#" it is a local ref, so we return false.
+        if (ref.startsWith('#')) return false;
+        return true;
+      }
     }
     return false;
   }

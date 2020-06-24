@@ -1139,7 +1139,7 @@ This functionality will be removed in 3.0.
       ..asyncRetrievalOperation = asyncRefSchemaOperation
       ..syncRetrievalOperation = syncRefSchemaOperation);
   }
-  
+
   /// Given a path within the schema, follow all references to an end path pointing to a [JsonSchema].
   String endPath(String path) {
     _pathsEncountered.clear();

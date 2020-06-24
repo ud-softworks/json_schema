@@ -116,9 +116,13 @@ void main([List<String> args]) {
                 final instance = validationTest['data'];
                 bool validationResult;
                 final bool expectedResult = validationTest['valid'];
+
                 if (isSync) {
-                  final schema =
-                      JsonSchema.createSchema(schemaData, schemaVersion: schemaVersion, refProvider: refProvider);
+                  final schema = JsonSchema.createSchema(
+                    schemaData,
+                    schemaVersion: schemaVersion,
+                    refProvider: refProvider,
+                  );
                   validationResult = schema.validate(instance);
                   expect(validationResult, expectedResult);
                 } else {
@@ -220,6 +224,9 @@ void main([List<String> args]) {
     // equivalent to the JSON input.
     'integer : a bignum is an integer',
     'integer : a negative bignum is an integer',
+    // Dart parses URI's different than the spec expects regarding / and ~.
+    'escaped pointer ref : slash valid',
+    'escaped pointer ref : tilda valid',
   ];
 
   // Run all tests asynchronously with no ref provider.

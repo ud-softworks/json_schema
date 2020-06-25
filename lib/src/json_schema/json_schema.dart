@@ -312,41 +312,44 @@ class JsonSchema {
         JsonSchema localSchema;
         final Uri schemaUri = retrievalRequest.schemaUri;
 
-        Uri baseUri;
-        String baseEmptyFragmentUri;
-        if (schemaUri.scheme.isNotEmpty) {
-          baseUri = schemaUri.removeFragment();
-          baseEmptyFragmentUri = '$baseUri#';
-        }
-
-        if (baseUri == _inheritedUri && schemaUri.hasFragment) {
-          // Check if the ref base is the same as in the inherited base.
-          localSchema = _root;
-        } else if (baseEmptyFragmentUri != null && _refMap[baseEmptyFragmentUri] != null) {
-          // Check if the ref base already exists in the _refMap.
-          localSchema = _refMap[baseEmptyFragmentUri];
-        } else if (baseEmptyFragmentUri != null && SchemaVersion.fromString(baseEmptyFragmentUri) != null) {
-          // Check if the ref base is actually a standard schema definition, resolve it locally.
-          localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseEmptyFragmentUri));
-          _addSchemaToRefMap(baseEmptyFragmentUri, localSchema);
-        } else {
-          // Attempt to get the schema from the existing schema cache.
-          try {
-            localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
-          } catch (e) {
-            // If we couldn't resolve the path locally, it just means we need to make a request after all.
-            resolvedSuccessfully = false;
+        // Attempt to resolve schema if it does not exist within ref map already.
+        if (_refMap[schemaUri.toString()] == null) {
+          Uri baseUri;
+          String baseEmptyFragmentUri;
+          if (schemaUri.scheme.isNotEmpty) {
+            baseUri = schemaUri.removeFragment();
+            baseEmptyFragmentUri = '$baseUri#';
           }
-        }
 
-        // Resolve sub schema of fetched schema if a fragment was included.
-        if (resolvedSuccessfully && schemaUri.fragment != null && schemaUri.fragment.isNotEmpty) {
-          try {
-            final JsonSchema localSubSchema = localSchema.resolvePath('#${schemaUri.fragment}');
-            _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSubSchema);
-          } catch (e) {
-            // If we couldn't resolve the path locally, it just means we need to make a request after all.
-            resolvedSuccessfully = false;
+          if (baseUri == _inheritedUri && schemaUri.hasFragment) {
+            // Check if the ref base is the same as in the inherited base.
+            localSchema = _root;
+          } else if (baseEmptyFragmentUri != null && _refMap[baseEmptyFragmentUri] != null) {
+            // Check if the ref base already exists in the _refMap.
+            localSchema = _refMap[baseEmptyFragmentUri];
+          } else if (baseEmptyFragmentUri != null && SchemaVersion.fromString(baseEmptyFragmentUri) != null) {
+            // Check if the ref base is actually a standard schema definition, resolve it locally.
+            localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseEmptyFragmentUri));
+            _addSchemaToRefMap(baseEmptyFragmentUri, localSchema);
+          } else {
+            // Attempt to get the schema from the existing schema cache.
+            try {
+              localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
+            } catch (e) {
+              // If we couldn't resolve the path locally, it just means we need to make a request after all.
+              resolvedSuccessfully = false;
+            }
+          }
+
+          // Resolve sub schema of fetched schema if a fragment was included.
+          if (resolvedSuccessfully && schemaUri.fragment != null && schemaUri.fragment.isNotEmpty) {
+            try {
+              final JsonSchema localSubSchema = localSchema.resolvePath('#${schemaUri.fragment}');
+              _addSchemaToRefMap(retrievalRequest.schemaUri.toString(), localSubSchema);
+            } catch (e) {
+              // If we couldn't resolve the path locally, it just means we need to make a request after all.
+              resolvedSuccessfully = false;
+            }
           }
         }
 

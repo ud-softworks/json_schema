@@ -315,22 +315,22 @@ class JsonSchema {
         // Attempt to resolve schema if it does not exist within ref map already.
         if (_refMap[schemaUri.toString()] == null) {
           Uri baseUri;
-          String baseEmptyFragmentUri;
+          String baseUriWithEmptyFragment;
           if (schemaUri.scheme.isNotEmpty) {
             baseUri = schemaUri.removeFragment();
-            baseEmptyFragmentUri = '$baseUri#';
+            baseUriWithEmptyFragment = '$baseUri#';
           }
 
           // Check if the ref base is the same as in the inherited base.
           if (baseUri == _inheritedUri && schemaUri.hasFragment) {
             localSchema = _root;
-          } else if (baseEmptyFragmentUri != null && _refMap[baseEmptyFragmentUri] != null) {
+          } else if (baseUriWithEmptyFragment != null && _refMap[baseUriWithEmptyFragment] != null) {
             // Check if the ref base already exists in the _refMap.
-            localSchema = _refMap[baseEmptyFragmentUri];
-          } else if (baseEmptyFragmentUri != null && SchemaVersion.fromString(baseEmptyFragmentUri) != null) {
+            localSchema = _refMap[baseUriWithEmptyFragment];
+          } else if (baseUriWithEmptyFragment != null && SchemaVersion.fromString(baseUriWithEmptyFragment) != null) {
             // Check if the ref base is actually a standard schema definition, resolve it locally.
-            localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseEmptyFragmentUri));
-            _addSchemaToRefMap(baseEmptyFragmentUri, localSchema);
+            localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseUriWithEmptyFragment));
+            _addSchemaToRefMap(baseUriWithEmptyFragment, localSchema);
           } else {
             // The remote ref needs to be resolved if the above checks failed.
             resolvedSuccessfully = false;

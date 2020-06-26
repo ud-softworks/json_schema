@@ -265,7 +265,7 @@ class JsonSchema {
         accessor(this, v);
       } else {
         // Attempt to create a schema out of the property and register the ref, but don't error if it's not a valid schema.
-        _makeSchema('$_path/$k', v, (rhs) {
+        _createOrRetrieveSchema('$_path/$k', v, (rhs) {
           // Re-parse the path string for proper Uri encoding.
           final String refPath = Uri.parse(rhs.path).toString();
           return _refMap[refPath] = rhs;
@@ -321,8 +321,8 @@ class JsonSchema {
             baseEmptyFragmentUri = '$baseUri#';
           }
 
+          // Check if the ref base is the same as in the inherited base.
           if (baseUri == _inheritedUri && schemaUri.hasFragment) {
-            // Check if the ref base is the same as in the inherited base.
             localSchema = _root;
           } else if (baseEmptyFragmentUri != null && _refMap[baseEmptyFragmentUri] != null) {
             // Check if the ref base already exists in the _refMap.
@@ -332,13 +332,8 @@ class JsonSchema {
             localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseEmptyFragmentUri));
             _addSchemaToRefMap(baseEmptyFragmentUri, localSchema);
           } else {
-            // Attempt to get the schema from the existing schema cache.
-            try {
-              localSchema = _getSchemaFromPath(retrievalRequest.schemaUri.toString());
-            } catch (e) {
-              // If we couldn't resolve the path locally, it just means we need to make a request after all.
-              resolvedSuccessfully = false;
-            }
+            // The remote ref needs to be resolved if the above checks failed.
+            resolvedSuccessfully = false;
           }
 
           // Resolve sub schema of fetched schema if a fragment was included.
@@ -449,8 +444,8 @@ class JsonSchema {
         throw FormatExceptions.error('Encountered ref cycle at ${result.ref}');
       }
 
-      final String path = endPath(result.ref.toString());
-      result = _refMap[path];
+      assert(endPath(result.ref.toString()) == result.ref.toString());
+      result = _refMap[result.ref.toString()];
     }
 
     return result;
@@ -458,8 +453,8 @@ class JsonSchema {
 
   /// Create a sub-schema inside the root, using either a directly nested schema, or a definition.
   JsonSchema _createSubSchema(dynamic schemaDefinition, String path) {
-    // assert(!_schemaRefs.containsKey(path));
-    // assert(!_refMap.containsKey(path));
+    assert(!_schemaRefs.containsKey(path));
+    assert(!_refMap.containsKey(path));
 
     if (schemaDefinition is Map) {
       return new JsonSchema._fromMap(_root, schemaDefinition, path, parent: this);
@@ -659,7 +654,9 @@ class JsonSchema {
   /// HTTP(S) requests to fetch ref'd schemas.
   List<RetrievalRequest> _retrievalRequests = [];
 
-  /// Assignments to call for resolution upon end of parse.
+  /// Remote ref assignments that need to wait until RetrievalRequests have been resolved to execute.
+  ///
+  /// The assignments themselves can be thought of as a callback dependent on a Future<RetrievalRequest>.
   List _schemaAssignments = [];
 
   /// For schemas with $ref maps, path of schema to $ref path.
@@ -1115,7 +1112,7 @@ This functionality will be removed in 3.0.
   // Convenience Methods
   // --------------------------------------------------------------------------
 
-  void addRefRetrievals(Uri ref) {
+  void _addRefRetrievals(Uri ref) {
     final addSchemaFunction = (JsonSchema schema) {
       if (schema != null) {
         // Set referenced schema's path should be equivalent to the $ref value.
@@ -1166,7 +1163,7 @@ This functionality will be removed in 3.0.
   }
 
   /// Prepends inherited Uri data to the ref if necessary.
-  Uri translateLocalRef(Uri ref) {
+  Uri _translateLocalRefToFullUri(Uri ref) {
     // TODO: add a more advanced check to find out if the $ref is local.
     // Does it have a fragment? Append the base and check if it exists in the _refMap
     // Does it have a path? Append the base and check if it exists in the _refMap
@@ -1252,7 +1249,7 @@ This functionality will be removed in 3.0.
     if (_isRemoteRef(schemaDefinition)) {
       final schemaDefinitionMap = TypeValidators.object(path, schemaDefinition);
       Uri ref = TypeValidators.uri(r'$ref', schemaDefinitionMap[r'$ref']);
-      ref = translateLocalRef(ref);
+      ref = _translateLocalRefToFullUri(ref);
 
       // _logger.info('Linking $path to $ref'); TODO: re-add logger
       _schemaRefs[path] = ref.toString();
@@ -1263,7 +1260,7 @@ This functionality will be removed in 3.0.
   JsonSchema _addSchemaToRefMap(String path, JsonSchema schema) => _refMap[path] = schema;
 
   // Create a [JsonSchema] from a sub-schema of the root.
-  _makeSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
+  _createOrRetrieveSchema(String path, dynamic schema, SchemaAssigner assigner, {mustBeValid: true}) {
     var throwError;
 
     if (schema is bool && schemaVersion != SchemaVersion.draft6)
@@ -1287,10 +1284,10 @@ This functionality will be removed in 3.0.
       Uri ref = TypeValidators.uri(r'$ref', schemaDefinitionMap[r'$ref']);
 
       // Add any relevant inherited Uri information.
-      ref = translateLocalRef(ref);
+      ref = _translateLocalRefToFullUri(ref);
 
       // Add retrievals to _root schema.
-      addRefRetrievals(ref);
+      _addRefRetrievals(ref);
 
       _schemaAssignments.add(() => assigner(_getSchemaFromPath(path)));
     } else {
@@ -1305,7 +1302,7 @@ This functionality will be removed in 3.0.
   _validateListOfSchema(String key, dynamic value, SchemaAdder schemaAdder) {
     TypeValidators.nonEmptyList(key, value);
     for (int i = 0; i < value.length; i++) {
-      _makeSchema('$_path/$key/$i', value[i], (rhs) => schemaAdder(rhs));
+      _createOrRetrieveSchema('$_path/$key/$i', value[i], (rhs) => schemaAdder(rhs));
     }
   }
 
@@ -1330,7 +1327,7 @@ This functionality will be removed in 3.0.
 
   /// Validate, calculate and set the value of the 'definitions' JSON Schema prop.
   _setDefinitions(dynamic value) => (TypeValidators.object('definition', value))
-      .forEach((k, v) => _makeSchema('$_path/definitions/$k', v, (rhs) => _definitions[k] = rhs));
+      .forEach((k, v) => _createOrRetrieveSchema('$_path/definitions/$k', v, (rhs) => _definitions[k] = rhs));
 
   /// Validate, calculate and set the value of the 'description' JSON Schema prop.
   _setDescription(dynamic value) => _description = TypeValidators.string('description', value);
@@ -1402,7 +1399,7 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set the value of the 'not' JSON Schema prop.
   _setNot(dynamic value) {
     if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
-      _makeSchema('$_path/not', value, (rhs) => _notSchema = rhs);
+      _createOrRetrieveSchema('$_path/not', value, (rhs) => _notSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
     }
@@ -1417,7 +1414,7 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set the value of the 'propertyNames' JSON Schema prop.
   _setPropertyNames(dynamic value) {
     if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
-      _makeSchema('$_path/propertyNames', value, (rhs) => _propertyNamesSchema = rhs);
+      _createOrRetrieveSchema('$_path/propertyNames', value, (rhs) => _propertyNamesSchema = rhs);
     } else {
       throw FormatExceptions.error('items must be object (or boolean in draft6 and later): $value');
     }
@@ -1426,7 +1423,7 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set the value of the '$ref' JSON Schema prop.
   _setRef(dynamic value) {
     // Add any relevant inherited Uri information.
-    _ref = translateLocalRef(TypeValidators.uri(r'$ref', value));
+    _ref = _translateLocalRefToFullUri(TypeValidators.uri(r'$ref', value));
 
     // The ref's base is a relative file path, so it should be treated as a relative file URI
     final isRelativeFileUri = _inheritedUriBase != null && _inheritedUriBase.scheme.isEmpty;
@@ -1434,7 +1431,7 @@ This functionality will be removed in 3.0.
       _schemaRefs[_path] = _ref.toString();
 
       // Add retrievals to _root schema.
-      addRefRetrievals(_ref);
+      _addRefRetrievals(_ref);
     } else {
       // Add _ref to _localRefs to be validated during schema path resolution.
       _root._localRefs.add(_ref);
@@ -1466,12 +1463,12 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set items of the 'pattern' JSON Schema prop that are also [JsonSchema]s.
   _setItems(dynamic value) {
     if (value is Map || value is bool && schemaVersion == SchemaVersion.draft6) {
-      _makeSchema('$_path/items', value, (rhs) => _items = rhs);
+      _createOrRetrieveSchema('$_path/items', value, (rhs) => _items = rhs);
     } else if (value is List) {
       int index = 0;
       _itemsList = new List(value.length);
       for (int i = 0; i < value.length; i++) {
-        _makeSchema('$_path/items/${index++}', value[i], (rhs) => _itemsList[i] = rhs);
+        _createOrRetrieveSchema('$_path/items/${index++}', value[i], (rhs) => _itemsList[i] = rhs);
       }
     } else {
       throw FormatExceptions.error('items must be object or array (or boolean in draft6 and later): $value');
@@ -1483,14 +1480,14 @@ This functionality will be removed in 3.0.
     if (value is bool) {
       _additionalItemsBool = value;
     } else if (value is Map) {
-      _makeSchema('$_path/additionalItems', value, (rhs) => _additionalItemsSchema = rhs);
+      _createOrRetrieveSchema('$_path/additionalItems', value, (rhs) => _additionalItemsSchema = rhs);
     } else {
       throw FormatExceptions.error('additionalItems must be boolean or object: $value');
     }
   }
 
   /// Validate, calculate and set the value of the 'contains' JSON Schema prop.
-  _setContains(dynamic value) => _makeSchema('$_path/contains', value, (rhs) => _contains = rhs);
+  _setContains(dynamic value) => _createOrRetrieveSchema('$_path/contains', value, (rhs) => _contains = rhs);
 
   /// Validate, calculate and set the value of the 'examples' JSON Schema prop.
   _setExamples(dynamic value) => _examples = TypeValidators.list('examples', value);
@@ -1510,14 +1507,14 @@ This functionality will be removed in 3.0.
 
   /// Validate, calculate and set sub-items or properties of the schema that are also [JsonSchema]s.
   _setProperties(dynamic value) => (TypeValidators.object('properties', value)).forEach((property, subSchema) =>
-      _makeSchema('$_path/properties/$property', subSchema, (rhs) => _properties[property] = rhs));
+      _createOrRetrieveSchema('$_path/properties/$property', subSchema, (rhs) => _properties[property] = rhs));
 
   /// Validate, calculate and set the value of the 'additionalProperties' JSON Schema prop.
   _setAdditionalProperties(dynamic value) {
     if (value is bool) {
       _additionalProperties = value;
     } else if (value is Map) {
-      _makeSchema('$_path/additionalProperties', value, (rhs) => _additionalPropertiesSchema = rhs);
+      _createOrRetrieveSchema('$_path/additionalProperties', value, (rhs) => _additionalPropertiesSchema = rhs);
     } else {
       throw FormatExceptions.error('additionalProperties must be a bool or valid schema object: $value');
     }
@@ -1526,7 +1523,7 @@ This functionality will be removed in 3.0.
   /// Validate, calculate and set the value of the 'dependencies' JSON Schema prop.
   _setDependencies(dynamic value) => (TypeValidators.object('dependencies', value)).forEach((k, v) {
         if (v is Map || v is bool && schemaVersion == SchemaVersion.draft6) {
-          _makeSchema('$_path/dependencies/$k', v, (rhs) => _schemaDependencies[k] = rhs);
+          _createOrRetrieveSchema('$_path/dependencies/$k', v, (rhs) => _schemaDependencies[k] = rhs);
         } else if (v is List) {
           // Dependencies must have contents in draft4, but can be empty in draft6 and later
           if (schemaVersion == SchemaVersion.draft4) {
@@ -1555,8 +1552,8 @@ This functionality will be removed in 3.0.
   _setMinProperties(dynamic value) => _minProperties = TypeValidators.nonNegativeInt('minProperties', value);
 
   /// Validate, calculate and set the value of the 'patternProperties' JSON Schema prop.
-  _setPatternProperties(dynamic value) => (TypeValidators.object('patternProperties', value)).forEach(
-      (k, v) => _makeSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[new RegExp(k)] = rhs));
+  _setPatternProperties(dynamic value) => (TypeValidators.object('patternProperties', value)).forEach((k, v) =>
+      _createOrRetrieveSchema('$_path/patternProperties/$k', v, (rhs) => _patternProperties[new RegExp(k)] = rhs));
 
   /// Validate, calculate and set the value of the 'required' JSON Schema prop.
   _setRequired(dynamic value) =>

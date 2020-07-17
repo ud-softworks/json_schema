@@ -633,6 +633,7 @@ class JsonSchema {
   /// Map of [JsonSchema]s for properties, based on [RegExp]s keys.
   Map<RegExp, JsonSchema> _patternProperties = {};
 
+  /// Map of sub-properties' and references' [JsonSchema]s by path.
   Map<String, JsonSchema> _refMap = {};
 
   /// List if properties that are required for the [JsonSchema] instance to be valid.

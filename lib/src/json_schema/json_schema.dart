@@ -325,10 +325,10 @@ class JsonSchema {
           if (baseUri == _inheritedUri && schemaUri.hasFragment) {
             localSchema = _root;
           } else if (baseUriWithEmptyFragment != null && _refMap[baseUriWithEmptyFragment] != null) {
-            // Check if the ref base already exists in the _refMap.
+            // If we already have the ref'd schema in the _refMap.
             localSchema = _refMap[baseUriWithEmptyFragment];
           } else if (baseUriWithEmptyFragment != null && SchemaVersion.fromString(baseUriWithEmptyFragment) != null) {
-            // Check if the ref base is actually a standard schema definition, resolve it locally.
+            // If the referenced URI is or within versioned schema spec.
             localSchema = JsonSchema.createSchema(getJsonSchemaDefinitionByRef(baseUriWithEmptyFragment));
             _addSchemaToRefMap(baseUriWithEmptyFragment, localSchema);
           } else {
@@ -1083,20 +1083,6 @@ class JsonSchema {
   ///
   /// Spec: https://tools.ietf.org/html/draft-wright-json-schema-validation-01#section-6.21
   Map<String, List<String>> get propertyDependencies => _propertyDependencies;
-
-  /// Map of sub-properties' and references' [JsonSchema]s by path.
-  ///
-  /// Note: This is useful for drawing dependency graphs, etc, but should not be used for general
-  /// validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
-  /// to get the [JsonSchema] at any path, instead.
-  @Deprecated('''
-Note: This information is useful for drawing dependency graphs, etc, but should not be used for general
-validation or traversal. Use [endPath] to get the absolute [String] path and [resolvePath]
-to get the [JsonSchema] at any path, instead.
-
-This functionality will be removed in 3.0.
-  ''')
-  Map<String, JsonSchema> get refMap => _refMap;
 
   /// Properties that must be inclueded for the [JsonSchema] to be valid.
   ///
